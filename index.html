@@ -1490,6 +1490,17 @@ function botBuy(bot, a, snipe) {
   slot.occupied = true; slot.occupant = a; a.slot = slot; a.route = buildRoute(bot.base, slot); beginSeg(a); a.state = 'walk'; bot.walkers.push(a);
   bot.buyAt = botT + botRnd(BOT_CFG[bot.level].buyCD[0], BOT_CFG[bot.level].buyCD[1]); return true;
 }
+function botRivalSteal(bot, rival, a) {
+  if (!rival || rival===bot || !rival.earners.includes(a)) return false;
+  const L=BOT_CFG[bot.level]; let slot=bot.base.slots.find(s=>s.unlocked&&!s.occupied);
+  if (!slot || botOwned(bot)>=L.cap) { const w=botWorst(bot); if(!w || w.cfg.price>=a.cfg.price) return false; slot=botSell(bot,w); }
+  rival.earners.splice(rival.earners.indexOf(a),1); const old=a.slot;
+  if(old){old.occupied=false;old.occupant=null;}
+  slot.occupied=true;slot.occupant=a;a.slot=slot;a.botOwned=bot;a.homeSlot=null;a.stolenFromBot=rival;
+  a.route=buildRoute(bot.base,slot);beginSeg(a);a.state='walk';a.fresh=false;a.outside=false;bot.walkers.push(a);
+  rival.enemyBot=bot;rival.state='huntBot';rival.chaseT=0;rival.path=null;rival.pathT=0;
+  toast(bot.name+' stole '+a.cfg.name+' from '+rival.name+'!',true,2600);return true;
+}
 function botWalkers(bot, dt) {   // bought show runners walking to this bot's platforms (same movement as yours)
   for (let i = bot.walkers.length - 1; i >= 0; i--) {
     const a = bot.walkers[i], t = a.route[0], p = a.root.position, dx = t.x - p.x, dz = t.z - p.z, d = Math.hypot(dx, dz), step = BASE_WALK_SPEED * dt;
@@ -1607,7 +1618,7 @@ function botDecide(bot, L) {
   else if (dist < 28 && !bot.threat && !inside) { bot.threat = true; if (bot.earners.length && now >= f.until && now >= f.cool && Math.random() < L.fence) { bot.state = 'fence'; bot.actT = 0; return; } }
   if (botT >= bot.rivalAt) { // occasionally start a rivalry by targeting a rival bot's walkers
     bot.rivalAt=botT+botRnd(55,115); const rivals=bots.filter(x=>x!==bot&&x.walkers.length);
-    if (rivals.length && Math.random()<0.35) { const rival=botPick(rivals), a=botPick(rival.walkers); bot.target=a; bot.snipe=true; bot.state='buy'; bot.actT=0; }
+    if (rivals.length && Math.random()<0.55) { const rival=botPick(rivals); if(rival.earners.length && Math.random()<0.55) botRivalSteal(bot,rival,botPick(rival.earners)); else if(rival.walkers.length) { const a=botPick(rival.walkers); bot.target=a; bot.snipe=true; bot.state='buy'; bot.actT=0; } }
   }
   if (botT >= bot.stealAt) {   // steal from you
     if (botT >= botStealNext && earners.length && now >= playerBase.fence.until && Math.random() < L.stealOn && botPlanSteal(bot)) { bot.stealAt = botT + botRnd(L.steal[0], L.steal[1]); botStealNext = botT + 20; return; }
