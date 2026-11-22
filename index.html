@@ -1477,7 +1477,7 @@ function botBuy(bot, a, snipe) {
   const L = BOT_CFG[bot.level]; if (bot.cash < a.cfg.price) return false;
   let slot = bot.base.slots.find(s => s.unlocked && !s.occupied);
   if (!slot || botOwned(bot) >= L.cap) { const w = botWorst(bot); if (!w || w.cfg.price * 2 > a.cfg.price) return false; slot = botSell(bot, w); }
-  if (snipe) { const i = walkers.indexOf(a); if (i < 0 || !a.fresh) return false; walkers.splice(i, 1); if (a.slot) { a.slot.occupied = false; a.slot.occupant = null; } toast(bot.name + ' sniped your ' + a.cfg.name + '!', true, 3200); }
+  if (snipe) { const i = walkers.indexOf(a); if (i < 0 || !a.fresh) return false; if(a.netRunnerId)sendRunnerEnd(a.netRunnerId); walkers.splice(i, 1); if (a.slot) { a.slot.occupied = false; a.slot.occupant = null; } toast(bot.name + ' sniped your ' + a.cfg.name + '!', true, 3200); }
   else { const i = runners.indexOf(a); if (i < 0) return false; runners.splice(i, 1); }
   bot.cash -= a.cfg.price; a.fresh = false; a.outside = false; a.claim = null; a.botOwned = bot; a.far = false;
   slot.occupied = true; slot.occupant = a; a.slot = slot; a.route = buildRoute(bot.base, slot); beginSeg(a); a.state = 'walk'; bot.walkers.push(a);
