@@ -179,7 +179,6 @@
   </div>
   <div id="ver">V 1.0.0</div><button id="signBtn">Sign In</button>
 </div>
-<div id="netStatus" style="position:fixed;left:16px;top:112px;z-index:6;background:rgba(0,0,0,.72);color:#fff;border:2px solid #555;border-radius:8px;padding:5px 9px;font:700 13px Arial;display:none">Offline</div>
 <div id="inviteBox"><button id="inviteX" title="Close">&#10005;</button><div id="inviteTitle">INVITE CODE</div><div id="inviteCode"></div><div id="inviteInfo"></div><button id="inviteCopy">Copy</button></div>
 <div id="settingsBox" class="modal"><button id="setX" class="x">Close</button><h2>SETTINGS</h2>
   <div class="srow"><span>&#128161; Lights (brightness)</span><input id="setBright" type="range" min="50" max="150" step="5"><b id="setBrightV"></b></div>
@@ -998,3 +997,1429 @@ let keeper, kAnim;   // created in initShop(): they need the player model code, 
 { const WD = 0x6b4a2b, DK = 0x4a3320, CL = 0xe9dcc0, MT = 0x777b80, RD = 0xc4442b, add = (...t) => gp(shop, t);
   for (const [x, z, h] of [[-1.8, -1.2, 4.2], [1.8, -1.2, 4.2], [-1.8, 1.2, 4.6], [1.8, 1.2, 4.6]]) { add('b', 0.2, h, 0.2, DK, x, h / 2, z, 0.03); add('k', 0.3, 0.5, 0.3, MT, x, h + 0.2, z, 0.03); }   // posts + finials
   add('b', 4.4, 0.12, 3.0, CL, 0, 4.4, 0, 0.04, -0.16);   // cloth awning
+  for (let i = 0; i < 7; i++) add('k', 0.4, 0.5, 0.1, RD, -1.8 + i * 0.6, 4.3, 1.55, 0.02, Math.PI);   // pennants
+  add('b', 3.4, 3.4, 0.1, WD, 0, 1.8, -1.25, 0.03);   // back wall
+  for (const y of [1.2, 2.3, 3.4]) add('b', 3.2, 0.1, 0.55, DK, 0, y, -1.0, 0.03);   // shelves
+  // robot parts
+  add('c', 0.45, 0.1, 0.45, MT, -1.3, 1.5, -1.0, 0.03, Math.PI / 2); add('d', 0.5, 0.5, 0.5, 0x6b3f0a, -0.6, 1.25, -1.0, 0.03); add('s', 0.1, 0.12, 0.04, 0x002d70, -0.6, 1.42, -0.75, 0);
+  add('b', 0.12, 0.5, 0.12, 0x555555, 0, 1.5, -1.0, 0.02, 0, 0, 0.4); add('c', 0.04, 0.5, 0.04, 0, 0.6, 1.5, -1.0, 0); add('s', 0.12, 0.12, 0.12, 0xff2222, 0.6, 1.78, -1.0, 0.02);
+  // show runner parts: Crump head + hat, Happy Man Man head, Dash, Burrito, Bubbles
+  add('s', 0.5, 0.5, 0.5, 0x9B5CFF, 1.2, 1.5, -1.0, 0.03); add('c', 0.45, 0.04, 0.45, 0xffffff, 1.2, 1.78, -1.0, 0.02); add('c', 0.25, 0.3, 0.25, 0xffffff, 1.2, 1.95, -1.0, 0.02);
+  add('s', 0.5, 0.5, 0.5, 0xffffff, -1.2, 2.6, -1.0, 0.05); add('s', 0.6, 0.45, 0.45, 0x0a8cff, -0.5, 2.58, -1.0, 0.03); add('b', 0.4, 0.6, 0.35, 0xa89f6b, 0.2, 2.65, -1.0, 0.03);
+  add('s', 0.45, 0.45, 0.45, 0xff2222, 0.9, 2.6, -1.0, 0.03); add('s', 0.25, 0.25, 0.25, 0x2255ff, 1.3, 2.5, -1.0, 0.03);
+  // weapons: shield, crossed swords, leaning sword and axe, mace
+  add('c', 0.8, 0.08, 0.8, 0xcc3333, -0.9, 3.9, -1.15, 0.03, Math.PI / 2); add('s', 0.2, 0.2, 0.2, 0xffd700, -0.9, 3.9, -1.08, 0.02);
+  add('b', 0.1, 1.2, 0.04, 0xccd2d8, 0.7, 3.9, -1.15, 0.02, 0, 0, 0.8); add('b', 0.1, 1.2, 0.04, 0xccd2d8, 0.7, 3.9, -1.15, 0.02, 0, 0, -0.8);
+  add('b', 0.1, 1.7, 0.04, 0xccd2d8, -2.15, 0.95, 1.0, 0.02, 0.2, 0, 0.12); add('b', 0.4, 0.06, 0.06, 0xaa7a2a, -2.1, 1.7, 1.0, 0.02);
+  add('c', 0.07, 1.6, 0.07, DK, 2.1, 0.85, 1.0, 0.02, 0, 0, -0.1); add('b', 0.5, 0.35, 0.05, MT, 2.28, 1.55, 1.0, 0.02);
+  add('c', 0.07, 0.9, 0.07, DK, 0.2, 1.5, 0.6, 0.02, 0, 0, 1.2); add('s', 0.28, 0.28, 0.28, MT, 0.65, 1.7, 0.6, 0.03);
+  // counter, helmet, bottles, crate, hanging cloth and lantern
+  add('b', 3.4, 0.14, 1.0, WD, 0, 1.0, 0.6, 0.03); add('b', 3.4, 0.7, 0.05, RD, 0, 0.62, 1.12, 0.02); for (const x of [-1.6, 1.6]) add('b', 0.14, 1.0, 0.14, DK, x, 0.5, 0.2, 0.02);
+  add('d', 0.5, 0.4, 0.5, 0x333333, -0.4, 1.07, 0.7, 0.03); add('c', 0.14, 0.35, 0.14, 0x44ccff, 0.95, 1.25, 0.75, 0.02); add('c', 0.14, 0.35, 0.14, 0xff7eb6, 1.2, 1.25, 0.75, 0.02); add('b', 0.5, 0.4, 0.5, 0x9a7040, -1.2, 1.27, 0.6, 0.03);
+  add('b', 0.3, 0.9, 0.03, RD, -1.6, 3.75, 1.45, 0.02); add('s', 0.35, 0.4, 0.3, 0x8a6a3a, 1.5, 3.8, 1.45, 0.03); add('c', 0.2, 0.3, 0.2, 0xffd070, 0.5, 3.85, 1.45, 0.02);
+  for (const [x, z] of [[2.45, 0.6], [2.5, -0.25]]) { add('c', 0.7, 0.9, 0.7, 0x7a5230, x, 0.45, z, 0.03); add('c', 0.74, 0.07, 0.74, MT, x, 0.2, z, 0.02); add('c', 0.74, 0.07, 0.74, MT, x, 0.7, z, 0.02); }
+  add('b', 0.7, 0.6, 0.7, 0x9a7040, -2.45, 0.3, 0.5, 0.03); add('c', 0.65, 0.8, 0.65, 0x7a5230, -2.5, 0.4, -0.3, 0.03); add('b', 0.5, 0.45, 0.5, 0x9a7040, -2.45, 0.9, 0.5, 0.03);
+  const ss = makeSign('SHOP', '#ffe14a', 5); ss.position.set(0, 5.9, 1.3); shop.add(ss);
+  }
+COLLIDERS.push({ x0:SHOP_POS.x - 1.4, x1:SHOP_POS.x + 1.5, z0:SHOP_POS.z - 2.8, z1:SHOP_POS.z + 2.8 });
+
+/* ----- shop screen ----- */
+let shopTab = 'Powers', pet = null;
+function openShop() { renderShop(); openUI($('shopBox')); }
+function shopMsg(t, bad) { const m = $('shopMsg'); m.style.color = bad ? '#e00' : '#0a0'; m.textContent = t; }
+function buyPunch() { buyTool('punch'); }
+function buyCos(it) {
+  const own = !it.price || save.cosOwned.includes(it.id);
+  if (!own) { if (cash < it.price) return shopMsg('Not enough cash!', true); cash -= it.price; save.cosOwned.push(it.id); updateHud(); passXP(50); }
+  save.cos[it.slot] = (save.cos[it.slot] === it.id && it.slot !== 'hair') ? null : it.id;   // click again to take it off
+  persist(); applyCosmetics(curModel); setPet(save.cos.pet); shopMsg(own ? '' : 'Bought ' + it.name + '!'); renderShop();
+}
+function renderShop() {
+  const tabs = $('shopTabs'); tabs.innerHTML = '';
+  for (const t of ['Powers', 'Style', 'Pets']) { const d = document.createElement('div'); d.className = 'tab' + (t === shopTab ? ' on' : ''); d.textContent = t; d.onclick = () => { shopTab = t; renderShop(); }; tabs.appendChild(d); }
+  const list = $('shopList'); list.innerHTML = '';
+  const row = (name, price, label, fn, off) => { const d = document.createElement('div'), s = document.createElement('span'), p = document.createElement('b'), b = document.createElement('button'); d.className = 'srow'; s.textContent = name; p.textContent = price; b.textContent = label; b.disabled = !!off; b.onclick = fn; d.append(s, p, b); list.appendChild(d); };
+  if (shopTab === 'Powers') {
+    for (const id of Object.keys(TOOLS)) { const T = TOOLS[id], L = toolLv(id), n = L + 1, R = playerBase.rebirth;
+      if (L >= T.max) row(T.icon + ' ' + T.name + (T.max > 1 ? ' Lv ' + L + ' (MAX)' : '') + ' - ' + T.effect(L), '', 'MAX', null, true);
+      else if (T.unlockAt(n) > R) row(T.icon + ' ' + T.name + (T.max > 1 ? ' Lv ' + n : '') + ' - unlocks at Rebirth ' + T.unlockAt(n), '', 'Locked', null, true);
+      else row(T.icon + ' ' + (L ? 'Upgrade ' + T.name + ' to Lv ' + n : T.name + (T.max > 1 ? ' Lv ' + n : '')) + ' - ' + T.effect(n), formatMoney(T.price(n)), L ? 'Upgrade' : 'Buy', () => buyTool(id)); }
+  }
+  else for (const slot of shopTab === 'Pets' ? ['pet'] : ['hair', 'glasses', 'pants', 'shoes', 'earrings']) {
+    if (shopTab === 'Style') { const h = document.createElement('div'); h.className = 'sh'; h.textContent = SLOT_NAMES[slot]; list.appendChild(h); }
+    COSMETICS.filter(i => i.slot === slot && !i.pass).forEach(i => { const own = !i.price || save.cosOwned.includes(i.id), on = (save.cos[slot] || (slot === 'hair' ? 'hair_classic' : null)) === i.id;
+      row(i.name, own ? (on ? 'Equipped' : 'Owned') : formatMoney(i.price), own ? (on && slot !== 'hair' ? 'Unequip' : 'Equip') : 'Buy', () => buyCos(i), own && on && slot === 'hair'); });
+  }
+}
+$('shopX').onclick = closeUI;
+
+/* ----- cosmetics: parts added to the player model (rebuilt whenever something changes or you switch gender) ----- */
+function applyCosmetics(model, cosOverride) {
+  const P = model.userData.P, c = cosOverride || save.cos, item = id => COSMETICS.find(i => i.id === id);
+  (model.userData.cosObjs || []).forEach(o => o.parent && o.parent.remove(o)); const objs = model.userData.cosObjs = [];
+  let curFx = null;   // pass items with an animated colour effect are tagged so fxTick can animate them
+  const add = (parent, t) => { const n = parent.children.length; gp(parent, t); for (let i = n; i < parent.children.length; i++) { objs.push(parent.children[i]); parent.children[i].userData.fx = curFx; } };
+  if (!P.hair.userData.orig) { P.hair.userData.orig = P.hair.material; if (P.pony) P.pony.userData.orig = P.pony.material; }
+  const hs = item(c.hair), hc = hs && hs.color; curFx = hs && hs.fx || null;
+  P.hair.material = hc ? toon(hc) : P.hair.userData.orig; if (P.pony) P.pony.material = hc ? toon(hc) : P.pony.userData.orig;
+  if (hs && hs.style === 'mohawk') for (let i = 0; i < 5; i++) add(P.head, ['k', 0.14, 0.32, 0.14, hc, 0, 0.88, 0.2 - i * 0.12, 0.02]);
+  if (hs && hs.style === 'afro') add(P.head, ['s', 0.9, 0.7, 0.85, hc, 0, 0.7, -0.12, 0.03]);
+  if (hs && hs.style === 'bun') add(P.head, ['s', 0.26, 0.26, 0.26, hc, 0, 0.92, -0.1, 0.03]);
+  if (hs && hs.style === 'long') add(P.head, ['s', 0.55, 1.0, 0.25, hc, 0, 0.1, -0.33, 0.03]);
+  if (hs && hs.style === 'spiky') for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; add(P.head, ['k', 0.13, 0.42, 0.13, hc, Math.cos(a) * 0.28, 0.9, Math.sin(a) * 0.28, 0, Math.sin(a) * 0.5, 0, -Math.cos(a) * 0.5]); }
+  curFx = null; const gl = item(c.glasses);
+  const starGl = s => { for (const r of [0, Math.PI / 2, Math.PI / 4, -Math.PI / 4]) add(P.head, ['b', 0.26, 0.06, 0.04, gl.color, s * 0.15, 0.45, 0.41, 0.004, 0, 0, r]); };
+  const glitchGl = s => { curFx = gl.fx; add(P.head, ['b', 0.24, 0.15, 0.04, gl.color, s * 0.15, 0.45, 0.4, 0.01]); add(P.head, ['b', 0.24, 0.04, 0.045, 0xffffff, s * 0.15 + 0.03, 0.5, 0.41, 0]); curFx = null; };
+  if (gl) for (const s of [-1, 1]) { if (gl.style === 'round') add(P.head, ['t', 0.22, 0.22, 0.5, gl.color, s * 0.15, 0.45, 0.39, 0]); else if (gl.style === 'shades') add(P.head, ['b', 0.22, 0.13, 0.04, gl.color, s * 0.15, 0.45, 0.4, 0.01]); else if (gl.style === 'star') starGl(s); else if (gl.style === 'glitch') glitchGl(s); else add(P.head, ['t', 0.26, 0.26, 0.8, gl.color, s * 0.15, 0.45, 0.4, 0]); }
+  if (gl) { add(P.head, ['b', 0.1, 0.025, 0.025, gl.color, 0, 0.46, 0.4, 0]); if (gl.style === 'goggles') add(P.head, ['t', 0.9, 0.9, 0.5, 0x222222, 0, 0.47, 0, 0, 0, Math.PI / 2, 0]); }
+  const ea = item(c.earrings);
+  if (ea) for (const s of [-1, 1]) { if (ea.style === 'hoops') add(P.head, ['t', 0.2, 0.2, 0.5, ea.color, s * 0.41, 0.25, 0, 0, 0, Math.PI / 2, 0]); else add(P.head, ['s', 0.1, 0.1, 0.1, ea.color, s * 0.4, 0.3, 0, 0]); }
+  passGear(add, P, item(c.hat), item(c.mask), item(c.back), f => { curFx = f; });
+  const pa = item(c.pants), sh = item(c.shoes), short = pa && pa.style === 'shorts';
+  for (const l of [P.legL, P.legR]) {
+    if (pa) add(l, ['c', 0.31, short ? 0.4 : 0.94, 0.31, pa.color, 0, short ? -0.2 : -0.46, 0, 0.015]);
+    if (sh) add(l, sh.style === 'boots' ? ['b', 0.27, 0.42, 0.46, sh.color, 0, -0.77, 0.06, 0.02] : ['b', 0.27, 0.16, 0.46, sh.color, 0, -0.9, 0.06, 0.02]);
+  }
+}
+
+
+/* ----- pets: follow you smoothly, bob gently ----- */
+function setPet(id) {
+  if (pet && pet.userData.id === id) return;
+  if (pet) { scene.remove(pet); pet = null; } if (!id) return;
+  const g = new THREE.Group(), b = new THREE.Group(); g.add(b); const add = (...t) => gp(b, t);
+  if (id === 'pet_blobby') { add('s', 0.7, 0.55, 0.7, 0x44ff88, 0, 0.3, 0, 0.03); add('s', 0.1, 0.1, 0.1, 0, -0.12, 0.38, 0.3, 0); add('s', 0.1, 0.1, 0.1, 0, 0.12, 0.38, 0.3, 0); }
+  else if (id === 'pet_crump') { add('s', 0.7, 0.7, 0.7, 0x9B5CFF, 0, 0.5, 0, 0.03); add('c', 0.5, 0.05, 0.5, 0xffffff, 0, 0.88, 0, 0.02); add('c', 0.28, 0.4, 0.28, 0xffffff, 0, 1.08, 0, 0.02);
+    add('b', 0.04, 0.12, 0.02, 0, -0.1, 0.55, 0.35, 0); add('b', 0.04, 0.12, 0.02, 0, 0.1, 0.55, 0.35, 0); for (const s of [-1, 1]) add('b', 0.08, 0.2, 0.08, 0xffffff, s * 0.12, 0.1, 0, 0.02); }
+  else if (id === 'pet_robo') { add('b', 0.6, 0.35, 0.9, 0x888e99, 0, 0.45, 0, 0.03); add('b', 0.4, 0.35, 0.4, 0x888e99, 0, 0.72, 0.5, 0.03); add('s', 0.08, 0.1, 0.04, 0x002d70, 0, 0.75, 0.71, 0);
+    add('c', 0.04, 0.3, 0.04, 0, 0, 1.0, 0.5, 0); add('s', 0.1, 0.1, 0.1, 0xff2222, 0, 1.17, 0.5, 0.02); for (const x of [-0.2, 0.2]) for (const z of [-0.3, 0.3]) add('b', 0.1, 0.3, 0.1, 0x555555, x, 0.15, z, 0.02); }
+  else if (petPass(id, add)) {}
+  else { add('s', 0.7, 0.7, 0.7, 0x2255ff, 0, 0.6, 0, 0.03); add('s', 0.2, 0.2, 0.05, 0xffffff, -0.15, 0.75, 0.3, 0); }
+  g.userData = { id, b }; g.position.copy(player.position); scene.add(g); pet = g;
+}
+function initShop() {   // called once everything above and below has been defined
+  keeper = createPlayerModel('male'); kAnim = new PlayerAnim(); keeper.position.set(0, 0, -0.4); shop.add(keeper);
+  player.userData.onModel = applyCosmetics; applyCosmetics(curModel); setPet(save.cos.pet);
+}
+
+function shopTick(dt) {
+  kAnim.update(dt, 'idle', 0, false, keeper.userData.P, false);
+  if ($('shopBox').style.display === 'block') setText($('shopCash'), 'Cash: ' + fmt(cash));
+  if (pet) {
+    const tx = player.position.x + (-Math.cos(pYaw) - Math.sin(pYaw)) * 1.5, tz = player.position.z + (Math.sin(pYaw) - Math.cos(pYaw)) * 1.5, k = 1 - Math.exp(-4 * dt);
+    pet.position.x += (tx - pet.position.x) * k; pet.position.z += (tz - pet.position.z) * k; pet.position.y += (player.position.y - pet.position.y) * (1 - Math.exp(-6 * dt));
+    pet.rotation.y = turn(pet.rotation.y, pYaw, dt, 6); pet.userData.b.position.y = 0.05 + 0.05 * Math.sin(worldT * 3);
+  }
+}
+applySkin(save.skin);
+
+/* ============================ PLAYER ============================ */
+const player = new THREE.Group();
+
+  scene.add(player);
+
+/* ---- Male / female player models: same part names (rig, head, armL/R, legL/R) so every animation works on both ---- */
+const PG = { leg:new THREE.CylinderGeometry(0.13, 0.11, 0.92, 16), shoe:new THREE.BoxGeometry(0.24, 0.14, 0.42), sole:new THREE.BoxGeometry(0.26, 0.05, 0.44),
+  arm:new THREE.CylinderGeometry(0.08, 0.07, 0.55, 14), sleeve:new THREE.CylinderGeometry(0.13, 0.12, 0.3, 14), hand:new THREE.SphereGeometry(0.09, 16, 12),
+  neck:new THREE.CylinderGeometry(0.09, 0.09, 0.16, 12), head:new THREE.SphereGeometry(0.4, 40, 30), eye:new THREE.SphereGeometry(0.045, 12, 10),
+  nose:new THREE.SphereGeometry(0.05, 12, 10), mouth:new THREE.BoxGeometry(0.12, 0.02, 0.02) };
+function createPlayerModel(g) {
+  const F = g === 'female', skin = 0xf3c9a5, top = F ? 0xff7eb6 : 0x2f80ff, bot = F ? 0x7c5cff : 0x3d4f86, hairC = F ? 0x7a3b1d : 0x3b2a1e;
+  const root = new THREE.Group(), rig = new THREE.Group(), P = { rig }; root.add(rig);
+  for (const s of [-1, 1]) { const k = s < 0 ? 'L' : 'R';
+    const leg = P['leg' + k] = new THREE.Group(); leg.position.set(s * (F ? 0.15 : 0.19), 0.98, 0); rig.add(leg);
+    part(leg, PG.leg, F ? skin : bot, [0, -0.46, 0], 0.025); part(leg, PG.shoe, 0xffffff, [0, -0.9, 0.06], 0.025); part(leg, PG.sole, 0x222222, [0, -0.97, 0.06], 0.02);
+    const arm = P['arm' + k] = new THREE.Group(); arm.position.set(s * (F ? 0.46 : 0.6), 1.68, 0); rig.add(arm);
+    part(arm, PG.sleeve, top, [0, -0.12, 0], 0.025); part(arm, PG.arm, skin, [0, -0.44, 0], 0.025); part(arm, PG.hand, skin, [0, -0.78, 0], 0.02); }
+  if (F) { part(rig, new THREE.BoxGeometry(0.7, 0.7, 0.4), top, [0, 1.4, 0], 0.03);                        // narrow top
+    part(rig, new THREE.CylinderGeometry(0.3, 0.5, 0.4, 24), bot, [0, 0.92, 0], 0.03);                    // skirt, wide hips
+    part(rig, new THREE.CylinderGeometry(0.51, 0.51, 0.05, 24), 0xffffff, [0, 0.74, 0], 0.02); }          // hem line
+  else { part(rig, new THREE.BoxGeometry(0.95, 0.8, 0.48), top, [0, 1.38, 0], 0.03);                       // broad t-shirt
+    part(rig, new THREE.BoxGeometry(0.8, 0.28, 0.46), bot, [0, 0.9, 0], 0.03); part(rig, new THREE.BoxGeometry(0.84, 0.07, 0.5), 0x5a3a1e, [0, 1.03, 0], 0.02); }   // jeans + belt
+  part(rig, PG.neck, skin, [0, 1.84, 0], 0.02);
+  const head = P.head = new THREE.Group(); head.position.set(0, 1.9, 0); rig.add(head);
+  part(head, PG.head, skin, [0, 0.4, 0], 0.03);
+  const R = 0.4, onHead = (geo, c, x, y) => part(head, geo, c, [x, 0.4 + y, Math.sqrt(R * R - x * x - y * y) + 0.01], 0);
+  onHead(PG.eye, 0x111111, -0.15, 0.05); onHead(PG.eye, 0x111111, 0.15, 0.05); onHead(PG.nose, 0xe3a67e, 0, -0.04); onHead(PG.mouth, 0xb03a3a, 0, -0.15);
+  const hairGeo = new THREE.SphereGeometry(F ? 0.46 : 0.43, 28, 18, 0, Math.PI * 2, 0, Math.PI * (F ? 0.62 : 0.55));
+  const hair = new THREE.Mesh(hairGeo, toon(hairC)); hair.position.set(0, 0.42, -0.02); hair.rotation.x = F ? -0.6 : -0.45; hair.castShadow = true; head.add(hair);
+  const hull = new THREE.Mesh(hairGeo, outlineMat); hull.scale.setScalar(1.07); hair.add(hull);
+  if (F) { const pt = part(head, new THREE.SphereGeometry(0.14, 16, 12).scale(1, 2.4, 1), hairC, [0, 0.18, -0.52], 0.03); pt.rotation.x = 0.35; P.pony = pt;   // ponytail
+    part(head, new THREE.SphereGeometry(0.07, 12, 10), 0xffffff, [0, 0.5, -0.46], 0.02); }
+  P.hair = hair; root.scale.setScalar(0.85); root.userData = { P }; return root;
+}
+
+/* ---- Player animation states (idle, walk, crouch, jump, fall, land) + hold (carry arms) layered on top ---- */
+const PD = { aL:0, aR:0, aLz:-0.08, aRz:0.08, lL:0, lR:0, bob:0, sq:1, sway:0, hz:0, hx:0 }, PK = Object.keys(PD);
+const P_ANIMS = {   // c = { f: female, ph: walk phase, sp: speed 0..1, st: time in state }
+  idle: (t, c) => { const br = c.f ? 0 : Math.max(0, Math.sin(t * 1.6)) * 0.06;   // male: slow shoulder rise and fall
+    return { ...PD, aL:Math.sin(t * 1.4) * 0.04, aR:-Math.sin(t * 1.4) * 0.04, bob:Math.sin(t * 1.6) * 0.015, aLz:-0.08 - br, aRz:0.08 + br,
+      sway:c.f ? Math.sin(t * 0.8) * 0.05 : Math.sin(t * 0.5) * 0.015, hz:c.f ? Math.pow(Math.max(0, Math.sin(t * 0.4)), 5) * 0.2 : 0 }; },   // female: lighter sway + head tilt
+  walk: (t, c) => { const s = Math.sin(c.ph), a = 0.35 + 0.45 * c.sp;
+    return { ...PD, lL:s * a, lR:-s * a, aL:-s * a * 0.9, aR:s * a * 0.9, bob:Math.abs(Math.cos(c.ph)) * 0.06, sway:s * (c.f ? 0.05 : 0.035), hz:-s * 0.04 }; },
+  crouch: () => ({ ...PD, sq:0.84, aL:0.6, aR:0.6 }),
+  jump: () => ({ ...PD, sq:1.05, aL:-2.6, aR:-2.6, aLz:-0.2, aRz:0.2, lL:0.35, lR:-0.25 }),
+  fall: () => ({ ...PD, sq:1.03, aLz:-1.15, aRz:1.15, lL:-0.2, lR:0.2 }),
+  land: (t, c) => ({ ...PD, sq:1 - 0.16 * Math.sin(Math.min(1, c.st / 0.25) * Math.PI), aL:0.2, aR:0.2, aLz:-0.35, aRz:0.35 })
+};
+class PlayerAnim {
+  constructor() { this.w = {}; for (const k in P_ANIMS) this.w[k] = k === 'idle' ? 1 : 0; this.hold = 0; this.t = 0; this.ph = 0; this.state = 'idle'; this.st = 0; this.pt = 0; }
+  update(dt, state, speed, holding, P, f) {
+    if (state !== this.state) { this.state = state; this.st = 0; }
+    this.st += dt; this.t += dt; this.ph += dt * speed * 1.6;   // walk phase follows real speed
+    let sum = 0; for (const k in this.w) { this.w[k] += ((k === state ? 1 : 0) - this.w[k]) * (1 - Math.exp(-14 * dt)); sum += this.w[k]; }
+    const c = { f, ph:this.ph, sp:Math.min(1, speed / PLAYER_SPEED), st:this.st }, pose = {}; PK.forEach(k => pose[k] = 0);
+    for (const k in this.w) { const p = P_ANIMS[k](this.t, c), w = this.w[k] / sum; PK.forEach(q => pose[q] += p[q] * w); }
+    this.hold += ((holding ? 1 : 0) - this.hold) * (1 - Math.exp(-10 * dt));
+    const h = this.hold, L = (a, b) => a + (b - a) * h;   // blend arms toward the carry pose
+    P.armL.rotation.set(L(pose.aL, -1.35), 0, L(pose.aLz, 0.22)); P.armR.rotation.set(L(pose.aR, -1.35), 0, L(pose.aRz, -0.22));
+    if (this.pt > 0) { this.pt -= dt; P.armR.rotation.set(-1.7 * Math.sin(Math.min(1, (0.3 - this.pt) / 0.3) * Math.PI), 0, -0.1); }   // punch swing (no damage yet)
+    P.legL.rotation.x = pose.lL; P.legR.rotation.x = pose.lR;
+    P.rig.position.y = pose.bob; P.rig.scale.set(1 / Math.sqrt(pose.sq), pose.sq, 1 / Math.sqrt(pose.sq)); P.rig.rotation.z = pose.sway; P.head.rotation.set(pose.hx, 0, pose.hz);
+  }
+}
+const playerModels = {}, pAnim = new PlayerAnim();
+let gender = 'male', curModel = null, held = null, pvx = 0, pvz = 0, jumpWind = 0, landT = 0, airborne = false;
+function setGender(g) { gender = g; if (curModel) player.remove(curModel); curModel = playerModels[g] || (playerModels[g] = addFist(createPlayerModel(g))); player.add(curModel); if (player.userData.onModel) player.userData.onModel(curModel); }   // keeps position, cash, held item, camera
+const toggleGender = () => setGender(gender === 'male' ? 'female' : 'male');
+setGender('male'); $('charBtn').onclick = e => { toggleGender(); e.target.blur(); };
+
+/* ---- Pick up / place / swap / sell ---- */
+function pickUp(a) {
+  earners.splice(earners.indexOf(a), 1); totalIncome -= a.income;   // stops earning immediately
+  a.slot.occupied = false; a.slot.occupant = null; a.origSlot = a.slot; a.slot = null; a.incomeT = 0;
+  held = a; a.state = 'hold'; a.root.scale.setScalar(0.55); a.root.userData.plate.visible = false; updateHud();
+}
+function sendTo(a, slot) {   // walk to a platform, then idle and earn (handled by the walkers loop)
+  slot.occupied = true; slot.occupant = a; a.slot = slot; a.route = [W(playerBase, slot.u, slot.y, slot.v)]; a.state = 'walk'; beginSeg(a); walkers.push(a);
+}
+function placeHeld(slot) {
+  const a = held;
+  if (slot.occupied) {   // swap with whoever is there
+    const o = slot.occupant; if (!earners.includes(o)) return toast('Wait for it to arrive!', 1);
+    const free = a.origSlot && !a.origSlot.occupied ? a.origSlot : playerBase.slots.find(s => s.unlocked && !s.occupied);
+    if (!free) return toast('No free platform to swap!', 1);
+    earners.splice(earners.indexOf(o), 1); totalIncome -= o.income; slot.occupied = false; slot.occupant = null; sendTo(o, free);
+  }
+  held = null; a.root.scale.setScalar(1); a.root.userData.plate.visible = true; sendTo(a, slot);
+}
+function sellHeld() {
+  const a = held, v = Math.floor(a.cfg.price * SELL_RATIO); cash += v; held = null; passXP(20, a, 'xpSell');
+  spawnFloat('+' + formatMoney(v), a); scene.remove(a.root); actors.delete(a); updateHud();
+}
+player.position.copy(W(playerBase, -3, 0, 8));
+let pYaw = 0, pVel = 0, camYaw = playerBase.side > 0 ? -Math.PI / 2 : Math.PI / 2, camPitch = 0.35;
+function groundAt(x, z, y) {   // highest walkable surface (ramps and decks) at or just above the player's feet
+  let g = 0;
+  for (const b of bases) { const u = b.side * x - 12, v = b.side * (z - b.z); if (u < 0 || u > 31 || v < -19 || v > 19) continue;
+    for (const s of b.surfaces) { if (!(REBIRTHS[b.rebirth].floors[s.f] > 0)) continue;
+      if (u >= s.u0 && u <= s.u1 && v >= s.v0 && v <= s.v1) { const h = s.h(u); if (h <= y + 0.7 && h > g) g = h; } } }
+  return g;
+}
+
+/* ============================ GAME STATE / HUD ============================ */
+let cash = STARTING_CASH, totalIncome = 0, spawnT = 0, uiOpen = false, started = false, locked = false, adminUnlocked = false;
+const actors = new Set(), runners = [], walkers = [], earners = [], floats = [], keys = {};
+function updateHud() {
+  $('cash').textContent = fmt(cash);
+  $('lvl').textContent = 'Rebirth: ' + playerBase.rebirth + ' (x' + REBIRTHS[playerBase.rebirth].mult + ' money)' + (playerBase.rebirth >= REBIRTHS.length - 1 ? ' MAX' : '');
+  $('inc').textContent = 'Total income: $' + (Math.round(totalIncome * REBIRTHS[playerBase.rebirth].mult * 10) / 10).toLocaleString('en-US') + '/s';
+}
+updateHud();
+let toastT; function toast(m, bad, ms) { const t = $('toast'); t.className = bad ? 't bad' : 't'; t.textContent = m; t.style.opacity = 1; clearTimeout(toastT); toastT = setTimeout(() => t.style.opacity = 0, ms || 1600); }
+let bcT; function broadcastMessage(text) {   // connect to real multiplayer here later
+  const e = $('bcast'); e.textContent = text; e.style.transition = 'none'; e.style.opacity = 1; clearTimeout(bcT);
+  bcT = setTimeout(() => { e.style.transition = 'opacity .8s'; e.style.opacity = 0; }, 4200);
+}
+const floatTex = {};
+function spawnFloat(text, a) {
+  const tex = floatTex[text] || (floatTex[text] = makeLabel(256, 128, x => outlined(x, text, 128, 64, 72, '#ffe14a', '#000', 14)));
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthTest:false, depthWrite:false }));
+  s.scale.set(1.8, 0.9, 1); s.position.set(a.root.position.x + a.fx, a.root.position.y + 3.3, a.root.position.z); s.renderOrder = 11; scene.add(s); floats.push({ s, age:0 });
+}
+
+/* ============================ SPAWN / BUY / UPGRADE ============================ */
+function spawnRunner(cfg = pickWeighted(SHOWRUNNERS), variant) {
+  if (variant === undefined) variant = Math.random() < DIAMOND_CHANCE * luckNow() ? 'DIAMOND' : Math.random() < GOLD_CHANCE * luckNow() ? 'GOLD' : null;   // rare transformation roll on every spawn
+  let a; try { a = new Actor(cfg, variant); } catch (err) { showError('Could not build ' + cfg.name + ': ' + err.message); if (cfg !== CRUMP) return spawnRunner(CRUMP, variant); throw err; }   // a broken model falls back to Crump instead of crashing
+   a.root.position.set((Math.random() - 0.5) * 3, 0.06, -CARPET_LEN / 2); scene.add(a.root); actors.add(a); runners.push(a);
+}
+function beginSeg(a) { const t = a.route[0], p = a.root.position; a.seg = { from:p.clone(), len:Math.max(Math.hypot(t.x - p.x, t.z - p.z), 0.001) }; }
+function buildRoute(b, s) { return [W(b, -1.5, 0.06, 0), ...buildRoute0(b, s)]; }   // always route through the fence gate
+function buildRoute0(b, s) {   // carpet -> base entrance -> stairs -> platform
+  const r = [];
+  if (s.floor === 0) r.push(W(b, RAMP1.u0, 0.06, s.v));
+  else { r.push(W(b, RAMP1.u0, 0.06, 0), W(b, 14.5, 6.06, 0)); if (s.floor === 2) r.push(W(b, 15, 6.06, RAMP2.v), W(b, 28, 12.06, RAMP2.v)); }
+  r.push(W(b, s.u, s.y, s.v)); return r;
+}
+function tryBuy(a) {
+  const slot = playerBase.slots.find(s => s.unlocked && !s.occupied);   // lowest free platform first
+  if (!slot) return toast('Base full!', 1);
+  if (cash < a.cfg.price) return toast('Not enough cash!', 1);
+  cash -= a.cfg.price; sfx('buy'); updateHud(); passXP(10, a, 'xpBuy'); runners.splice(runners.indexOf(a), 1);
+  slot.occupied = true; slot.occupant = a; a.slot = slot; a.route = buildRoute(playerBase, slot); beginSeg(a); a.state = 'walk'; a.fresh = true; a.outside = true; walkers.push(a);
+}
+const nameOf = id => SHOWRUNNERS.find(c => sid(c) === id).name;
+function rebirthStatus() {   // what the next rebirth needs, and what is still missing
+  const next = REBIRTHS[playerBase.rebirth + 1]; if (!next) return null;
+  const have = earners.map(a => sid(a.cfg)), missing = next.need.filter(id => !have.includes(id));   // only show runners standing on a platform count
+  return { next, missing, cashOk:cash >= next.cost };
+}
+let rebirthConfirm = 0;
+function tryRebirth() {
+  const st = rebirthStatus(); if (!st) return toast('MAX REBIRTH');
+  if (st.missing.length) return toast('Put ' + st.missing.map(nameOf).join(' + ') + ' in your base first!', 1);
+  if (!st.cashOk) return toast('Not enough cash!', 1);
+  if (Date.now() > rebirthConfirm) { rebirthConfirm = Date.now() + 5000; return toast('Press E again to rebirth! ALL your show runners are deleted and your cash resets to ' + fmt(st.next.startCash), 1, 5000); }   // confirm so it can't happen by accident
+  rebirthConfirm = 0;
+  for (const a of [...earners, ...walkers, ...(held ? [held] : [])]) { scene.remove(a.root); actors.delete(a); }   // every show runner you own is deleted
+  earners.length = 0; walkers.length = 0; held = null; totalIncome = 0;
+  playerBase.slots.forEach(s => { s.occupied = false; s.occupant = null; });
+  cash = st.next.startCash; setRebirth(playerBase, playerBase.rebirth + 1, true); updateHud(); banner('REBIRTH ' + playerBase.rebirth + '!'); sfx('rebirth'); showUnlocks(playerBase.rebirth, playerBase.rebirth);
+}
+
+/* ============================ CODE BOX + ADMIN MENU ============================ */
+SHOWRUNNERS.forEach((c, i) => { const o = document.createElement('option'); o.value = i; o.textContent = tc(c.name) + ' (' + tc(c.rarity) + ')'; $('admSel').appendChild(o); });
+function openUI(el) { uiOpen = true; for (const k in keys) keys[k] = false; document.exitPointerLock && document.exitPointerLock(); el.style.display = 'block'; const i = el.querySelector('input'); if (i) setTimeout(() => i.focus(), 30); }
+function closeUI() { markSeen(); closeDetail(); for (const id of ['codeBox', 'admin', 'spinBox', 'idxBox', 'idxDetail', 'shopBox', 'invBox', 'settingsBox', 'signBox', 'passBox', 'storeBox']) $(id).style.display = 'none'; uiOpen = false; }
+function openCode() { $('codeErr').textContent = ''; $('codeIn').value = ''; openUI($('codeBox')); }
+function openAdmin() { $('codeBox').style.display = 'none'; openUI($('admin')); }
+function submitCode() {
+  const code = $('codeIn').value.trim();
+  if (CODES[code] === 'admin') { adminUnlocked = true; $('adminBtn').style.display = ''; openAdmin(); } else $('codeErr').textContent = 'Invalid code';
+}
+$('codeGo').onclick = submitCode; $('codeIn').onkeydown = e => { if (e.key === 'Enter') submitCode(); };
+$('adminBtn').onclick = e => { e.target.blur(); if (!uiOpen) openAdmin(); };
+$('admX').onclick = closeUI;
+$('admSend').onclick = () => { const t = $('admMsg').value.trim(); if (t) { broadcastMessage(t); $('admMsg').value = ''; } };
+const amount = () => { const n = parseFloat($('admMoney').value); return Number.isFinite(n) ? n : null; };
+$('admGive').onclick = () => { const n = amount(); if (n !== null) { cash += n; updateHud(); } };
+$('admSet').onclick = () => { const n = amount(); if (n !== null) { cash = n; updateHud(); } };
+// Admin: set rebirth to any level (clears your show runners, like a real rebirth, so the platforms match the level)
+REBIRTHS.forEach((r, i) => { const o = document.createElement('option'); o.value = i; o.textContent = i + '  (x' + r.mult + ' money)'; $('admRb').appendChild(o); });
+$('admRbSet').onclick = () => {
+  const R = +$('admRb').value, b = playerBase; if (!REBIRTHS[R]) return;
+  for (const a of [...earners, ...walkers, ...(held ? [held] : [])]) { scene.remove(a.root); actors.delete(a); }
+  earners.length = 0; walkers.length = 0; held = null; totalIncome = 0;
+  b.slots.forEach(s => { s.occupied = false; s.occupant = null; s.unlocked = false; s.ped.visible = false; s.ped.scale.setScalar(1); });
+  b.decks.forEach((d, f) => { if (f && d) d.visible = false; }); b.ramps.forEach((d, f) => { if (f && d) d.visible = false; });
+  const oldR = b.rebirth; setRebirth(b, R, true); updateHud(); banner('REBIRTH ' + R + '!'); if (R > oldR) showUnlocks(oldR + 1, R);
+};
+// Admin: luck with a timer, shown bottom-left with a four leaf clover
+$('luckImg').src = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g fill="#1fbf3a" stroke="#0b5a1a" stroke-width="3" stroke-linejoin="round"><path d="M50 48 C30 48 18 36 22 24 C26 12 44 14 50 30 Z"/><path d="M50 48 C70 48 82 36 78 24 C74 12 56 14 50 30 Z"/><path d="M50 52 C30 52 18 64 22 76 C26 88 44 86 50 70 Z"/><path d="M50 52 C70 52 82 64 78 76 C74 88 56 86 50 70 Z"/></g><path d="M50 52 C52 70 56 84 66 96" fill="none" stroke="#0b5a1a" stroke-width="5" stroke-linecap="round"/><g stroke="#8bf59a" stroke-width="2.5" fill="none" stroke-linecap="round"><path d="M44 40 L30 28"/><path d="M56 40 L70 28"/><path d="M44 60 L30 72"/><path d="M56 60 L70 72"/></g></svg>');
+$('admLuckGo').onclick = () => { luck.mult = +$('admLuck').value; luck.until = Date.now() + (+$('admLuckT').value) * 60000; toast(luck.mult + 'x Luck for ' + $('admLuckT').value + ' min!'); };
+$('admLuckOff').onclick = () => { luck.until = 0; };
+let luckShown = '';
+function luckTick() {
+  const left = luck.until - Date.now(), h = $('luckHud');
+  if (left <= 0) { if (luckShown) { luckShown = ''; h.style.display = 'none'; } return; }
+  const sec = Math.ceil(left / 1000), t = fmtMS(sec), key = luck.mult + '|' + t;
+  if (key !== luckShown) { luckShown = key; h.style.display = 'flex'; $('luckTxt').textContent = luck.mult + 'x Luck'; $('luckTime').textContent = t + ' left'; }
+}
+
+/* ============================ INPUT ============================ */
+let interact = null, dragging = false;
+addEventListener('keydown', e => {
+  if (e.code === 'Escape') {   // Esc: close whatever is open first; with nothing open it takes you back to the main menu (your progress is saved)
+    if (uiOpen) return closeUI();
+    if ($('unlockBox').style.display === 'block') { $('unlockBox').style.display = 'none'; return; }
+    if ($('inviteBox').style.display === 'block') { $('inviteBox').style.display = 'none'; return; }
+    if (serverOn && !e.repeat) { saveProgress(); location.reload(); }
+    return;
+  }
+  if (e.code === 'KeyI' && uiOpen && $('invBox').style.display === 'block') return closeUI();
+  if (e.code === 'KeyP' && uiOpen && $('passBox').style.display === 'block') return closeUI();
+  if (uiOpen && $('passBox').style.display === 'block' && (e.code === 'ArrowLeft' || e.code === 'ArrowRight')) { passPage(save.pass.page + (e.code === 'ArrowRight' ? 1 : -1)); return; }
+  if (uiOpen || !serverOn) return;
+  keys[e.code] = true; if (e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
+  { const hk = /^(?:Digit|Numpad)([1-5])$/.exec(e.code); if (hk && !e.repeat) toggleSlot(+hk[1] - 1); }
+  if (e.code === 'KeyI' && !e.repeat) openInv();
+  if (e.code === 'KeyB' && !e.repeat) toggleInvite();
+  if (e.code === 'KeyP' && !e.repeat) { renderPass(); openUI($('passBox')); }
+  if (e.code === 'KeyE' && !e.repeat && interact) interact.fn();
+  if (e.code === 'KeyG' && !e.repeat) toggleGender();
+  if (e.code === 'KeyC' && !e.repeat) openIndex();
+  if (e.code === 'KeyF' && !e.repeat) useTool();   // use the equipped weapon
+  if (e.code === 'KeyR' && !e.repeat) respawn();   // respawn at your base
+});
+addEventListener('keyup', e => keys[e.code] = false);
+
+// HTML prompt, projected to the screen (rounded to whole pixels so it stays sharp)
+const promptEl = $('prompt');
+function showPrompt(text, pos, bad) {
+  const v = pos.clone().project(camera);
+  if (v.z > 1) { promptEl.style.display = 'none'; return; }
+  if (promptEl.textContent !== text) promptEl.textContent = text;
+  promptEl.className = bad ? 't bad' : 't';
+  promptEl.style.transform = `translate(${Math.round((v.x * 0.5 + 0.5) * innerWidth)}px,${Math.round((-v.y * 0.5 + 0.5) * innerHeight)}px) translate(-50%,-100%)`;
+  promptEl.style.display = 'block';
+}
+
+/* ============================ BOTS: AI players, levels 1-3 ============================
+   Every lobby gets a random number of bots (BOT_MIN..BOT_MAX), each with a random level, avatar, name and starting cash.
+   Higher level = more rebirths, rarer show runners, more money, faster and smarter:
+     buying   : they walk to the carpet and buy runners (racing you for them), Lv2/3 pick better ones and swap out their weakest.
+     sniping  : they can buy a runner YOU just bought while it is still walking to your base - it then goes to their base.
+     stealing : they sneak into your base (if your fence is open), grab a runner and run it home. F (punch) next to them takes it back.
+     defending: Lv2/3 close their own fence when you come near; when you steal from them they chase you (Lv3 cuts you off at your base).
+     ranking up: after a random few minutes a bot goes up a level (more platforms, more cash, smarter).
+   You can steal from them too: walk into an open base, stand by a show runner and press E, then carry it home. Tune everything below. */
+const BOT_MIN = 3, BOT_MAX = 8, BOT_LEVEL_WEIGHTS = [[1, 0.45], [2, 0.35], [3, 0.2]];
+const BOT_CFG = {   // rebirths = [rebirth, weight]; rar = rarity odds of what they own/buy; cash = starting cash; cap = max show runners; speed = run speed;
+                    // think = seconds between decisions; react = seconds before chasing a thief; chase = seconds they keep chasing; buyCD = seconds between purchases;
+                    // snipe = chance to snipe a fresh purchase; steal = seconds between steal attempts; stealOn = chance to go through with one; fence = chance to close their fence; up = seconds until the next rank up
+  1:{ rebirths:[[0, .65], [1, .35]], rar:{ COMMON:.65, RARE:.35 },               cash:[300, 6000],      cashCap:12000,   cap:4,  run:[1, 4],  speed:8.5,  think:[1.2, 2.6], react:2.6, chase:7,  buyCD:[6, 16],  snipe:.04, steal:[150, 360], stealOn:.35, fence:0,   up:[240, 720] },
+  2:{ rebirths:[[1, .3], [2, .4], [3, .3]], rar:{ COMMON:.1, RARE:.62, EPIC:.28 }, cash:[5000, 60000],    cashCap:80000,   cap:7,  run:[3, 7],  speed:10.5, think:[.7, 1.5],  react:1.2, chase:14, buyCD:[4, 10],  snipe:.2,  steal:[100, 240], stealOn:.6,  fence:.35, up:[360, 900] },
+  3:{ rebirths:[[3, .45], [4, .4], [5, .15]], rar:{ RARE:.2, EPIC:.5, LEGENDARY:.3 }, cash:[60000, 900000], cashCap:600000,  cap:11, run:[5, 10], speed:12.5, think:[.3, .7],   react:.4, chase:25, buyCD:[2.5, 7], snipe:.45, steal:[70, 170],  stealOn:.8,  fence:.9 }
+};
+const BOT_NAMES = ['Tim', 'Nova', 'Kai', 'Mia', 'Zed', 'Luna', 'Rex', 'Pip', 'Jax', 'Ivy', 'Bolt', 'Sunny', 'Max', 'Echo', 'Roo', 'Finn', 'Gus', 'Ziggy', 'Dot', 'Milo', 'Cleo', 'Otto'];
+const BOT_HAIR = ['hair_classic', 'hair_classic', 'hair_mohawk', 'hair_mohawk', 'hair_afro', 'hair_bun', 'hair_long', 'hair_pink', 'hair_blue', 'hair_blonde'];
+const BOT_TOPS = [0x2f80ff, 0xff7eb6, 0xff9f1c, 0x2fbf6a, 0x9b5cff, 0xe03a3a, 0x20c5d6, 0xf5d76e, 0xeeeeee], BOT_BOTTOMS = [0x3d4f86, 0x7c5cff, 0x2b2b2b, 0x6b4a2b, 0x2f6f4f, 0x8a2f2f, 0x4a4a8a];
+const BOT_RAR = { COMMON:0, RARE:1, EPIC:2, LEGENDARY:3, EXCLUSIVE:4 }, BOT_LV_COLOR = ['', '#9dff7a', '#7ad0ff', '#ffb04a'];
+const bots = []; let botT = 0, botSlow = 0, botsOn = true, botStealNext = 0;   // botStealNext: at most one theft every 20 s across the whole lobby
+const botRnd = (a, b) => a + Math.random() * (b - a), botPick = arr => arr[Math.floor(Math.random() * arr.length)];
+const botPickW = pairs => { let r = Math.random() * pairs.reduce((s, p) => s + p[1], 0); for (const p of pairs) if ((r -= p[1]) < 0) return p[0]; return pairs[0][0]; };
+const botMult = bot => REBIRTHS[bot.base.rebirth].mult;
+
+function botLabel(bot) {   // small "Lv.2 Nova" tag over the head
+  if (bot.label) { bot.root.remove(bot.label); bot.label.material.map.dispose(); bot.label.material.dispose(); }
+  const txt = bot.name, tex = makeLabel(512, 128, c => outlined(c, txt, 256, 64, 64, '#ffffff', '#000', 12));   // just a name, like any other player
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthTest:false, depthWrite:false })); s.scale.set(4, 1, 1); s.position.y = 3.2; s.renderOrder = 10; bot.root.add(s); bot.label = s;
+}
+function botSign(bot) {   // the big sign above their base
+  const b = bot.base; if (b.sign) b.group.remove(b.sign);
+  const txt = bot.name + "'s Base", size = Math.min(150, Math.floor(980 / (txt.length * 0.62)));   // shrink long names so they fit the sign
+  const tex = makeLabel(1024, 256, c => outlined(c, txt, 512, 128, size, '#ffffff', '#000', 24));
+  const s = new THREE.Mesh(new THREE.PlaneGeometry(18, 4.5), new THREE.MeshBasicMaterial({ map:tex, transparent:true, side:THREE.DoubleSide, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2, fog:false })); s.renderOrder = 5; s.userData.noSkin = true;
+  s.position.set(PAD_W / 2, 17, 0); s.rotation.y = -Math.PI / 2; b.group.add(s); b.sign = s;
+}
+function botAddRunner(bot, cfg) {   // starting inventory: a show runner already standing on a platform
+  const slot = bot.base.slots.find(s => s.unlocked && !s.occupied); if (!slot) return null;
+  let a; try { a = new Actor(cfg, null); } catch (err) { return null; }
+  a.root.position.copy(W(bot.base, slot.u, slot.y, slot.v)); a.yaw = a.yawT = -bot.base.side * Math.PI / 2; a.root.rotation.y = a.yaw; a.state = 'idle'; a.w.idle = 1; a.w.walk = 0;
+  a.slot = slot; slot.occupied = true; slot.occupant = a; a.botOwned = bot; scene.add(a.root); actors.add(a); bot.earners.push(a); return a;
+}
+function botCreate(base, level, name) {
+  const L = BOT_CFG[level], female = Math.random() < 0.4, model = createPlayerModel(female ? 'female' : 'male');
+  const t0 = toon(female ? 0xff7eb6 : 0x2f80ff), b0 = toon(female ? 0x7c5cff : 0x3d4f86), t1 = toon(botPick(BOT_TOPS)), b1 = toon(botPick(BOT_BOTTOMS));
+  model.traverse(m => { if (m.material === t0) m.material = t1; else if (m.material === b0) m.material = b1; });   // random shirt + pants colors
+  const cos = { hair:botPick(BOT_HAIR) };   // random hairstyle (mohawk, afro, bun, long, colors...) and some random extras
+  if (Math.random() < 0.3) cos.glasses = botPick(['gl_round', 'gl_shades', 'gl_goggles']);
+  if (Math.random() < 0.3) cos.earrings = botPick(['ea_studs', 'ea_hoops', 'ea_diamond']);
+  if (Math.random() < 0.25) cos.shoes = botPick(['sh_red', 'sh_boots', 'sh_gold']);
+  applyCosmetics(model, cos);
+  const root = new THREE.Group(); root.add(model); scene.add(root);
+  setRebirth(base, botPickW(L.rebirths), false);
+  const side = base.side, bot = { id:'bot' + base.id, owner:'bot' + base.id, pathT:0, trapT:0, stuckT:0, lastPos:new V3(), lastT:0, name, level, base, female, model, root, pos:root.position, anim:new PlayerAnim(), yaw:0, yawT:-side * Math.PI / 2, spd:0,
+    cash:Math.round(botRnd(L.cash[0], L.cash[1])), income:0, earners:[], walkers:[], state:'post', path:null, seg:null, target:null, snipe:false, carry:null, victim:null,
+    stunT:0, reactT:0, chaseT:0, actT:0, wanderT:botRnd(3, 8), thinkT:botRnd(0.5, 2), threat:false, label:null,
+    post:new V3(side * botRnd(5.5, 8), 0, base.z + botRnd(-10, 10)), buyAt:botT + botRnd(2, 6), stealAt:botT + botRnd(L.steal[0] * 0.6, L.steal[1]),
+    levelUpAt:L.up && Math.random() > 0.15 ? botT + botRnd(L.up[0], L.up[1]) : Infinity };
+  bot.yaw = bot.yawT; bot.pos.copy(bot.post); base.owner = bot.id;
+  const n = Math.min(Math.round(botRnd(L.run[0], L.run[1])), base.slots.filter(s => s.unlocked).length);
+  for (let i = 0; i < n; i++) {   // pick by rarity odds, then by spawn weight so the rarest ones (rare legendarys) are uncommon even for Lv3
+    let cfg = null;
+    for (let tries = 0; tries < 6 && !cfg; tries++) { const rar = botPickW(Object.entries(L.rar)), pool = SHOWRUNNERS.filter(c => c.rarity === rar); if (!pool.length) continue;
+      let r = Math.random() * pool.reduce((s, c) => s + c.weight, 0); cfg = pool[pool.length - 1]; for (const c of pool) if ((r -= c.weight) < 0) { cfg = c; break; }
+      if (bot.earners.some(a => a.cfg === cfg) && tries < 5) cfg = null; }
+    if (cfg) botAddRunner(bot, cfg);
+  }
+  botLabel(bot); botSign(bot); bots.push(bot); return bot;
+}
+function botLobby() {
+  const free = bases.filter(b => b !== playerBase).sort(() => Math.random() - 0.5), names = BOT_NAMES.slice().sort(() => Math.random() - 0.5);
+  const n = Math.min(free.length, BOT_MIN + Math.floor(Math.random() * (BOT_MAX - BOT_MIN + 1)));
+  for (let i = 0; i < n; i++) botCreate(free[i], botPickW(BOT_LEVEL_WEIGHTS), names[i] + (Math.random() < 0.3 ? Math.floor(Math.random() * 90 + 10) : ''));
+}
+
+/* ---- movement ---- */
+function botGround(bot) { bot.pos.y = groundAt(bot.pos.x, bot.pos.z, bot.pos.y); }
+function botStep(bot, tx, tz, dt, sp) {   // straight run toward a point on open ground
+  const p = bot.pos, dx = tx - p.x, dz = tz - p.z, d = Math.hypot(dx, dz), st = sp * dt;
+  if (d > 0.001) { const k = Math.min(1, st / d); p.x += dx * k; p.z += dz * k; bot.yawT = Math.atan2(dx, dz); }
+  bot.spd = d > 0.05 ? sp : 0; return Math.max(0, d - st);
+}
+function botFollow(bot, dt, sp) {   // follow waypoints (gate, ramps, platform); true when the path is finished
+  const t = bot.path[0], p = bot.pos, dx = t.x - p.x, dz = t.z - p.z, d = Math.hypot(dx, dz), st = sp * dt;
+  if (!bot.seg) bot.seg = { y0:p.y, len:Math.max(d, 0.001) };
+  if (d <= st) { p.set(t.x, t.y, t.z); bot.path.shift(); bot.seg = null; if (!bot.path.length) { bot.spd = 0; return true; } }
+  else { p.x += dx / d * st; p.z += dz / d * st; bot.yawT = Math.atan2(dx, dz); p.y = bot.seg.y0 + (t.y - bot.seg.y0) * Math.min(1, 1 - d / bot.seg.len); }
+  bot.spd = sp; return false;
+}
+const botOwned = bot => bot.earners.length + bot.walkers.length + (bot.carry ? 1 : 0);
+const botWorst = bot => bot.earners.reduce((w, a) => !w || a.cfg.price < w.cfg.price ? a : w, null);
+function botSell(bot, a) {   // returns the platform that was freed
+  const i = bot.earners.indexOf(a); if (i >= 0) bot.earners.splice(i, 1);
+  const s = a.slot; if (s) { s.occupied = false; s.occupant = null; } a.slot = null;
+  bot.cash = Math.min(BOT_CFG[bot.level].cashCap, bot.cash + a.cfg.price * SELL_RATIO); scene.remove(a.root); actors.delete(a); return s;
+}
+
+/* ---- buying / sniping ---- */
+function botPickTarget(bot, L) {   // best show runner on the carpet (or one you just bought) for this bot's level
+  const slotFree = bot.base.slots.some(s => s.unlocked && !s.occupied), full = !slotFree || botOwned(bot) >= L.cap, worst = botWorst(bot);
+  const nx = REBIRTHS[bot.base.rebirth + 1], needs = bot.level >= 2 && nx ? nx.need : [], have = bot.earners.map(a => sid(a.cfg));
+  let best = null, bs = 0;
+  const consider = (a, snipe) => {
+    const c = a.cfg; if (c.price > bot.cash) return;
+    if (!snipe && a.claim && a.claim !== bot && bots.includes(a.claim)) return;   // another bot is already running for it
+    if (full && !(bot.level >= 2 && worst && c.price >= worst.cfg.price * 2)) return;   // Lv2/3 swap their weakest for something much better
+    if (bot.level === 1 && Math.random() < 0.35) return;   // new players miss things
+    const ri = BOT_RAR[c.rarity], inc = Math.log10(c.income + 10);
+    let s = bot.level === 1 ? 1 + Math.random() * 2 + ri * 0.3 : bot.level === 2 ? 1 + ri * 1.1 + inc * 0.5 + Math.random() : 2 + ri * 1.5 + inc + (needs.includes(sid(c)) && !have.includes(sid(c)) ? 6 : 0) + Math.random() * 0.4;
+    if (snipe) s += 1.5; if (s > bs) { bs = s; best = { a, snipe }; }
+  };
+  for (const a of runners) { const dz = a.root.position.z - bot.pos.z; if (dz > -20 && dz < 65 && a.root.position.z < CARPET_LEN / 2 - 12) consider(a, false); }
+  for (const a of walkers) if (a.fresh && a.outside && Math.abs(a.root.position.z - bot.pos.z) < 60) {   // a runner you just bought, still on its way to your base
+    a.rolled = a.rolled || {}; if (a.rolled[bot.id] === undefined) a.rolled[bot.id] = Math.random() < L.snipe; if (a.rolled[bot.id]) consider(a, true); }
+  return best;
+}
+function botBuy(bot, a, snipe) {
+  const L = BOT_CFG[bot.level]; if (bot.cash < a.cfg.price) return false;
+  let slot = bot.base.slots.find(s => s.unlocked && !s.occupied);
+  if (!slot || botOwned(bot) >= L.cap) { const w = botWorst(bot); if (!w || w.cfg.price * 2 > a.cfg.price) return false; slot = botSell(bot, w); }
+  if (snipe) { const i = walkers.indexOf(a); if (i < 0 || !a.fresh) return false; walkers.splice(i, 1); if (a.slot) { a.slot.occupied = false; a.slot.occupant = null; } toast(bot.name + ' sniped your ' + a.cfg.name + '!', true, 3200); }
+  else { const i = runners.indexOf(a); if (i < 0) return false; runners.splice(i, 1); }
+  bot.cash -= a.cfg.price; a.fresh = false; a.outside = false; a.claim = null; a.botOwned = bot; a.far = false;
+  slot.occupied = true; slot.occupant = a; a.slot = slot; a.route = buildRoute(bot.base, slot); beginSeg(a); a.state = 'walk'; bot.walkers.push(a);
+  bot.buyAt = botT + botRnd(BOT_CFG[bot.level].buyCD[0], BOT_CFG[bot.level].buyCD[1]); return true;
+}
+function botWalkers(bot, dt) {   // bought show runners walking to this bot's platforms (same movement as yours)
+  for (let i = bot.walkers.length - 1; i >= 0; i--) {
+    const a = bot.walkers[i], t = a.route[0], p = a.root.position, dx = t.x - p.x, dz = t.z - p.z, d = Math.hypot(dx, dz), step = BASE_WALK_SPEED * dt;
+    if (d <= step) { p.set(t.x, t.y, t.z); a.route.shift(); if (a.route.length) beginSeg(a); }
+    else { p.x += dx / d * step; p.z += dz / d * step; a.yawT = Math.atan2(dx, dz); p.y = a.seg.from.y + (t.y - a.seg.from.y) * Math.min(1, 1 - d / a.seg.len); }
+    if (!a.route.length) { bot.walkers.splice(i, 1); a.state = 'idle'; a.yawT = -bot.base.side * Math.PI / 2; bot.earners.push(a); }
+  }
+}
+
+/* ---- stealing (bot -> you) ---- */
+function botPlanSteal(bot) {
+  const pb = playerBase, pl = player.position, pool = earners.filter(a => a.slot); if (!pool.length) return false;
+  if (bot.level >= 2) { const lu = pb.side * pl.x - 12, lv = pb.side * (pl.z - pb.z); if (lu > -4 && lu < 34 && Math.abs(lv) < 22 && Math.random() < (bot.level === 3 ? 1 : 0.5)) return false; }   // you're home: smart bots wait
+  let v;
+  if (bot.level === 1) v = botPick(pool);   // grabs anything
+  else if (bot.level === 2) { const s = pool.slice().sort((a, b) => b.cfg.price - a.cfg.price); v = s[Math.floor(Math.random() * Math.ceil(s.length / 2))]; }   // one of your better ones
+  else v = pool.slice().sort((a, b) => b.income / (1 + b.slot.floor * 0.12) - a.income / (1 + a.slot.floor * 0.12))[0];   // your best earner that is easy to reach
+  bot.victim = v; bot.routeIn = botRoute(pb, v.slot); bot.path = bot.routeIn.map(p => p.clone()); bot.seg = null; bot.state = 'steal'; bot.actT = 0; return true;
+}
+function botGoBack(bot) { bot.state = 'return'; bot.path = bot.routeIn.slice().reverse().map(p => p.clone()); bot.seg = null; }
+function botGrab(bot) {
+  const v = bot.victim; if (!v || !earners.includes(v)) return botGoBack(bot);
+  const cap = BOT_CFG[bot.level].cap; let slot = bot.base.slots.find(s => s.unlocked && !s.occupied);
+  if (!slot || botOwned(bot) >= cap) { const w = botWorst(bot); slot = w && w.cfg.price < v.cfg.price ? botSell(bot, w) : null; }   // full: only swaps out something worse
+  if (!slot) return botGoBack(bot);   // nowhere to put it
+  earners.splice(earners.indexOf(v), 1); totalIncome -= v.income; const home = v.slot; home.occupied = false; home.occupant = null; v.homeSlot = home; v.slot = null; v.incomeT = 0;
+  slot.occupied = true; slot.occupant = v; bot.homeSlot = slot;
+  v.state = 'hold'; v.root.scale.setScalar(0.55); v.root.userData.plate.visible = false; v.carrier = bot; v.fresh = false; v.far = false; bot.carry = v;
+  bot.homeRoute = botRoute(bot.base, slot); bot.path = bot.routeIn.slice().reverse().concat(bot.homeRoute).map(p => p.clone()); bot.seg = null; bot.state = 'carry'; updateHud();
+  sfx('steal'); toast(bot.name + ' stole your ' + v.cfg.name + '! Chase them!', true, 3500);
+}
+function botDeliver(bot) {
+  const a = bot.carry; bot.carry = null; if (!a) return;
+  a.root.scale.setScalar(1); a.root.userData.plate.visible = true; a.carrier = null; a.slot = bot.homeSlot; a.botOwned = bot; a.root.position.copy(W(bot.base, a.slot.u, a.slot.y, a.slot.v));
+  a.state = 'idle'; a.yawT = -bot.base.side * Math.PI / 2; bot.earners.push(a);
+  bot.path = bot.homeRoute.slice().reverse().map(p => p.clone()); bot.seg = null; bot.state = 'return';
+}
+function botRecover(bot) {   // you punched a thief: the show runner goes back to your base
+  const a = bot.carry; if (!a) return; bot.carry = null;
+  if (bot.homeSlot) { bot.homeSlot.occupied = false; bot.homeSlot.occupant = null; bot.homeSlot = null; }
+  a.root.scale.setScalar(1); a.root.userData.plate.visible = true; a.carrier = null; a.state = 'walk'; a.far = false;
+  const slot = a.homeSlot && !a.homeSlot.occupied ? a.homeSlot : playerBase.slots.find(s => s.unlocked && !s.occupied);
+  if (!slot) { const v = Math.floor(a.cfg.price * SELL_RATIO); cash += v; spawnFloat('+' + formatMoney(v), a); scene.remove(a.root); actors.delete(a); updateHud(); }
+  else { slot.occupied = true; slot.occupant = a; a.slot = slot; a.route = buildRoute(playerBase, slot); beginSeg(a); walkers.push(a); }
+  bot.state = 'post'; bot.path = null; toast('You got ' + a.cfg.name + ' back!');
+}
+function botRetake(bot) {   // a bot caught you carrying its show runner
+  const a = held; if (!a || a.stolenFrom !== bot) return; held = null; a.stolenFrom = null; a.root.scale.setScalar(1); a.root.userData.plate.visible = true; a.botOwned = bot; a.far = false;
+  let slot = a.homeSlot && !a.homeSlot.occupied ? a.homeSlot : bot.base.slots.find(s => s.unlocked && !s.occupied);
+  if (!slot) { scene.remove(a.root); actors.delete(a); } else { slot.occupied = true; slot.occupant = a; a.slot = slot; a.route = buildRoute(bot.base, slot); beginSeg(a); a.state = 'walk'; bot.walkers.push(a); }
+  bot.anim.pt = 0.3; bot.state = 'post'; toast(bot.name + ' took ' + a.cfg.name + ' back!', true, 2600); updateHud();
+}
+
+/* ---- stealing (you -> bot) and punching ---- */
+function stealFromBot(bot, a) {
+  if (held || bot.earners.indexOf(a) < 0) return;
+  bot.earners.splice(bot.earners.indexOf(a), 1); a.homeSlot = a.slot; a.slot.occupied = false; a.slot.occupant = null; a.slot = null; a.origSlot = null; a.botOwned = null; a.far = false; a.stolenFrom = bot;
+  held = a; a.state = 'hold'; a.root.scale.setScalar(0.55); a.root.userData.plate.visible = false; updateHud();
+  toast('You stole ' + a.cfg.name + ' from ' + bot.name + '! Run it home!', false, 2600); passXP(20, a, 'xpSteal');
+}
+/* ---- ragdoll: a punched bot flies back, tumbles and lies there flailing for RAG_SECONDS, then gets up ---- */
+function botRagdoll(bot, dx, dz, dist) {   // dist = how far (in feet) the hit throws them
+  const l = Math.hypot(dx, dz) || 1, D = dist || 1, T = Math.max(0.45, Math.min(1.4, 0.45 + D * 0.025));   // flight time grows with distance
+  botThaw(bot, true); bot.rag = { t:0, vx:dx / l * D / T, vz:dz / l * D / T, vy:12.5 * T, spin:(Math.random() < 0.5 ? -1 : 1) * (4 + Math.random() * 3), ph:Math.random() * 6, landed:false };
+  bot.spd = 0; bot.seg = null; if (bot.carry) botRecover(bot);   // drops anything it was stealing
+}
+function botRagTick(bot, dt) {
+  const r = bot.rag, p = bot.pos, P = bot.model.userData.P; r.t += dt; bot.spd = 0;
+  const g = groundAt(p.x, p.z, p.y + 0.5); p.x += r.vx * dt; p.z += r.vz * dt; r.vy -= 25 * dt; p.y += r.vy * dt;
+  if (p.y <= g) { p.y = g; if (!r.landed) { r.landed = true; r.vx *= 0.3; r.vz *= 0.3; } r.vy = r.vy < -3 ? -r.vy * 0.3 : 0; const k = Math.exp(-5 * dt); r.vx *= k; r.vz *= k; }
+  botCollide(bot);
+  const up = Math.max(0, (r.t - (RAG_SECONDS - 0.5)) / 0.5), fl = (1 - up) * 1.4, t = r.t * 14 + r.ph;
+  bot.model.rotation.x = -1.45 * Math.min(1, r.t / 0.35) * (1 - up);   // falls onto its back, then pushes back up at the end
+  r.spin *= Math.exp(-2.5 * dt); bot.yaw += r.spin * dt; bot.yawT = bot.yaw;
+  P.armL.rotation.set(Math.sin(t) * fl, 0, 1.1 * (1 - up) + Math.sin(t * 1.3) * 0.3 * fl); P.armR.rotation.set(Math.sin(t + 2) * fl, 0, -1.1 * (1 - up) - Math.sin(t * 1.1) * 0.3 * fl);
+  P.legL.rotation.x = Math.sin(t * 0.9 + 1) * fl * 0.6; P.legR.rotation.x = Math.sin(t * 0.9 + 3) * fl * 0.6;
+  if (r.t >= RAG_SECONDS) { bot.rag = null; bot.model.rotation.x = 0; bot.seg = null; bot.pathT = 0; }
+}
+/* ---- collisions: bots are blocked by everything that blocks you (fence rails, walls, the code stand, and any closed gate) ---- */
+function botCollide(bot) {
+  const p = bot.pos, r = 0.6; p.x = Math.max(-BOUNDS.x, Math.min(BOUNDS.x, p.x)); p.z = Math.max(-BOUNDS.z, Math.min(BOUNDS.z, p.z));
+  if (p.y >= 2) return;
+  for (const c of COLLIDERS) if (!c.when || c.when(bot)) {
+    if (p.x > c.x0 - r && p.x < c.x1 + r && p.z > c.z0 - r && p.z < c.z1 + r) {
+      const d = [p.x - (c.x0 - r), (c.x1 + r) - p.x, p.z - (c.z0 - r), (c.z1 + r) - p.z], i = d.indexOf(Math.min(...d));
+      if (i === 0) p.x = c.x0 - r; else if (i === 1) p.x = c.x1 + r; else if (i === 2) p.z = c.z0 - r; else p.z = c.z1 + r; } }
+}
+/* ---- navigation that respects the gates: out through their own gate, in through the target base's gate (and up the ramps) ---- */
+function botBaseAt(x, z) { for (const b of bases) { const u = b.side * x - 12, v = b.side * (z - b.z); if (u > -0.8 && u < 31 && Math.abs(v) < 19) return b; } return null; }
+const botFloor = y => y > 9 ? 2 : y > 3 ? 1 : 0;
+function botRoute(b, s) { return [W(b, -1.5, 0.06, 0), W(b, 1.5, 0.06, 0), ...buildRoute0(b, s)]; }   // gate, then straight in before turning (so the fence never clips them)
+function botSpot(b, x, y, z) { const f = botFloor(y); return { floor:f, u:b.side * x - 12, v:b.side * (z - b.z), y:FLOORS[f].top + 0.06 }; }
+function botPathTo(bot, tx, ty, tz) {
+  const here = botBaseAt(bot.pos.x, bot.pos.z), there = botBaseAt(tx, tz), diff = botFloor(bot.pos.y) !== botFloor(ty), path = [];
+  if (here && (here !== there || diff)) path.push(...botRoute(here, botSpot(here, bot.pos.x, bot.pos.y, bot.pos.z)).reverse());
+  if (there && (there !== here || diff)) path.push(...botRoute(there, botSpot(there, tx, ty, tz))); else path.push(new V3(tx, there ? ty : 0.06, tz));
+  return path;
+}
+
+/* ---- rank up ---- */
+function botLevelUp(bot) {
+  if (bot.level >= 3) { bot.levelUpAt = Infinity; return; }
+  bot.level++; const L = BOT_CFG[bot.level], lo = L.rebirths[0][0], hi = L.rebirths[L.rebirths.length - 1][0], nr = Math.max(lo, Math.min(hi, bot.base.rebirth + 1));
+  if (nr > bot.base.rebirth) setRebirth(bot.base, nr, true);   // new platforms rise up; it keeps its show runners
+  bot.cash = Math.min(L.cashCap, bot.cash + botRnd(L.cash[0], L.cash[1]) * 0.5);
+  bot.levelUpAt = L.up && Math.random() > 0.2 ? botT + botRnd(L.up[0], L.up[1]) : Infinity;
+  botLabel(bot); botSign(bot);   // (silent: nothing tells you it is a bot)
+}
+
+/* ---- the brain ---- */
+function botDecide(bot, L) {
+  const b = bot.base, f = b.fence, gate = W(b, -1.5, 0, 0), pl = player.position, dist = Math.hypot(pl.x - gate.x, pl.z - gate.z), now = Date.now();
+  const lu = b.side * pl.x - 12, lv = b.side * (pl.z - b.z), inside = lu > -1 && lu < 31 && Math.abs(lv) < 19;
+  if (dist > 42) bot.threat = false;   // defend: smarter bots shut the fence when you walk up (never while you are inside it)
+  else if (dist < 28 && !bot.threat && !inside) { bot.threat = true; if (bot.earners.length && now >= f.until && now >= f.cool && Math.random() < L.fence) { bot.state = 'fence'; bot.actT = 0; return; } }
+  if (botT >= bot.stealAt) {   // steal from you
+    if (botT >= botStealNext && earners.length && now >= playerBase.fence.until && Math.random() < L.stealOn && botPlanSteal(bot)) { bot.stealAt = botT + botRnd(L.steal[0], L.steal[1]); botStealNext = botT + 20; return; }
+    bot.stealAt = botT + 12;
+  }
+  if (botT >= bot.buyAt) { const t = botPickTarget(bot, L); if (t) { bot.target = t.a; bot.snipe = t.snipe; bot.state = 'buy'; bot.actT = 0; if (!t.snipe) t.a.claim = bot; } else bot.buyAt = botT + 1; }
+}
+function botAI(bot, dt, L) {
+  const p = bot.pos, pl = player.position, st = bot.state;
+  if (st === 'post' || st === 'buy' || st === 'fence' || st === 'return') {   // you stole from this bot: react (Lv1 slow, Lv3 instant)
+    if (held && held.stolenFrom === bot) { bot.reactT += dt; if (bot.reactT >= L.react) { bot.state = 'chase'; bot.chaseT = 0; bot.path = null; bot.pathT = 0; bot.reactT = 0; return; } } else bot.reactT = 0;
+  }
+  if (st === 'post') {
+    bot.wanderT -= dt;
+    if (bot.wanderT <= 0) { bot.wanderT = botRnd(6, 14); const wz = bot.level === 1 ? 30 : bot.level === 2 ? 16 : 8; bot.post.set(bot.base.side * botRnd(5.5, 8), 0, Math.max(-CARPET_LEN / 2 + 25, Math.min(CARPET_LEN / 2 - 25, bot.base.z + botRnd(-wz, wz)))); }
+    if (Math.hypot(bot.post.x - p.x, bot.post.z - p.z) > 0.8) botStep(bot, bot.post.x, bot.post.z, dt, L.speed * 0.7); else bot.spd = 0;
+    botGround(bot); bot.thinkT -= dt; if (bot.thinkT <= 0) { bot.thinkT = botRnd(L.think[0], L.think[1]); botDecide(bot, L); }
+  } else if (st === 'buy') {
+    const t = bot.target, ok = t && (bot.snipe ? walkers.includes(t) && t.fresh && t.outside : runners.includes(t));
+    bot.actT += dt; if (!ok || bot.actT > 14) { bot.state = 'post'; bot.buyAt = botT + 1; return; }
+    const tp = t.root.position; botStep(bot, tp.x, tp.z + (bot.snipe ? 0 : 3), dt, L.speed); botGround(bot);
+    if (Math.hypot(tp.x - p.x, tp.z - p.z) < BUY_BASE - 0.8) { botBuy(bot, t, bot.snipe); bot.state = 'post'; }
+  } else if (st === 'fence') {
+    const fp = bot.base.fencePos; bot.actT += dt; botStep(bot, fp.x, fp.z, dt, L.speed); botGround(bot);
+    if (Math.hypot(fp.x - p.x, fp.z - p.z) < 1.8 || bot.actT > 8) { const f = bot.base.fence, n = Date.now(); if (n >= f.until && n >= f.cool) { f.until = n + FENCE_SECONDS_PER_LEVEL * (bot.base.rebirth + 1) * 1000; f.cool = f.until + FENCE_COOLDOWN_SECONDS * 1000; } bot.state = 'post'; }
+  } else if (st === 'steal') {
+    if (bot.path.length === bot.routeIn.length && Date.now() < playerBase.fence.until) { bot.state = 'post'; bot.path = null; return; }   // the gate closed in its face
+    if (botFollow(bot, dt, L.speed)) botGrab(bot);
+  } else if (st === 'carry') {
+    if (!bot.carry || !bot.path) { bot.state = 'post'; bot.path = null; return; }
+    if (botFollow(bot, dt, L.speed * 0.92)) botDeliver(bot);
+  } else if (st === 'return') {
+    if (!bot.path || !bot.path.length || botFollow(bot, dt, L.speed)) { bot.state = 'post'; bot.path = null; }
+  } else if (st === 'chase') {
+    bot.chaseT += dt; if (!(held && held.stolenFrom === bot) || bot.chaseT > L.chase) { bot.state = 'post'; return; }
+    let tx = pl.x, ty = pl.y, tz = pl.z;
+    if (bot.level === 3 && !botBaseAt(pl.x, pl.z)) { const g = W(playerBase, -1.5, 0, 0), dg = Math.hypot(g.x - pl.x, g.z - pl.z); if (dg < 70 && Math.hypot(g.x - p.x, g.z - p.z) < dg * 1.3 && Math.hypot(pl.x - p.x, pl.z - p.z) > 8) { tx = g.x; ty = 0.06; tz = g.z; } }   // smart: if you're heading home, cut you off at your own base
+    bot.pathT -= dt; if (bot.pathT <= 0 || !bot.path || !bot.path.length) { bot.pathT = 0.4; bot.path = botPathTo(bot, tx, ty, tz); bot.seg = null; }
+    botFollow(bot, dt, L.speed);
+    if (Math.hypot(pl.x - p.x, pl.z - p.z) < 2.6 && Math.abs(pl.y - p.y) < 3) botRetake(bot);
+  }
+}
+function botRespawn(bot) {   // trapped in somebody's closed base (or stuck): back to its own base, like pressing R
+  if (bot.carry) botRecover(bot);
+  bot.rag = null; bot.model.rotation.x = 0; bot.path = null; bot.seg = null; bot.target = null; bot.victim = null; bot.state = 'post'; bot.spd = 0; bot.trapT = bot.stuckT = 0;
+  bot.post.set(bot.base.side * botRnd(5.5, 8), 0, bot.base.z + botRnd(-10, 10)); bot.pos.copy(bot.post); bot.lastPos.copy(bot.pos); bot.buyAt = botT + 3;
+}
+function botFence(bot, dt) {   // slide the gate across, same as your own fence
+  const b = bot.base, f = b.fence, closed = Date.now() < f.until, tgt = closed ? 1 : 0; f.closed = closed;
+  f.amt += Math.sign(tgt - f.amt) * Math.min(Math.abs(tgt - f.amt), dt / 0.8); b.gate.visible = f.amt > 0.01; b.gate.scale.z = Math.max(0.001, f.amt); b.gate.material.opacity = 0.35 + 0.12 * Math.sin(worldT * 2);
+}
+function botTick(dt) {
+  botT += dt;
+  for (const bot of bots) {
+    const L = BOT_CFG[bot.level]; botFence(bot, dt);
+    let inc = 0; for (const a of bot.earners) inc += a.income; bot.income = inc;
+    bot.cash = Math.min(L.cashCap, bot.cash + inc * botMult(bot) * dt);   // their money only comes from their show runners (and is capped)
+    botWalkers(bot, dt);
+    if (botT >= bot.levelUpAt) botLevelUp(bot);
+    if (bot.rag) botRagTick(bot, dt); else if (bot.frozenT > 0) { bot.frozenT -= dt; bot.spd = 0; if (bot.frozenT <= 0) botThaw(bot, true); } else { botAI(bot, dt, BOT_CFG[bot.level]); botCollide(bot); }
+    const inB = botBaseAt(bot.pos.x, bot.pos.z);   // shut inside someone else's closed base for 5 s -> respawn at home
+    bot.trapT = inB && inB !== bot.base && Date.now() < inB.fence.until ? bot.trapT + dt : 0; if (bot.trapT > 5) botRespawn(bot);
+    bot.lastT += dt; if (bot.lastT >= 1) { bot.lastT = 0; bot.stuckT = !bot.rag && !(bot.frozenT > 0) && bot.state !== 'post' && bot.state !== 'chase' && Math.hypot(bot.pos.x - bot.lastPos.x, bot.pos.z - bot.lastPos.z) < 0.5 ? bot.stuckT + 1 : 0; bot.lastPos.copy(bot.pos); if (bot.stuckT >= 10) botRespawn(bot); }   // stuck doing something for 10 s -> respawn
+    bot.yaw = turn(bot.yaw, bot.yawT, dt, 12); bot.root.rotation.y = bot.yaw;
+    if (!bot.rag && !(bot.frozenT > 0)) bot.anim.update(dt, bot.spd > 1 ? 'walk' : 'idle', bot.spd, !!bot.carry, bot.model.userData.P, bot.female);
+    if (bot.carry) { const c = bot.carry; c.root.position.set(bot.pos.x + Math.sin(bot.yaw) * 0.95, bot.pos.y + 0.7, bot.pos.z + Math.cos(bot.yaw) * 0.95); c.yawT = bot.yaw; c.move = Math.min(1, bot.spd / PLAYER_SPEED); }
+  }
+  botSlow -= dt; if (botSlow <= 0) { botSlow = 0.5; const pl = player.position; for (const bot of bots) for (const a of bot.earners) a.far = Math.hypot(a.root.position.x - pl.x, a.root.position.z - pl.z) > 80; }   // far-away show runners animate less often
+}
+$('admBotUp').onclick = () => bots.forEach(botLevelUp);
+$('admBotSteal').onclick = () => bots.forEach(b => { b.stealAt = 0; });
+
+/* ============================ WEAPONS: buy in the shop -> hotbar (keys 1-5) -> inventory (I) ============================
+   Punch is a weapon: buy it in the shop (Powers tab), it lands on the hotbar, press its number to equip it, then press F to
+   punch with a fist of fire. A hit turns the enemy into a ragdoll for RAG_SECONDS. Add more weapons to WEAPONS later. */
+/* ---- the tools you unlock by rebirthing (all of them live on your hotbar; press F to use the equipped one) ----
+   unlockAt(L) = the rebirth you need to buy level L. price(L) = cost of level L.  */
+const punchThrow = L => L <= 1 ? 1 : Math.min(48, 3 * 2 ** (L - 2));   // how many "feet" a punch throws someone: Lv1 just knocks them over, Lv2 = 3, then x2 each level (capped)
+const FREEZE_SECS = [3, 6, 9], PORTAL_SECS = [3, 6, 9, 12];
+const TOOLS = {
+  punch: { name:'Fire Punch', icon:'🔥', max:10, price:L => 1000 * L, unlockAt:L => [0, 1, 2, 2, 3, 3, 4, 4, 5, 5][L - 1], use:'Equip it and press F next to an enemy.',
+           effect:L => L === 1 ? 'a fist of fire that ragdolls enemies for 3 seconds' : 'a fist of fire that throws enemies ' + punchThrow(L) + ' feet away' },
+  freeze:{ name:'Freeze', icon:'❄️', max:3, price:L => 3000 * L, unlockAt:L => [1, 2, 3][L - 1], use:'Equip it and press F to freeze the closest enemy.',
+           effect:L => 'freezes an enemy for ' + FREEZE_SECS[L - 1] + ' seconds' },
+  portal:{ name:'Portal', icon:'🌀', max:4, price:L => 9000 * L, unlockAt:L => [2, 3, 4, 5][L - 1], use:'Equip it, press F to open a portal, press F again for a second one, then walk into either.',
+           effect:L => 'two linked portals that stay open ' + PORTAL_SECS[L - 1] + ' seconds' },
+  swap:  { name:'Body Swap', icon:'🔄', max:1, price:() => 10000, unlockAt:() => 5, use:'Equip it, then click a player to swap places with them.',
+           effect:() => 'click a player to swap places with them' }
+};
+const WEAPONS = Object.keys(TOOLS).map(id => ({ id, name:TOOLS[id].name, icon:TOOLS[id].icon }));
+if (!save.tl) save.tl = {};
+const toolLv = id => !save.weapons.includes(id) ? 0 : id === 'punch' ? (save.punch || 1) : (save.tl[id] || 1);
+function buyTool(id) {   // shop: buy level 1, or upgrade to the next level
+  const T = TOOLS[id], L = toolLv(id), n = L + 1;
+  if (n > T.max) return; if (T.unlockAt(n) > playerBase.rebirth) return shopMsg(T.name + ' Lv ' + n + ' unlocks at Rebirth ' + T.unlockAt(n) + '!', true);
+  const c = T.price(n); if (cash < c) return shopMsg('Not enough cash!', true);
+  cash -= c; if (id === 'punch') save.punch = n; else save.tl[id] = n; passXP(50);
+  if (n === 1) giveWeapon(id); else persist(); updateHud();
+  shopMsg(n === 1 ? 'You bought ' + T.name + '! Check your hotbar.' : T.name + ' is now level ' + n + '!'); renderShop();
+}
+function showUnlocks(fromR, toR) {   // the little black box after a rebirth (can be turned off in Settings)
+  if (!settings.rebirthScreen) return;
+  const lines = [];
+  for (let R = Math.max(1, fromR); R <= toR; R++) for (const id in TOOLS) { const T = TOOLS[id]; for (let L = 1; L <= T.max; L++) if (T.unlockAt(L) === R) lines.push(T.icon + ' ' + T.name + (T.max > 1 ? ' Lv ' + L : '') + ' - ' + T.effect(L) + ' (' + formatMoney(T.price(L)) + ')'); }
+  if (!lines.length) return;
+  $('unlockTitle').textContent = 'REBIRTH ' + toR + ' - NEW STUFF UNLOCKED!';
+  $('unlockList').innerHTML = lines.map(l => '<div>' + l + '</div>').join('') + '<div class="hint">Buy them in the shop (Powers tab).</div>'; $('unlockBox').style.display = 'block';
+}
+$('unlockX').onclick = () => { $('unlockBox').style.display = 'none'; };
+const weaponOf = id => WEAPONS.find(w => w.id === id);
+const RAG_SECONDS = 3;
+let equipped = null;
+if (!Array.isArray(save.hotbar) || save.hotbar.length !== 5) save.hotbar = [null, null, null, null, null];
+if (!Array.isArray(save.weapons)) save.weapons = [];
+const punchLv = () => save.punch || 1;
+function renderHotbar() {
+  if (equipped && !save.hotbar.includes(equipped)) equipped = null;
+  const bar = $('hotbar'); bar.innerHTML = '';
+  save.hotbar.forEach((id, i) => { const d = document.createElement('div'), w = id && weaponOf(id); d.className = 'hb' + (id ? '' : ' empty') + (id && id === equipped ? ' on' : '');
+    d.innerHTML = '<b class="hbn">' + (i + 1) + '</b><span class="hbi">' + (w ? w.icon : '') + '</span><small>' + (w ? w.name : '') + '</small>'; d.onclick = () => toggleSlot(i); bar.appendChild(d); });
+}
+function toggleSlot(i) { const id = save.hotbar[i]; if (!id || uiOpen) return; equipped = equipped === id ? null : id; swapClear(); renderHotbar(); }
+function giveWeapon(id) {   // called when you buy a weapon: it goes to the first empty hotbar slot
+  if (!save.weapons.includes(id)) save.weapons.push(id);
+  if (!save.hotbar.includes(id)) { const f = save.hotbar.indexOf(null); if (f >= 0) save.hotbar[f] = id; }
+  persist(); renderHotbar(); const n = save.hotbar.indexOf(id) + 1; toast(n ? 'Added ' + weaponOf(id).name + ' to your hotbar! Press ' + n + ' to equip it.' : weaponOf(id).name + ' is in your inventory (press I).', false, 3200);
+}
+function renderInv() {
+  renderInvExtra();
+  const bar = $('invBar'); bar.innerHTML = '';
+  save.hotbar.forEach((id, i) => { const d = document.createElement('div'), w = id && weaponOf(id); d.className = 'hb' + (id ? '' : ' empty'); d.innerHTML = '<b class="hbn">' + (i + 1) + '</b><span class="hbi">' + (w ? w.icon : '') + '</span><small>' + (w ? w.name : '') + '</small>'; bar.appendChild(d); });
+  const list = $('invList'); list.innerHTML = '';
+  const owned = save.weapons.map(weaponOf).filter(Boolean);
+  if (!owned.length) { list.textContent = 'No weapons yet. Buy Fire Punch in the shop (Powers tab)!'; return; }
+  for (const w of owned) {
+    const d = document.createElement('div'), s = document.createElement('span'), sel = document.createElement('select'), put = document.createElement('button'), out = document.createElement('button'), at = save.hotbar.indexOf(w.id);
+    d.className = 'srow'; const TL = toolLv(w.id); s.innerHTML = '<b>' + w.icon + ' ' + w.name + (TOOLS[w.id].max > 1 ? ' Lv ' + TL : '') + '</b><br><small>' + TOOLS[w.id].use + ' ' + TOOLS[w.id].effect(TL) + '.</small>';
+    for (let i = 0; i < 5; i++) { const o = document.createElement('option'); o.value = i; o.textContent = 'Slot ' + (i + 1) + (save.hotbar[i] ? ' (' + weaponOf(save.hotbar[i]).name + ')' : ' (empty)'); sel.appendChild(o); }
+    sel.value = at >= 0 ? at : Math.max(0, save.hotbar.indexOf(null));
+    put.textContent = at >= 0 ? 'Move' : 'Add to hotbar'; put.onclick = () => { const to = +sel.value; if (at >= 0) save.hotbar[at] = null; save.hotbar[to] = w.id; persist(); renderHotbar(); renderInv(); };
+    out.textContent = 'Take out'; out.style.display = at >= 0 ? '' : 'none'; out.onclick = () => { save.hotbar[at] = null; persist(); renderHotbar(); renderInv(); };
+    d.append(s, sel, put, out); list.appendChild(d);
+  }
+}
+function openInv() { renderInv(); openUI($('invBox')); }
+$('invX').onclick = closeUI;
+renderHotbar();
+
+/* ---- unlocking locked bases / respawning ---- */
+const UNLOCK_BASE_COST = 100000;   // pay this at a locked (fenced) base's gate to open it
+function unlockBot(bot) {
+  if (cash < UNLOCK_BASE_COST) return toast('Unlocking a base costs ' + formatMoney(UNLOCK_BASE_COST) + '!', true);
+  const f = bot.base.fence; if (Date.now() >= f.until) return;
+  cash -= UNLOCK_BASE_COST; f.until = 0; f.cool = Date.now() + 45000; updateHud();   // it stays open for a while (they can't re-lock it for 45 s)
+  sfx('unlock'); toast('You unlocked ' + bot.name + "'s base!");
+}
+let respawnCD = 0;
+function respawn() {   // R: back to your base. A stolen show runner you are carrying goes back to its owner.
+  if (respawnCD > 0) return; respawnCD = 2;
+  if (held) { const a = held;
+    if (a.stolenFrom && bots.includes(a.stolenFrom)) botRetake(a.stolenFrom);
+    else { const free = a.origSlot && !a.origSlot.occupied ? a.origSlot : playerBase.slots.find(s => s.unlocked && !s.occupied); if (free) placeHeld(free); } }
+  player.position.copy(W(playerBase, -3, 0, 8)); pVel = 0; pvx = pvz = 0; airborne = false; pYaw = camYaw = playerBase.side > 0 ? -Math.PI / 2 : Math.PI / 2; camPitch = 0.35;
+  player.rotation.y = pYaw; punchSt.t = -1; toast('Respawned at your base!', false, 1800);
+}
+
+/* ---- the fist of fire ---- */
+function addFist(model) {   // flames on the right hand: small while Punch is equipped, big during a punch
+  const g = new THREE.Group(); g.position.set(0, -0.82, 0); g.visible = false; g.userData.fl = [];
+  [[0xff4a00, 0.5, 0.95], [0xff9a00, 0.36, 0.72], [0xffe36a, 0.2, 0.46]].forEach(([c, w, h], i) => { const m = new THREE.Mesh(GEO.k, fmat(c)); m.scale.set(w, h, w); m.position.y = -0.25 - i * 0.04; m.rotation.x = Math.PI; m.userData.h = h; g.add(m); g.userData.fl.push(m); });
+  const orb = new THREE.Mesh(GEO.s, fmat(0xff7a1a)); orb.scale.setScalar(0.38); g.add(orb);
+  model.userData.P.armR.add(g); model.userData.fist = g; return model;
+}
+const punchSt = { t:-1, hit:false, cd:0 }, fireFx = [];
+function nearestBot(range, noFrozen) { const pp = player.position; let best = null, bd = range; for (const bot of bots) { if (bot.rag || (noFrozen && bot.frozenT > 0)) continue; const d = Math.hypot(bot.pos.x - pp.x, bot.pos.z - pp.z); if (d < bd && Math.abs(bot.pos.y - pp.y) < 3) { bd = d; best = bot; } } return best; }
+function tryPunch() {   // F
+  if (!save.weapons.includes('punch')) return toast('Buy Punch in the shop (Powers tab) first!', true);
+  if (equipped !== 'punch') { const n = save.hotbar.indexOf('punch') + 1; return toast(n ? 'Press ' + n + ' to equip Punch!' : 'Open your inventory (I) and put Punch on your hotbar!', true); }
+  if (punchSt.cd > 0 || punchSt.t >= 0) return;
+  punchSt.t = 0; punchSt.hit = false; punchSt.cd = Math.max(0.45, 1.0 - 0.055 * punchLv()); pAnim.pt = 0.3;
+  const b = nearestBot(3.6 + 0.2 * punchLv() + 1); if (b) { pYaw = Math.atan2(b.pos.x - player.position.x, b.pos.z - player.position.z); player.rotation.y = pYaw; }   // turns to face the closest enemy
+}
+function punchHit() {
+  const b = nearestBot(3.6 + 0.2 * punchLv() + 0.6); if (!b) return;
+  const dx = b.pos.x - player.position.x, dz = b.pos.z - player.position.z; botRagdoll(b, dx, dz, punchThrow(punchLv())); burst(b.pos.x, b.pos.y + 1.4, b.pos.z, FIRE_COLS); sfx('hit');
+}
+const FIRE_COLS = [0xffe36a, 0xff9a00, 0xff4a00], ICE_COLS = [0xffffff, 0x9fe8ff, 0x4fc3f7], SWAP_COLS = [0xffffff, 0xd9a8ff, 0xa24bff];
+function burst(x, y, z, cols) {   // a little puff of flames / ice / sparkles
+  const g = new THREE.Group(); g.position.set(x, y, z);
+  for (let i = 0; i < 9; i++) { const m = new THREE.Mesh(GEO.k, fmat(cols[i % 3])), a = i / 9 * Math.PI * 2; m.userData.dir = new V3(Math.cos(a), 0.4 + (i % 3) * 0.3, Math.sin(a)); m.scale.set(0.5, 1, 0.5); g.add(m); }
+  const core = new THREE.Mesh(GEO.s, fmat(cols[0])); core.scale.setScalar(1.3); g.add(core); scene.add(g); fireFx.push({ g, t:0 });
+}
+/* ---- freeze ---- */
+let freezeCD = 0, swapCD = 0, portalCD = 0;
+const ICE_MAT = new THREE.MeshBasicMaterial({ color:0x9fe8ff, transparent:true, opacity:0.5, depthWrite:false });
+function botFreeze(bot, secs) {
+  if (bot.rag) return; sfx('freeze'); botThaw(bot, false); bot.frozenT = secs; bot.spd = 0;
+  bot.ice = new THREE.Mesh(GEO.b, ICE_MAT); bot.ice.scale.set(2.1, 3.2, 2.1); bot.ice.position.y = 1.3; bot.root.add(bot.ice);
+  burst(bot.pos.x, bot.pos.y + 1.3, bot.pos.z, ICE_COLS);
+}
+function botThaw(bot, shatter) {
+  if (bot.ice) { bot.root.remove(bot.ice); bot.ice = null; if (shatter) burst(bot.pos.x, bot.pos.y + 1.3, bot.pos.z, ICE_COLS); }
+  bot.frozenT = 0;
+}
+function tryFreeze() {
+  if (freezeCD > 0 || punchSt.t >= 0) return;
+  const b = nearestBot(16, true); if (!b) return toast('No enemy close enough to freeze!', true);
+  pYaw = Math.atan2(b.pos.x - player.position.x, b.pos.z - player.position.z); player.rotation.y = pYaw; pAnim.pt = 0.3;
+  botFreeze(b, FREEZE_SECS[toolLv('freeze') - 1]); freezeCD = 2;
+}
+/* ---- portals: F opens the first, F again opens the second; walk into either to come out of the other ---- */
+const portals = { a:null, b:null, wait:0, left:0 };
+function makePortal(x, y, z, yaw, c1, c2) {
+  const g = new THREE.Group(); g.position.set(x, y + 1.5, z); g.rotation.y = yaw; g.userData.baseY = y; g.userData.yaw = yaw;
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.3, 0.2, 10, 28), new THREE.MeshBasicMaterial({ color:c1 })), disc = new THREE.Mesh(new THREE.CircleGeometry(1.15, 28), new THREE.MeshBasicMaterial({ color:c2, transparent:true, opacity:0.55, side:THREE.DoubleSide, depthWrite:false }));
+  const orbs = new THREE.Group(); for (let i = 0; i < 6; i++) { const o = new THREE.Mesh(GEO.s, fmat(c2)); o.scale.setScalar(0.28); const a = i / 6 * Math.PI * 2; o.position.set(Math.cos(a) * 1.3, Math.sin(a) * 1.3, 0); orbs.add(o); }
+  g.add(ring, disc, orbs); g.userData.orbs = orbs; scene.add(g); return g;
+}
+function closePortals() { for (const k of ['a', 'b']) if (portals[k]) { scene.remove(portals[k]); portals[k] = null; } portals.wait = portals.left = 0; }
+function tryPortal() {
+  if (portals.a && portals.b) return toast('Your portals are already open!', true);
+  const pp = player.position, fx = Math.sin(pYaw), fz = Math.cos(pYaw), x = Math.max(-BOUNDS.x + 1, Math.min(BOUNDS.x - 1, pp.x + fx * 3)), z = Math.max(-BOUNDS.z + 1, Math.min(BOUNDS.z - 1, pp.z + fz * 3));
+  for (const q of [[x, z], [x + fx * 2.4, z + fz * 2.4]]) { const bb = botBaseAt(q[0], q[1]); if (bb && bb.owner !== 'player' && Date.now() < bb.fence.until) return toast("You can't open a portal inside a locked base!", true); }
+  const L = toolLv('portal');
+  if (!portals.a) { portals.a = makePortal(x, pp.y, z, pYaw, 0xff8a2a, 0xffc27a); portals.wait = 30; sfx('portal'); toast('Portal 1 is open! Press F again to open the second one.', false, 2600); }
+  else { portals.b = makePortal(x, pp.y, z, pYaw, 0x2a9bff, 0x8fd0ff); portals.left = PORTAL_SECS[L - 1]; sfx('portal'); toast('Portals linked! Walk into one - they close in ' + portals.left + ' seconds.', false, 2600); }
+}
+function portalTick(dt) {
+  portalCD = Math.max(0, portalCD - dt);
+  if (portals.a && !portals.b) { portals.wait -= dt; if (portals.wait <= 0) closePortals(); }
+  if (portals.a && portals.b) {
+    portals.left -= dt; if (portals.left <= 0) return closePortals();
+    const pp = player.position;
+    for (const [P, Q] of [[portals.a, portals.b], [portals.b, portals.a]]) {
+      if (portalCD <= 0 && Math.hypot(P.position.x - pp.x, P.position.z - pp.z) < 1.6 && Math.abs(P.userData.baseY - pp.y) < 2.5) {
+        const yq = Q.userData.yaw; player.position.set(Q.position.x + Math.sin(yq) * 2.4, Q.userData.baseY, Q.position.z + Math.cos(yq) * 2.4); pVel = 0; portalCD = 1.0; break; } }
+  }
+  for (const P of [portals.a, portals.b]) if (P) { P.userData.orbs.rotation.z += dt * 4; const s = portals.b ? Math.min(1, portals.left / 0.5) : 1; P.scale.setScalar(Math.max(0.01, s) * (1 + 0.04 * Math.sin(worldT * 8))); }
+}
+/* ---- body swap: click two players and they trade places ---- */
+const swapSel = [];
+function swapClear() { for (const b of swapSel) if (b.mark) { b.root.remove(b.mark); b.mark = null; } swapSel.length = 0; }
+function swapSelect(bot) {   // click a player: you and them trade places
+  if (swapCD > 0) return toast('Body Swap is recharging...', true);
+  const pp = player.position.clone(), bp = bot.pos.clone();
+  for (const q of [pp, bp]) { const bb = botBaseAt(q.x, q.z); if (bb && bb.owner !== 'player' && Date.now() < bb.fence.until) return toast("You can't swap into a locked base!", true); }   // locked bases stay locked
+  const pb = botBaseAt(pp.x, pp.z); if (pb && pb.owner === 'player' && Date.now() < pb.fence.until) return toast("You can't swap them into your locked base!", true);
+  burst(pp.x, pp.y + 1.3, pp.z, SWAP_COLS); burst(bp.x, bp.y + 1.3, bp.z, SWAP_COLS);
+  player.position.copy(bp); pVel = 0; pvx = pvz = 0;
+  if (bot.carry) botRecover(bot); bot.rag = null; bot.model.rotation.x = 0; botThaw(bot, false);
+  bot.pos.copy(pp); bot.target = null; bot.victim = null; bot.seg = null; bot.spd = 0; bot.trapT = 0; bot.lastPos.copy(pp);
+  bot.path = botPathTo(bot, bot.post.x, 0.06, bot.post.z); bot.state = 'return';   // walks back out through the gates to where it stands
+  sfx('swap'); swapCD = 3; toast('You swapped places with ' + bot.name + '!');
+}
+function swapPick(cx, cy) {   // click -> the player under the cursor
+  let best = null, bd = 60;
+  for (const bot of bots) { if (bot.rag) continue; const v = new V3(bot.pos.x, bot.pos.y + 1.3, bot.pos.z).project(camera); if (v.z > 1) continue;
+    const d = Math.hypot((v.x * 0.5 + 0.5) * innerWidth - cx, (-v.y * 0.5 + 0.5) * innerHeight - cy); if (d < bd) { bd = d; best = bot; } }
+  if (best) swapSelect(best);
+}
+renderer.domElement.addEventListener('click', e => { if (equipped === 'swap' && !uiOpen) swapPick(e.clientX, e.clientY); });
+function useTool() {   // F
+  if (!equipped) return toast(save.weapons.length ? 'Equip a weapon first: press its number (1-5)!' : 'Buy a weapon in the shop (Powers tab) first!', true);
+  if (equipped === 'punch') return tryPunch(); if (equipped === 'freeze') return tryFreeze(); if (equipped === 'portal') return tryPortal();
+  if (equipped === 'swap') toast('Click a player to swap places with them!', false, 2200);
+}
+function toolsTick(dt) { freezeCD = Math.max(0, freezeCD - dt); swapCD = Math.max(0, swapCD - dt); portalTick(dt); for (const b of swapSel) if (b.mark) b.mark.rotation.y += dt * 4; }
+
+
+function weaponTick(dt) {
+  toolsTick(dt);
+  punchSt.cd = Math.max(0, punchSt.cd - dt); respawnCD = Math.max(0, respawnCD - dt);
+  if (punchSt.t >= 0) { punchSt.t += dt; if (!punchSt.hit && punchSt.t >= 0.12) { punchSt.hit = true; punchHit(); } if (punchSt.t > 0.5) punchSt.t = -1; }
+  const fist = curModel.userData.fist;
+  if (fist) { const big = punchSt.t >= 0 ? 1.8 : 1; fist.visible = equipped === 'punch' || punchSt.t >= 0; fist.scale.setScalar(big);
+    fist.userData.fl.forEach((m, i) => m.scale.y = m.userData.h * (1 + 0.25 * Math.sin(worldT * 18 + i * 2))); }
+  for (let i = fireFx.length - 1; i >= 0; i--) { const f = fireFx[i]; f.t += dt; const e = f.t / 0.6;
+    f.g.children.forEach(m => { const d = m.userData.dir; if (d) { m.position.set(d.x * e * 2.2, d.y * e * 2.2, d.z * e * 2.2); m.scale.set(0.5 * (1 - e), 1 * (1 - e), 0.5 * (1 - e)); } else m.scale.setScalar(Math.max(0.01, 1.3 * (1 - e))); });
+    if (e >= 1) { scene.remove(f.g); fireFx.splice(i, 1); } }
+}
+
+/* ============================ MENU / SERVERS / ACCOUNTS / SETTINGS / SOUND / SKY ============================ */
+/* ---- sound: small synthesized effects (WebAudio), volume + mute in Settings ---- */
+let actx = null;
+function audio() { if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (actx && actx.state === 'suspended') actx.resume(); return actx; }
+function tone(f, d, type, vol, slideTo, delay) {
+  const c = audio(); if (!c) return; const t0 = c.currentTime + (delay || 0), o = c.createOscillator(), g = c.createGain();
+  o.type = type || 'sine'; o.frequency.setValueAtTime(f, t0); if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + d);
+  const v = (vol || 0.2) * (settings.volume / 100); g.gain.setValueAtTime(v, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d); o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0 + d + 0.02);
+}
+function sfx(kind) {
+  if (settings.mute || settings.volume <= 0) return;
+  try {
+    if (kind === 'click') tone(520, 0.07, 'triangle', 0.18);
+    else if (kind === 'start') { tone(392, 0.12, 'triangle', 0.2); tone(523, 0.12, 'triangle', 0.2, 0, 0.1); tone(784, 0.2, 'triangle', 0.2, 0, 0.2); }
+    else if (kind === 'buy') { tone(660, 0.08, 'square', 0.1); tone(990, 0.14, 'square', 0.1, 0, 0.08); }
+    else if (kind === 'steal') { tone(220, 0.18, 'sawtooth', 0.15); tone(165, 0.25, 'sawtooth', 0.15, 0, 0.18); }
+    else if (kind === 'hit') { tone(180, 0.25, 'sawtooth', 0.25, 50); tone(900, 0.12, 'square', 0.1, 200); }
+    else if (kind === 'freeze') tone(1800, 0.4, 'sine', 0.18, 300);
+    else if (kind === 'portal') tone(200, 0.35, 'sine', 0.2, 900);
+    else if (kind === 'swap') { tone(500, 0.1, 'triangle', 0.2); tone(750, 0.1, 'triangle', 0.2, 0, 0.1); tone(500, 0.1, 'triangle', 0.2, 0, 0.2); }
+    else if (kind === 'unlock') { tone(440, 0.1, 'square', 0.1); tone(660, 0.18, 'square', 0.1, 0, 0.1); }
+    else if (kind === 'rebirth') [392, 523, 659, 784, 1047].forEach((f, i) => tone(f, 0.22, 'triangle', 0.22, 0, i * 0.1));
+  } catch (e) {}
+}
+document.addEventListener('click', e => { if (e.target.closest && e.target.closest('button')) sfx('click'); });
+
+/* ---- settings ---- */
+function applySettings() {
+  const b = settings.brightness / 100; hemi.intensity = 0.9 * b; sun.intensity = 0.9 * b; setQuality($('quality').value);
+  $('setBright').value = settings.brightness; $('setBrightV').textContent = settings.brightness + '%'; $('setShadow').checked = settings.shadows;
+  $('setVol').value = settings.volume; $('setVolV').textContent = settings.volume + '%'; $('setMute').checked = settings.mute; $('setRb').checked = settings.rebirthScreen;
+}
+function setSetting(k, v) { settings[k] = v; store.set('settings', settings); applySettings(); }
+$('setBright').oninput = e => setSetting('brightness', +e.target.value); $('setShadow').onchange = e => setSetting('shadows', e.target.checked);
+$('setVol').oninput = e => setSetting('volume', +e.target.value); $('setMute').onchange = e => setSetting('mute', e.target.checked); $('setRb').onchange = e => setSetting('rebirthScreen', e.target.checked);
+$('setX').onclick = closeUI; $('setBtn').onclick = () => { $('setMenu').style.display = ''; openUI($('settingsBox')); };
+$('mSettings').onclick = () => { $('setMenu').style.display = 'none'; openUI($('settingsBox')); };
+let leaveSure = 0;
+$('setMenu').onclick = () => { if (Date.now() > leaveSure) { leaveSure = Date.now() + 4000; $('setMenu').textContent = 'Click again to leave the server'; return; } saveProgress(); location.reload(); };
+applySettings();
+
+/* ---- saving your progress: cash, rebirth and the show runners in your base (together with spins, skins, index, weapons...) ---- */
+let serverOn = false, saveT = 0;
+function saveProgress() {
+  if (!serverOn) return;
+  save.cash = Math.floor(cash); save.rebirth = playerBase.rebirth;
+  save.runners = [...earners, ...walkers].filter(a => a.slot && playerBase.slots.includes(a.slot)).map(a => ({ id:sid(a.cfg), v:a.variant, s:playerBase.slots.indexOf(a.slot) }));   // standing + still walking to a platform
+  save.carried = held ? { id:sid(held.cfg), v:held.variant } : null;
+  const mine = earners.some(isG) || walkers.some(isG) || isG(held) || save.stored.some(r => r.id === 'gronos'); save.pass.away = save.pass.gronos === 1 && !mine;   // claimed but not with you = somebody stole him
+  persist();
+}
+function restoreProgress() {
+  if (typeof save.rebirth === 'number' && save.rebirth > 0 && REBIRTHS[save.rebirth]) setRebirth(playerBase, save.rebirth, false);
+  if (typeof save.cash === 'number') cash = save.cash;
+  let gSeen = save.stored.some(r => r.id === 'gronos');   // never more than one Gronos, whatever the save says
+  for (const r of save.runners || []) { const cfg = ALL_RUNNERS.find(c => sid(c) === r.id), slot = playerBase.slots[r.s]; if (!cfg) continue; if (cfg === GRONOS) { if (gSeen) continue; gSeen = true; }
+    if (!slot || !slot.unlocked || slot.occupied || !placeRunnerAt(cfg, r.v, slot)) save.stored.push({ id:r.id, v:r.v }); }   // no room (or an old save): into your inventory, never lost
+  if (save.carried && !(save.carried.id === 'gronos' && gSeen)) save.stored.push(save.carried); save.carried = null;
+  updateHud();
+}
+function passOnStart() {   // after the server is built: Gronos on the loose goes to a bot in the online lobby so he can be stolen back
+  applyCosmetics(curModel); setPet(save.cos.pet); if (save.decor && !save.decorOff) buildDeco(); refreshPassDot();
+  if (server.mode === 'online' && save.pass.away && bots.length && !bots.some(b => b.earners.some(isG))) { const pool = bots.filter(b => b.level === 3), bot = botPick(pool.length ? pool : bots); if (!bot.base.slots.some(s => s.unlocked && !s.occupied)) botSell(bot, botWorst(bot)); botAddRunner(bot, GRONOS); }
+}
+addEventListener('beforeunload', saveProgress); document.addEventListener('visibilitychange', () => { if (document.hidden) saveProgress(); });
+
+/* ---- servers + invite codes ----
+   Solo = a server with no bots. Online = a server with other players (bots). The invite code (press B) is saved with the server:
+   joining the same code from the menu recreates the same server (same players, same layout). */
+const server = { mode:'solo', code:'' }, CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const makeCode = mode => (mode === 'solo' ? 'S' : 'P') + Array.from({ length:5 }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join('');
+function seededRandom(str) { let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; } let a = h >>> 0;
+  return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function startServer(mode, code) {
+  if (serverOn) return;
+  server.mode = mode; server.code = code || makeCode(mode);
+  if (mode === 'online') { const real = Math.random; Math.random = seededRandom(server.code); try { botLobby(); } finally { Math.random = real; } }   // same code = same lobby
+  restoreProgress(); serverOn = true; started = true; passOnStart(); $('menu').style.display = 'none'; sfx('start');
+  $('inviteCode').textContent = server.code; $('inviteInfo').textContent = (mode === 'solo' ? 'Solo server' : 'Public online server') + ' - friends can join with this code from the main menu.';
+  toast('Connecting online... WASD move - E interact - B invite code', false, 4500);
+  connectMultiplayer(mode, code || '');
+}
+$('mSolo').onclick = () => startServer('solo'); $('mOnline').onclick = () => startServer('online');
+$('joinGo').onclick = () => { const c = $('joinCode').value.trim().toUpperCase(); if (!/^[SP][A-HJKMN-Z2-9]{5}$/.test(c)) { $('joinErr').textContent = 'That invite code is not valid.'; return; } startServer(c[0] === 'S' ? 'solo' : 'online', c); };
+$('joinCode').onkeydown = e => { if (e.key === 'Enter') $('joinGo').click(); };
+function toggleInvite() { const b = $('inviteBox'); b.style.display = b.style.display === 'block' ? 'none' : 'block'; }
+$('inviteX').onclick = () => { $('inviteBox').style.display = 'none'; };
+$('inviteCopy').onclick = () => { try { navigator.clipboard.writeText(server.code); $('inviteCopy').textContent = 'Copied!'; setTimeout(() => { $('inviteCopy').textContent = 'Copy'; }, 1500); } catch (e) { $('inviteCopy').textContent = server.code; } };
+/* ---- REAL-TIME MULTIPLAYER CLIENT ---- */
+const MULTIPLAYER_SERVER = 'wss://steal-a-show-runner-multiplayer.onrender.com';
+let netSocket=null, netPlayerId=null, netSendClock=0;
+const remotePlayers=new Map();
+function removeOneBotForPlayer(){const bot=bots.pop();if(!bot)return;if(bot.base&&bot.base.group)bot.base.group.visible=false;if(bot.root)bot.root.visible=false;for(const a of [...(bot.earners||[]),...(bot.walkers||[])])if(a.root)a.root.visible=false;if(bot.carry&&bot.carry.root)bot.carry.root.visible=false;}
+function addRemotePlayer(data){if(!data||!data.id||data.id===netPlayerId)return;let rp=remotePlayers.get(data.id);if(!rp){const root=createPlayerModel(data.gender==='female'?'female':'male');root.position.set(Number(data.x)||0,Number(data.y)||0,Number(data.z)||0);root.rotation.y=Number(data.yaw)||0;scene.add(root);const tex=makeLabel(512,128,c=>outlined(c,data.name||'Player',256,64,58,'#ffffff','#000000',12));const tag=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false}));tag.scale.set(4.2,1.05,1);tag.position.y=3.45;tag.renderOrder=11;root.add(tag);rp={root,tag,target:{x:Number(data.x)||0,y:Number(data.y)||0,z:Number(data.z)||0,yaw:Number(data.yaw)||0}};remotePlayers.set(data.id,rp);}else{rp.target.x=Number(data.x)||0;rp.target.y=Number(data.y)||0;rp.target.z=Number(data.z)||0;rp.target.yaw=Number(data.yaw)||0;}}
+function removeRemotePlayer(id){const rp=remotePlayers.get(id);if(!rp)return;scene.remove(rp.root);if(rp.tag&&rp.tag.material.map)rp.tag.material.map.dispose();if(rp.tag)rp.tag.material.dispose();remotePlayers.delete(id);}
+function netMessage(msg){if(msg.type==='joined'){netPlayerId=msg.id;server.code=msg.code||server.code;$('inviteCode').textContent=server.code;$('inviteInfo').textContent=(server.mode==='solo'?'Private solo room':'Public online room')+' - share this code with friends.';(msg.players||[]).forEach(addRemotePlayer);for(let i=0;i<(msg.players||[]).length;i++)removeOneBotForPlayer();toast('Connected! Invite code: '+server.code,false,4500);}else if(msg.type==='player-joined'){addRemotePlayer(msg.player);removeOneBotForPlayer();toast((msg.player&&msg.player.name||'A player')+' joined!',false,3000);}else if(msg.type==='player-left'){removeRemotePlayer(msg.id);toast((msg.name||'A player')+' left.',false,2500);}else if(msg.type==='state'){(msg.players||[]).forEach(addRemotePlayer);}else if(msg.type==='error'){$('joinErr').textContent=msg.message||'Could not join the online room.';toast(msg.message||'Multiplayer connection error.',true,5000);}}
+function connectMultiplayer(mode,inviteCode){try{netSocket=new WebSocket(MULTIPLAYER_SERVER);netSocket.addEventListener('open',()=>{const displayName=curUser&&accounts[curUser]?accounts[curUser].name:'Guest';netSocket.send(JSON.stringify({type:'join',mode,code:inviteCode,name:displayName,gender}));});netSocket.addEventListener('message',e=>{try{netMessage(JSON.parse(e.data));}catch(err){console.warn('Bad multiplayer message',err);}});netSocket.addEventListener('close',()=>{if(serverOn)toast('Disconnected from multiplayer server.',true,4500);});netSocket.addEventListener('error',()=>toast('Could not connect to multiplayer. Check your connection.',true,4500));}catch(err){toast('Your browser could not start multiplayer.',true,4500);}}
+function multiplayerTick(dt){if(netSocket&&netSocket.readyState===WebSocket.OPEN&&netPlayerId){netSendClock+=dt;if(netSendClock>=0.08){netSendClock=0;netSocket.send(JSON.stringify({type:'move',x:player.position.x,y:player.position.y,z:player.position.z,yaw:pYaw}));}}for(const rp of remotePlayers.values()){const k=1-Math.exp(-12*dt),t=rp.target;rp.root.position.x+=(t.x-rp.root.position.x)*k;rp.root.position.y+=(t.y-rp.root.position.y)*k;rp.root.position.z+=(t.z-rp.root.position.z)*k;let dy=((t.yaw-rp.root.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;rp.root.rotation.y+=dy*k;}}
+window.addEventListener('beforeunload',()=>{try{if(netSocket)netSocket.close();}catch(e){}});
+
+/* ---- accounts: username + password, stored in this browser (there is no game server). Sign in again any time to get your progress back. ---- */
+async function hashPw(user, pw, salt) {
+  const text = salt + ':' + user + ':' + pw;
+  try { if (window.crypto && crypto.subtle) { const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)); return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join(''); } } catch (e) {}
+  let h = 5381; for (let i = 0; i < text.length; i++) h = (h * 33 ^ text.charCodeAt(i)) >>> 0; return 'x' + h;
+}
+function canStore() { try { localStorage.setItem('sasr_t', '1'); localStorage.removeItem('sasr_t'); return true; } catch (e) { return false; } }
+function refreshSign() {
+  const signedIn = !!(curUser && accounts[curUser]); $('signBtn').textContent = signedIn ? accounts[curUser].name : 'Sign In';
+  $('signForm').style.display = signedIn ? 'none' : ''; $('signedIn').style.display = signedIn ? '' : 'none'; $('signTitle').textContent = signedIn ? 'ACCOUNT' : 'SIGN IN'; if (signedIn) $('signName').textContent = 'Signed in as ' + accounts[curUser].name;
+}
+$('signBtn').onclick = () => { $('signErr').textContent = ''; refreshSign(); openUI($('signBox')); };
+$('signX').onclick = closeUI;
+$('signGo').onclick = async () => {
+  const name = $('signUser').value.trim(), pw = $('signPass').value, err = m => { $('signErr').textContent = m; };
+  if (!/^[A-Za-z0-9_]{3,16}$/.test(name)) return err('Username: 3-16 letters, numbers or _');
+  if (pw.length < 4) return err('Password must be at least 4 characters.');
+  if (!canStore()) return err('This window cannot save data, so accounts will not stick. Open the game file directly in Chrome, Edge or Firefox.');
+  const key = name.toLowerCase(), acct = accounts[key];
+  if (acct) { if (await hashPw(key, pw, acct.salt) !== acct.hash) return err('Wrong password for that username.'); }
+  else { const salt = Math.random().toString(36).slice(2) + Date.now().toString(36); saveProgress(); accounts[key] = { name, salt, hash:await hashPw(key, pw, salt), save:JSON.parse(JSON.stringify(save)), created:Date.now() }; }   // a new account starts from what you have right now
+  store.set('accounts', accounts); store.set('session', key); location.reload();
+};
+$('signPass').onkeydown = e => { if (e.key === 'Enter') $('signGo').click(); };
+$('signOut').onclick = () => { saveProgress(); store.set('session', null); location.reload(); };
+refreshSign();
+
+/* ---- sun and clouds in the sky ---- */
+const skySun = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'), g = x.createRadialGradient(128, 128, 0, 128, 128, 128);
+  g.addColorStop(0, '#fffbe0'); g.addColorStop(0.22, '#fff0a0'); g.addColorStop(0.3, 'rgba(255,214,90,0.85)'); g.addColorStop(0.55, 'rgba(255,200,90,0.28)'); g.addColorStop(1, 'rgba(255,200,90,0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map:new THREE.CanvasTexture(c), transparent:true, depthWrite:false, fog:false })); s.scale.set(110, 110, 1); scene.add(s); return s; })();
+const skyClouds = [], cloudMat = new THREE.MeshBasicMaterial({ color:0xffffff, fog:false }), cloudShade = new THREE.MeshBasicMaterial({ color:0xdce9f6, fog:false });
+for (let i = 0; i < 22; i++) {
+  const g = new THREE.Group(), w = 26 + Math.random() * 30, n = 4 + Math.floor(Math.random() * 3);
+  for (let k = 0; k < n; k++) { const m = new THREE.Mesh(GEO.s, cloudMat), s = w * (0.5 + Math.random() * 0.4); m.scale.set(s * 1.2, s * 0.8, s); m.position.set((k - (n - 1) / 2) * w * 0.55, (k % 2) * w * 0.12, (Math.random() - 0.5) * w * 0.3); g.add(m); }
+  const base = new THREE.Mesh(GEO.s, cloudShade); base.scale.set(w * 0.55 * n, w * 0.28, w * 0.7); base.position.y = -w * 0.2; g.add(base);
+  const a = Math.random() * Math.PI * 2, r = 220 + Math.random() * 220; g.position.set(Math.cos(a) * r, 38 + Math.random() * 55, Math.sin(a) * r); g.userData.v = 1.2 + Math.random() * 2.2; scene.add(g); skyClouds.push(g);
+}
+function skyTick(dt) {
+  skySun.position.set(camera.position.x + 120, camera.position.y + 62, camera.position.z - 430);   // far away in one fixed direction, like a real sun
+  for (const c of skyClouds) { c.position.x += c.userData.v * dt; if (c.position.x > 480) c.position.x = -480; }
+}
+function menuTick(dt) { skyTick(dt); passTick(dt); fxTick(dt); saveT += dt; if (saveT >= 5) { saveT = 0; saveProgress(); } }
+
+/* ============================ SHOWRUNNER PASS: rewards that need models / effects ============================
+   Pass cosmetics are normal COSMETICS entries flagged pass:true (they never show in the shop). Slots: hat, mask, back, trail, aura + the existing hair/glasses/pet. */
+const PASS_COS = [
+  { id:'tr_moss', slot:'trail', name:'Mossy Trail', icon:'🌿', desc:'Green footsteps follow you.' }, { id:'tr_blue', slot:'trail', name:'Blue Flame Trail', icon:'🔵', desc:'Blue flames burn behind you.' },
+  { id:'tr_purple', slot:'trail', name:'Purple Smoke Trail', icon:'🟣', desc:'Purple smoke follows you.' }, { id:'tr_crystal', slot:'trail', name:'Crystal Footsteps', icon:'💎', desc:'Sparkling crystals fall behind you.' },
+  { id:'tr_rainbow', slot:'trail', name:'Rainbow Trail', icon:'🌈', desc:'A rainbow follows you.' }, { id:'tr_solar', slot:'trail', name:'Solar Trail', icon:'☀️', desc:'A bright sun-like trail follows you.' },
+  { id:'tr_darklight', slot:'trail', name:'Dark Lightning Trail', icon:'⚡', desc:'Black lightning follows you.' }, { id:'tr_eternal', slot:'trail', name:'Eternal Flame Trail', icon:'🔥', desc:'An exclusive flame trail.' },
+  { id:'au_dark', slot:'aura', name:'Dark Aura', icon:'🌑', desc:'Dark energy surrounds you.' }, { id:'au_electric', slot:'aura', name:'Electric Aura', icon:'⚡', desc:'Electricity surrounds you.' }, { id:'au_galaxy', slot:'aura', name:'Galaxy Aura', icon:'🌌', desc:'A galaxy swirls around you.' },
+  { id:'ht_leaf', slot:'hat', name:'Leaf Crown', icon:'🍃', desc:'A leafy crown.' }, { id:'ht_gold', slot:'hat', name:'Golden Crown', icon:'👑', desc:'An exclusive golden crown.' }, { id:'ht_horns', slot:'hat', name:'Demon Horns', icon:'😈', desc:'Wearable horns.' },
+  { id:'ht_king', slot:'hat', name:'King Crown', icon:'👑', desc:'An animated king crown.', fx:'king' }, { id:'ht_eternal', slot:'hat', name:'Eternal Crown', icon:'🔥', desc:'An exclusive animated crown.', fx:'eternal' },
+  { id:'mk_shadow', slot:'mask', name:'Shadow Mask', icon:'🎭', desc:'A dark mask.' }, { id:'bk_gold', slot:'back', name:'Golden Backpack', icon:'🎒', desc:'A golden backpack.' }, { id:'bk_cape', slot:'back', name:'Royal Cape', icon:'🦸', desc:'A royal cape.' },
+  { id:'gl_star', slot:'glasses', name:'Star Glasses', icon:'⭐', desc:'Star-shaped glasses.', style:'star', color:0xffd23a }, { id:'gl_glitch', slot:'glasses', name:'Glitch Glasses', icon:'👾', desc:'Glasses with a glitch effect.', style:'glitch', color:0x00ffcc, fx:'glitch' },
+  { id:'hair_lightning', slot:'hair', name:'Lightning Hair', icon:'⚡', desc:'Electric spiky hair.', style:'spiky', color:0xfff36b, fx:'lightning' }, { id:'hair_galaxy', slot:'hair', name:'Galaxy Hair', icon:'🌌', desc:'Long hair with a galaxy shimmer.', style:'long', color:0x7a3bff, fx:'galaxy' },
+  { id:'pet_sprout', slot:'pet', name:'Tiny Sprout', icon:'🌱', desc:'A little plant companion.' }, { id:'pet_meteor', slot:'pet', name:'Mini Meteor', icon:'☄️', desc:'A tiny floating meteor.' }, { id:'pet_cloud', slot:'pet', name:'Cloudy', icon:'☁️', desc:'A floating cloud.' },
+  { id:'pet_ufo', slot:'pet', name:'Mini UFO', icon:'🛸', desc:'A tiny UFO.' }, { id:'pet_dragon', slot:'pet', name:'Mini Dragon', icon:'🐲', desc:'A tiny dragon.' }, { id:'pet_shadowcat', slot:'pet', name:'Shadow Cat', icon:'🐈‍⬛', desc:'A mysterious shadow cat.' },
+  { id:'pet_phoenix', slot:'pet', name:'Mini Phoenix', icon:'🐦‍🔥', desc:'A little fiery phoenix.' }, { id:'pet_voidbunny', slot:'pet', name:'Void Bunny', icon:'🐰', desc:'A purple void bunny.' },
+  { id:'pet_voiddragon', slot:'pet', name:'Mini Void Dragon', icon:'🐉', desc:'A miniature dragon with a void effect.' }, { id:'pet_galaxydragon', slot:'pet', name:'Mini Galaxy Dragon', icon:'🌠', desc:'A special galaxy dragon.' }
+].map(c => Object.assign({ price:0, color:null, pass:true }, c));
+COSMETICS.push(...PASS_COS);
+const PASS_SKINS = {   // base skins: the whole base is re-textured (em = glow color, pulse = how it shimmers)
+  sk_mushroom:{ name:'Mushroom Base Skin', icon:'🍄', color:0xe0485f, em:0x3a1018, desc:'A colorful mushroom-themed base.' }, sk_neon:{ name:'Neon Base Skin', icon:'💡', color:0x20ffd0, em:0x08806a, desc:'A glowing neon base.', pulse:1 },
+  sk_castle:{ name:'Castle Base Skin', icon:'🏰', color:0xa7adb6, em:0x1a1d22, desc:'Your base looks like a castle.' }, sk_lava:{ name:'Lava Base Skin', icon:'🌋', color:0xff5a1a, em:0x802000, desc:'Flowing lava.', pulse:1 },
+  sk_galaxy:{ name:'Galaxy Base Skin', icon:'🌌', color:0x2a1b7b, em:0x401a8a, desc:'A galaxy-themed base.', pulse:1, hue:1 }, sk_ice:{ name:'Ice Palace Base Skin', icon:'🧊', color:0xbfeaff, em:0x1a4a6a, desc:'An ice palace.' },
+  sk_darkcastle:{ name:'Dark Castle Base Skin', icon:'🏯', color:0x2d2538, em:0x180a28, desc:'A dark royal base.' }, sk_void:{ name:'Void Base Skin', icon:'🕳️', color:0x140a22, em:0x4a1a8a, desc:'A mysterious void.', pulse:1 },
+  sk_glitch:{ name:'Glitched Base Skin', icon:'👾', color:0x10ff90, em:0x0a6a4a, desc:'Corrupted and glitchy.', pulse:1, glitch:1 }
+};
+for (const id in PASS_SKINS) { const S = PASS_SKINS[id]; S.mat = new THREE.MeshLambertMaterial({ color:S.color, emissive:S.em }); skinMats[id] = lowMats[id] = S.mat; }
+const FXPAL = { king:[0xffd700, 0xfff2a0, 0xffb300, 0xffd700], eternal:[0xff5a00, 0xffd700, 0xffffff, 0xff2a00], lightning:[0xfff36b, 0xffffff, 0x6bd6ff, 0xfff36b], galaxy:[0x7a3bff, 0xff5ad9, 0x3b8bff, 0xa24bff], glitch:[0x00ffcc, 0xff00aa, 0xffffff, 0x2255ff] };
+function passGear(add, P, hat, mask, back, fxSet) {   // hats, masks, capes and backpacks (called from applyCosmetics)
+  const ring = (n, r, f) => { for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; f(Math.cos(a) * r, Math.sin(a) * r, a); } };
+  if (hat) { fxSet(hat.fx || null);
+    if (hat.id === 'ht_leaf') ring(6, 0.36, (x, z, a) => add(P.head, ['k', 0.16, 0.34, 0.12, i6(a), x, 0.86, z, 0.01, Math.sin(a) * 0.5, 0, -Math.cos(a) * 0.5]));
+    else if (hat.id === 'ht_horns') for (const s of [-1, 1]) add(P.head, ['k', 0.14, 0.42, 0.14, 0xb01020, s * 0.24, 0.92, 0.04, 0.012, 0, 0, -s * 0.4]);
+    else { const tall = hat.id === 'ht_king' || hat.id === 'ht_eternal', n = tall ? 6 : 5, h = tall ? 0.36 : 0.26, col = hat.id === 'ht_eternal' ? 0xff5a00 : 0xffd700;
+      add(P.head, ['c', 0.8, 0.16, 0.8, col, 0, 0.82, 0, 0.02]); ring(n, 0.3, (x, z) => add(P.head, ['k', 0.17, h, 0.17, col, x, 0.82 + 0.14 + h / 2 - 0.1, z, 0.015]));
+      add(P.head, ['s', 0.11, 0.11, 0.11, hat.id === 'ht_gold' ? 0xff3355 : 0x33ddff, 0, 0.84, 0.4, 0.01]); if (tall) add(P.head, ['s', 0.16, 0.16, 0.16, 0xffffff, 0, 1.12 + h * 0.5, 0, 0.01]); }
+    fxSet(null); }
+  if (mask) { add(P.head, ['b', 0.66, 0.3, 0.1, 0x111111, 0, 0.45, 0.37, 0.012]); for (const s of [-1, 1]) add(P.head, ['b', 0.16, 0.05, 0.02, 0xffffff, s * 0.15, 0.46, 0.43, 0]); }
+  if (back && back.id === 'bk_gold') { add(P.rig, ['b', 0.62, 0.72, 0.26, 0xffc400, 0, 1.38, -0.37, 0.02]); add(P.rig, ['b', 0.4, 0.26, 0.08, 0xe0a800, 0, 1.22, -0.53, 0.015]); for (const s of [-1, 1]) add(P.rig, ['b', 0.07, 0.62, 0.05, 0x7a4a00, s * 0.28, 1.4, -0.2, 0]); }
+  if (back && back.id === 'bk_cape') { add(P.rig, ['b', 0.92, 1.22, 0.06, 0xc01030, 0, 1.12, -0.3, 0.02, 0.1]); add(P.rig, ['b', 0.98, 0.07, 0.1, 0xffd700, 0, 1.72, -0.28, 0.01]); add(P.rig, ['b', 0.92, 0.06, 0.08, 0xffd700, 0, 0.52, -0.37, 0.01, 0.1]); }
+}
+const i6 = a => (Math.floor(a * 2) % 2 ? 0x3fbf4a : 0x6fdc5a);
+function petPass(id, add) {   // the ten pass pets (same follow / bob behaviour as shop pets)
+  const eyes = (y, z, c, s) => { for (const x of [-1, 1]) add('s', s || 0.07, s || 0.07, 0.04, c || 0, x * 0.1, y, z, 0); };
+  const dragon = (body, wing, horn, eye, lift, glow) => { const y0 = lift || 0;
+    add('s', 0.6, 0.5, 0.7, body, 0, 0.45 + y0, 0, 0.03); add('s', 0.4, 0.38, 0.4, body, 0, 0.78 + y0, 0.4, 0.03); for (const s of [-1, 1]) { add('k', 0.08, 0.22, 0.08, horn, s * 0.1, 1.02 + y0, 0.38, 0.01); add('b', 0.55, 0.05, 0.36, wing, s * 0.45, 0.72 + y0, -0.05, 0.02, 0, 0, s * 0.5); }
+    add('k', 0.16, 0.6, 0.16, body, 0, 0.4 + y0, -0.55, 0.02, -1.4); eyes(0.82 + y0, 0.6, eye, 0.08); if (glow) for (let i = 0; i < 4; i++) add('s', 0.1, 0.1, 0.1, glow, Math.cos(i * 1.57) * 0.55, 0.5 + y0 + (i % 2) * 0.3, Math.sin(i * 1.57) * 0.55, 0); };
+  if (id === 'pet_sprout') { add('c', 0.42, 0.32, 0.42, 0xb5651d, 0, 0.2, 0, 0.03); add('c', 0.07, 0.42, 0.07, 0x3fbf4a, 0, 0.55, 0, 0.015); for (const s of [-1, 1]) add('s', 0.32, 0.08, 0.18, 0x57d65f, s * 0.19, 0.78, 0, 0.015, 0, 0, s * 0.5); eyes(0.26, 0.2, 0, 0.06); }
+  else if (id === 'pet_meteor') { add('s', 0.62, 0.55, 0.6, 0x6b5a4a, 0, 1.1, 0, 0.03); add('s', 0.18, 0.18, 0.18, 0x4a3d30, 0.15, 1.2, 0.25, 0); add('k', 0.4, 0.9, 0.4, 0xff7a1a, 0, 1.1, -0.65, 0.01, -Math.PI / 2); add('k', 0.22, 0.7, 0.22, 0xffe36a, 0, 1.1, -0.6, 0, -Math.PI / 2); eyes(1.16, 0.28); }
+  else if (id === 'pet_cloud') { add('s', 0.6, 0.42, 0.5, 0xffffff, 0, 1.1, 0, 0.025); add('s', 0.42, 0.34, 0.4, 0xffffff, -0.32, 1.05, 0, 0.02); add('s', 0.42, 0.34, 0.4, 0xffffff, 0.32, 1.05, 0, 0.02); add('s', 0.4, 0.3, 0.4, 0xffffff, 0, 1.28, 0, 0.02); eyes(1.12, 0.24); }
+  else if (id === 'pet_ufo') { add('c', 0.95, 0.16, 0.95, 0x9aa4b2, 0, 1.2, 0, 0.03); add('d', 0.5, 0.42, 0.5, 0x7be0ff, 0, 1.27, 0, 0.02); for (let i = 0; i < 6; i++) add('s', 0.1, 0.1, 0.1, 0xffee55, Math.cos(i * 1.05) * 0.4, 1.16, Math.sin(i * 1.05) * 0.4, 0); add('s', 0.14, 0.14, 0.14, 0x55ff88, 0, 1.4, 0, 0.01); }
+  else if (id === 'pet_dragon') dragon(0xd03030, 0xa02020, 0xffd23a, 0xffee33);
+  else if (id === 'pet_shadowcat') { add('s', 0.55, 0.45, 0.8, 0x1a1a24, 0, 0.4, 0, 0.03); add('s', 0.42, 0.4, 0.4, 0x1a1a24, 0, 0.62, 0.45, 0.03); for (const s of [-1, 1]) add('k', 0.14, 0.2, 0.1, 0x1a1a24, s * 0.15, 0.88, 0.45, 0.01); eyes(0.66, 0.65, 0xffee33, 0.08); add('c', 0.08, 0.6, 0.08, 0x1a1a24, 0, 0.6, -0.55, 0.015, 0.7); for (const x of [-0.2, 0.2]) for (const z of [-0.25, 0.25]) add('b', 0.1, 0.25, 0.1, 0x1a1a24, x, 0.12, z, 0.01); }
+  else if (id === 'pet_phoenix') { add('s', 0.5, 0.5, 0.6, 0xff7a1a, 0, 1.0, 0, 0.03); add('s', 0.3, 0.3, 0.3, 0xffb020, 0, 1.28, 0.3, 0.02); add('k', 0.09, 0.16, 0.09, 0xffd23a, 0, 1.24, 0.52, 0, Math.PI / 2); for (const s of [-1, 1]) add('b', 0.7, 0.06, 0.4, 0xff4a00, s * 0.48, 1.08, 0, 0.02, 0, 0, s * 0.4); [0xff3a00, 0xffa000, 0xffe36a].forEach((c, i) => add('k', 0.14, 0.6, 0.14, c, (i - 1) * 0.16, 0.9, -0.5, 0.01, -1.3)); eyes(1.32, 0.45, 0, 0.05); }
+  else if (id === 'pet_voidbunny') { add('s', 0.55, 0.5, 0.55, 0x5a2a9a, 0, 0.35, 0, 0.03); add('s', 0.4, 0.4, 0.4, 0x6a3aaa, 0, 0.72, 0.15, 0.03); for (const s of [-1, 1]) add('s', 0.1, 0.5, 0.1, 0x6a3aaa, s * 0.12, 1.12, 0.12, 0.02); add('s', 0.2, 0.2, 0.2, 0xc9a8ff, 0, 0.35, -0.35, 0.015); eyes(0.76, 0.34, 0xff5ad9, 0.07); }
+  else if (id === 'pet_voiddragon') dragon(0x1a0a2a, 0x4a1a8a, 0x9a5aff, 0xb36bff, 0, 0x7a3bff);
+  else if (id === 'pet_galaxydragon') { dragon(0x2a1b6b, 0xff5ad9, 0xffd23a, 0xffffff, 0, 0x3b8bff); for (let i = 0; i < 5; i++) add('s', 0.07, 0.07, 0.07, 0xffffff, (i - 2) * 0.12, 0.6 + (i % 2) * 0.1, 0.15 - i * 0.1, 0); }
+  else return false; return true;
+}
+const TRAILS = {   // every: seconds between puffs; life: seconds they last; rise: how fast they float up
+  tr_moss:{ cols:[0x3fbf4a, 0x7ddc6a], shape:'b', w:.55, h:.06, d:.4, life:1.6, rise:0, every:.2, feet:1 }, tr_blue:{ cols:[0x3a8bff, 0x8fd0ff, 0xffffff], shape:'k', w:.45, h:.8, d:.45, life:.7, rise:1.3, every:.05 },
+  tr_purple:{ cols:[0x7a3bbf, 0xb280e0, 0x4a2a7a], shape:'s', w:.7, h:.7, d:.7, life:1.1, rise:1.0, every:.06 }, tr_crystal:{ cols:[0x9fe8ff, 0xffffff, 0xc9a8ff], shape:'b', w:.28, h:.28, d:.28, life:1.1, rise:.4, every:.07, spin:1 },
+  tr_rainbow:{ cols:[0xff3030, 0xff9a00, 0xffee33, 0x33dd44, 0x33aaff, 0x6a4dff, 0xc040ff], shape:'b', w:.5, h:.3, d:.5, life:1.0, rise:0, every:.04, seq:1 }, tr_solar:{ cols:[0xffd23a, 0xff9a00, 0xfff2a0], shape:'s', w:.6, h:.6, d:.6, life:.8, rise:.5, every:.05 },
+  tr_darklight:{ cols:[0x111111, 0x6a2aff, 0x000000], shape:'b', w:.1, h:.55, d:.1, life:.5, rise:0, every:.04, zig:1 }, tr_eternal:{ cols:[0xff4a00, 0xffd700, 0xffffff, 0xff2a00], shape:'k', w:.55, h:1.0, d:.55, life:.9, rise:1.5, every:.04 }
+};
+const trailParts = []; let trailAcc = 0, trailId = null, auraG = null, auraId = null, trailStep = 0, fxClock = 0, decoG = null;
+function clearTrail() { for (const p of trailParts) scene.remove(p.m); trailParts.length = 0; }
+function buildAura(id) {
+  if (auraG) player.remove(auraG); auraG = null; auraId = id; if (!id) return;
+  const cols = { au_dark:[0x1a0a2a, 0x5a2a8a, 0x000000], au_electric:[0xfff36b, 0x6bd6ff, 0xffffff], au_galaxy:[0x7a3bff, 0xff5ad9, 0x3b8bff] }[id];
+  auraG = new THREE.Group(); for (let i = 0; i < 10; i++) { const m = new THREE.Mesh(id === 'au_electric' ? GEO.b : GEO.s, fmat(cols[i % 3])); m.scale.setScalar(id === 'au_electric' ? 0.14 : 0.2 + (i % 3) * 0.05); auraG.add(m); } auraG.userData.id = id; player.add(auraG);
+}
+function buildDeco() {   // Gronos Portal Decoration: a dark purple portal standing at the back of your base
+  if (decoG) { playerBase.group.remove(decoG); decoG = null; }
+  if (!save.decor) return; const g = new THREE.Group(); g.position.set(29, 0, 0); g.rotation.y = -Math.PI / 2;
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(2.3, 0.28, 12, 40), new THREE.MeshBasicMaterial({ color:0x6a2acd })), disc = new THREE.Mesh(new THREE.CircleGeometry(2.1, 36), new THREE.MeshBasicMaterial({ color:0x1a0a2e, transparent:true, opacity:0.85, side:THREE.DoubleSide }));
+  ring.position.y = disc.position.y = 2.6; g.add(ring, disc); const orbs = new THREE.Group(); orbs.position.y = 2.6; for (let i = 0; i < 8; i++) { const o = new THREE.Mesh(GEO.s, fmat(i % 2 ? 0xc9a8ff : 0xff2a2a)); o.scale.setScalar(0.3); const a = i / 8 * Math.PI * 2; o.position.set(Math.cos(a) * 2.3, Math.sin(a) * 2.3, 0); orbs.add(o); }
+  g.add(orbs); const tag = new THREE.Mesh(GEO.b, fmat(0x2a1450)); tag.scale.set(1.6, 0.08, 1.6); g.add(tag); g.userData.orbs = orbs; g.userData.noSkin = true; ring.userData.noSkin = disc.userData.noSkin = orbs.userData.noSkin = true; playerBase.group.add(g); decoG = g;
+}
+function fxTick(dt) {
+  fxClock += dt; storeTick(dt); const c = save.cos, pp = player.position, sp = Math.hypot(pvx, pvz);
+  if (c.trail !== trailId) { clearTrail(); trailId = c.trail; }
+  const T = c.trail && TRAILS[c.trail];
+  if (T && sp > 2 && pp.y < 30) { trailAcc += dt; while (trailAcc >= T.every) { trailAcc -= T.every; if (trailParts.length > 90) break;
+      const col = T.seq ? T.cols[trailStep++ % T.cols.length] : T.cols[Math.floor(Math.random() * T.cols.length)], m = new THREE.Mesh(GEO[T.shape], fmat(col)), back = 0.6 + Math.random() * 0.3, side = T.feet ? (trailStep++ % 2 ? 0.22 : -0.22) : (Math.random() - 0.5) * 0.4;
+      m.position.set(pp.x - Math.sin(pYaw) * back + Math.cos(pYaw) * side, pp.y + (T.feet ? 0.08 : 0.2 + Math.random() * 0.9), pp.z - Math.cos(pYaw) * back - Math.sin(pYaw) * side); m.rotation.y = T.feet ? pYaw : Math.random() * 6; if (T.zig) m.rotation.z = (Math.random() - 0.5) * 1.6; scene.add(m); trailParts.push({ m, t:0, T }); } }
+  for (let i = trailParts.length - 1; i >= 0; i--) { const p = trailParts[i], T2 = p.T; p.t += dt; const k = Math.max(0.001, 1 - p.t / T2.life); p.m.scale.set(T2.w * k, T2.h * (T2.zig ? 1 : k), T2.d * k); p.m.position.y += T2.rise * dt; if (T2.spin) p.m.rotation.y += dt * 4; if (p.t >= T2.life) { scene.remove(p.m); trailParts.splice(i, 1); } }
+  if (c.aura !== auraId) buildAura(c.aura);
+  if (auraG) { const id = auraG.userData.id; auraG.children.forEach((m, i) => { const a = fxClock * (id === 'au_electric' ? 3.2 : 1.6) + i * 0.63, r = 1.0 + 0.12 * Math.sin(fxClock * 2 + i); m.position.set(Math.cos(a) * r, 0.3 + (i % 5) * 0.4 + 0.1 * Math.sin(fxClock * 3 + i), Math.sin(a) * r); m.visible = id === 'au_electric' ? Math.random() > 0.35 : true; if (id === 'au_galaxy') m.rotation.y += dt * 3; }); }
+  if (save.decor && !save.decorOff && !decoG) buildDeco(); if (decoG) { decoG.userData.orbs.rotation.z += dt * 1.6; }
+  const sk = PASS_SKINS[save.skin]; if (sk) { const t = fxClock; sk.mat.emissiveIntensity = sk.pulse ? 0.8 + 0.35 * Math.sin(t * 2) : 1; if (sk.hue) sk.mat.emissive.setHSL((0.72 + 0.1 * Math.sin(t * 0.7)) % 1, 0.8, 0.28); if (sk.glitch && Math.random() < 0.08) sk.mat.emissive.setHex(Math.random() < 0.5 ? 0xff00aa : 0x0a6a4a); }
+  fxSwap = (fxSwap || 0) + dt; if (fxSwap >= 0.13) { fxSwap = 0; const k = Math.floor(fxClock * 8), P = curModel.userData.P, hs = COSMETICS.find(i => i.id === c.hair);
+    if (hs && hs.fx && P) { const pal = FXPAL[hs.fx]; P.hair.material = toon(pal[k % pal.length]); }
+    for (const o of curModel.userData.cosObjs || []) if (o.userData.fx && o.castShadow) { const pal = FXPAL[o.userData.fx]; o.material = toon(pal[(k + o.id) % pal.length]); } }
+}
+let fxSwap = 0;
+/* ============================ SHOWRUNNER PASS: free, 100 tiers, 100 XP each ============================ */
+const PASS_PAGES = ['GETTING STARTED', 'THE COLLECTOR', 'RISING STAR', 'THE ELITE', 'HALFWAY HEROES', 'THE POWERFUL', 'LEGENDARY', 'MYTHICAL', 'ALMOST THERE', 'THE FINAL CHAPTER'];
+const PASS_DEF = [   // one reward per tier: cash | luck(mult, minutes) | magnet / speed / dcash (minutes) | cos (cosmetic id) | skin | decor | gronos
+  ['cash', 5000], ['cos', 'tr_moss'], ['luck', 2, 5], ['cos', 'pet_sprout'], ['cash', 15000], ['cos', 'ht_leaf'], ['magnet', 5], ['luck', 2, 5], ['skin', 'sk_mushroom'], ['luck', 4, 5],
+  ['cash', 25000], ['cos', 'tr_blue'], ['luck', 2, 5], ['cos', 'pet_meteor'], ['cash', 40000], ['cos', 'gl_star'], ['speed', 5], ['luck', 4, 5], ['skin', 'sk_neon'], ['cos', 'bk_gold'],
+  ['cash', 60000], ['cos', 'tr_purple'], ['luck', 2, 5], ['cos', 'pet_cloud'], ['cash', 80000], ['cos', 'hair_lightning'], ['luck', 4, 5], ['dcash', 5], ['skin', 'sk_castle'], ['cos', 'tr_crystal'],
+  ['cash', 100000], ['cos', 'au_dark'], ['luck', 4, 5], ['cos', 'pet_ufo'], ['cash', 150000], ['cos', 'bk_cape'], ['magnet', 10], ['luck', 2, 5], ['skin', 'sk_lava'], ['luck', 4, 10],
+  ['cash', 200000], ['cos', 'tr_rainbow'], ['luck', 2, 5], ['cos', 'pet_dragon'], ['cash', 250000], ['cos', 'hair_galaxy'], ['luck', 4, 5], ['dcash', 10], ['skin', 'sk_galaxy'], ['cos', 'ht_gold'],
+  ['cash', 300000], ['cos', 'au_electric'], ['luck', 4, 5], ['cos', 'pet_shadowcat'], ['cash', 400000], ['cos', 'ht_horns'], ['speed', 10], ['luck', 2, 5], ['skin', 'sk_ice'], ['luck', 4, 10],
+  ['cash', 500000], ['cos', 'tr_solar'], ['luck', 4, 5], ['cos', 'pet_phoenix'], ['cash', 600000], ['cos', 'mk_shadow'], ['luck', 2, 5], ['dcash', 15], ['skin', 'sk_darkcastle'], ['luck', 4, 10],
+  ['cash', 750000], ['cos', 'au_galaxy'], ['luck', 4, 5], ['cos', 'pet_voidbunny'], ['cash', 900000], ['cos', 'ht_king'], ['magnet', 15], ['luck', 2, 5], ['skin', 'sk_void'], ['luck', 4, 10],
+  ['cash', 1000000], ['cos', 'tr_darklight'], ['luck', 4, 5], ['cos', 'pet_voiddragon'], ['cash', 1500000], ['cos', 'gl_glitch'], ['luck', 2, 5], ['dcash', 20], ['skin', 'sk_glitch'], ['luck', 4, 10],
+  ['cash', 2000000], ['cos', 'tr_eternal'], ['luck', 4, 10], ['cos', 'pet_galaxydragon'], ['cash', 3000000], ['cos', 'ht_eternal'], ['luck', 4, 10], ['decor'], ['cash', 5000000], ['gronos']
+];
+const BOOST_NAMES = { magnet:'Runner Magnet', speed:'Runner Speed Boost', dcash:'Double Cash Boost' }, BOOST_ICONS = { magnet:'🧲', speed:'⚡', dcash:'💰' };
+const BOOST_DESC = { magnet:m => 'Runners can be picked up and bought from much farther away for ' + m + ' minutes.', speed:m => 'You run 50% faster for ' + m + ' minutes.', dcash:m => 'Your show runners earn double cash for ' + m + ' minutes.' };
+const MAGNET_MUL = 2.5, SPEED_MUL_BOOST = 1.5, CASH_MUL_BOOST = 2, BOOST_CAP_MIN = 60;
+function rewardInfo(i) {
+  const d = PASS_DEF[i], k = d[0], n = i + 1;
+  if (k === 'cash') return { n:'$' + d[1].toLocaleString('en-US') + ' Cash', d:'Gives you $' + d[1].toLocaleString('en-US') + '.', ic:'💵' };
+  if (k === 'luck') return { n:d[1] + 'x Luck Boost (' + d[2] + ' Minutes)', d:'Multiplies your runner luck by ' + d[1] + ' for ' + d[2] + ' minutes.', ic:'🍀' };
+  if (BOOST_NAMES[k]) return { n:BOOST_NAMES[k] + ' (' + d[1] + ' Minutes)', d:BOOST_DESC[k](d[1]), ic:BOOST_ICONS[k] };
+  if (k === 'cos') { const c = COSMETICS.find(x => x.id === d[1]); return { n:c.name, d:c.desc + ' (' + ({ trail:'Trail', aura:'Aura', hat:'Hat', mask:'Mask', back:'Back', glasses:'Glasses', hair:'Hair', pet:'Pet' }[c.slot]) + ')', ic:c.icon }; }
+  if (k === 'skin') { const s = PASS_SKINS[d[1]]; return { n:s.name, d:s.desc, ic:s.icon }; }
+  if (k === 'decor') return { n:'Gronos Portal Decoration', d:'A special Gronos-themed portal for your base.', ic:'🌀' };
+  return { n:'GRONOS - EXCLUSIVE SHOWRUNNER', d:'The ultimate reward: Gronos earns $1,200,000 every second. He can be stolen!', ic:'🎩' };
+}
+/* ---- GRONOS: the villain. Tall black suit, huge red head with a pixel cross + grin, tilted top hat, and a burning aura. Not in SHOWRUNNERS (never spawns / shop / index / bot starting stock). ---- */
+function gronosPost(root) {
+  const P = root.userData.parts, rig = root.userData.rig, hd = P.head;
+  const hat = new THREE.Group(); hat.position.set(0.5, 1.15, 0); hat.rotation.z = -0.38; hd.add(hat);   // top hat tipped to one side
+  gp(hat, ['b', 2.7, 0.16, 2.3, 0x1b1b1b, 0, 0, 0, 0.05]); gp(hat, ['b', 1.7, 1.55, 1.6, 0x101010, 0, 0.85, 0, 0.05]); gp(hat, ['b', 1.74, 0.24, 1.64, 0x2c2c2c, 0, 0.3, 0, 0.02]);
+  for (const s of [-1, 1]) gp(rig, ['b', 0.52, 0.09, 0.72, 0x4a3426, s * 0.375, 0.045, 0.3, 0.01]);   // brown boot soles
+  root.userData.plate.position.y = new THREE.Box3().setFromObject(rig).max.y + 1.8;
+  const halo = new THREE.Mesh(GEO.s, new THREE.MeshBasicMaterial({ color:0xff0000, transparent:true, opacity:0.16, depthWrite:false })); halo.scale.setScalar(3.5); hd.add(halo);
+  const FR = fmat(0xff1010), FK = fmat(0x1a0000), flames = [], sparks = [];
+  for (let i = 0; i < 18; i++) { const m = new THREE.Mesh(GEO.k, i % 3 === 0 ? FK : FR); m.userData = { a:i / 18 * Math.PI * 2 + (i % 2) * 0.25, r:1.9 + (i % 3) * 0.45, h0:1.7 + (i % 4) * 0.8, ph:i * 1.7, y0:0.2 + (i % 6) * 1.05 }; rig.add(m); flames.push(m); }
+  const SK = new THREE.MeshBasicMaterial({ color:0x050505 }), SR = new THREE.MeshBasicMaterial({ color:0xff1010 }), OG = new THREE.OctahedronGeometry(0.5);
+  for (let i = 0; i < 11; i++) { const g = new THREE.Group(), a = new THREE.Mesh(OG, SR), b = new THREE.Mesh(OG, SK); a.scale.set(0.8, 1.35, 0.25); b.scale.set(0.6, 1.1, 0.25); g.add(a, b); g.userData = { a:i / 11 * Math.PI * 2, r:2.5 + (i % 3) * 0.55, y:0.8 + (i % 5) * 1.3, ph:i * 2.3, s:0.55 + (i % 3) * 0.2 }; rig.add(g); sparks.push(g); }
+  root.userData.tick = t => {   // flickering flames, twinkling sparkles, pulsing halo
+    flames.forEach(m => { const u = m.userData, f = 0.75 + 0.3 * Math.sin(t * 6 + u.ph) + 0.15 * Math.sin(t * 11 + u.ph * 2); m.scale.set(0.8, u.h0 * f, 0.8); m.position.set(Math.cos(u.a) * u.r, u.y0 + u.h0 * f * 0.5, Math.sin(u.a) * u.r * 0.6 - 0.2); m.rotation.z = 0.14 * Math.sin(t * 4 + u.ph); });
+    sparks.forEach(g => { const u = g.userData, k = u.s * (0.8 + 0.35 * Math.sin(t * 3 + u.ph)), a = u.a + t * 0.25; g.position.set(Math.cos(a) * u.r, u.y + 0.25 * Math.sin(t * 1.5 + u.ph), Math.sin(a) * u.r * 0.6); g.scale.setScalar(k); g.rotation.y = t * 1.2 + u.ph; });
+    halo.scale.setScalar(3.4 + 0.25 * Math.sin(t * 3));
+  };
+}
+const GRONOS = { id:'gronos', name:'GRONOS', rarity:'EXCLUSIVE', price:10000000, income:1200000, weight:0, build:'gen', post:gronosPost, gait:{ f:6.5, leg:0.7, arm:0.35, bob:0.04, sway:0.04 }, idle:{ f:1.1, arm:0.06, sq:0.01, turn:0.25 },
+  spec:{ scale:0.9, head:['s', 2.6, 2.6, 2.4, 0xff0a0a, 0.08], torso:['b', 1.15, 2.1, 0.55, 0x0a0a0a, 0.05], legs:{ n:2.7, t:0.28, c:0x0a0a0a, gap:0.75, box:1, foot:'box', fc:0x0a0a0a }, arms:{ n:2.0, t:0.26, c:0x0a0a0a, ang:0.18, box:1, hc:0xff1010 },
+    face:[[0.35, 0.55, 0.12, 0.9, 0, 0], [0.35, 0.84, 0.62, 0.12, 0, 0], [0.27, 0.1, 0.16, 0.16, 0, 0], [-0.72, -0.2, 0.17, 0.17, 0, 0], [-0.56, -0.4, 0.17, 0.17, 0, 0], [-0.36, -0.53, 0.17, 0.17, 0, 0], [-0.15, -0.57, 0.17, 0.17, 0, 0], [0.06, -0.53, 0.17, 0.17, 0, 0], [0.26, -0.42, 0.17, 0.17, 0, 0], [0.42, -0.28, 0.17, 0.17, 0, 0]],   // pixel cross + smile
+    x:[['t', 'b', 0.2, 2.0, 0.04, 0x1f1f1f, -0.32, 0, 0.29, 0], ['t', 'b', 0.2, 2.0, 0.04, 0x1f1f1f, 0.32, 0, 0.29, 0], ['t', 'b', 0.55, 0.9, 0.04, 0x151515, 0, 0.45, 0.29, 0]] } };
+ANIM_SETS.gronos = makeAnimSet(GRONOS.gait, GRONOS.idle);
+const ALL_RUNNERS = [...SHOWRUNNERS, GRONOS], isG = a => a && a.cfg === GRONOS;
+/* ---- pass data (saved with your account / device) ---- */
+const defaultBoosts = () => ({ luck:{ mult:0, until:0 }, luckQ:[], magnet:0, speed:0, dcash:0 });
+if (!save.pass) save.pass = { xp:0, claimed:[], gronos:0, page:0, chk:'' }; if (!save.boosts) save.boosts = defaultBoosts(); if (!Array.isArray(save.stored)) save.stored = [];
+const passChk = p => { let h = 2166136261; const t = p.xp + ':' + p.claimed.slice().sort((a, b) => a - b).join(',') + ':' + p.gronos + ':tier100'; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619) >>> 0; return h.toString(36); };
+if (save.pass.chk && save.pass.chk !== passChk(save.pass)) save.pass.xp = Math.min(save.pass.xp, (Math.max(-1, ...save.pass.claimed) + 1) * 100);   // XP edited by hand: keep only what the claimed tiers prove
+const passTiers = () => Math.min(100, Math.floor(save.pass.xp / 100)), passSave = () => { save.pass.chk = passChk(save.pass); persist(); };
+function popXP(n) { const e = $('xpPop'); e.textContent = '+' + n + ' XP'; e.style.opacity = 1; e.style.transform = 'translate(-50%,0)'; clearTimeout(popXP.t); popXP.t = setTimeout(() => { e.style.opacity = 0; e.style.transform = 'translate(-50%,-14px)'; }, 1100); }
+function addXP(n) {
+  if (!(n > 0)) return; const p = save.pass, before = passTiers(); p.xp = Math.min(10000, p.xp + Math.floor(n)); passSave(); popXP(Math.floor(n));
+  if (passTiers() > before) { toast('Showrunner Pass: Tier ' + passTiers() + ' unlocked! Open the Pass (P) to claim it.', false, 3200); sfx('unlock'); } refreshPassDot(); if ($('passBox').style.display === 'block') renderPass();
+}
+function passXP(base, a, flag) {   // one award per action; Gold / Diamond runners give double (not 4x)
+  if (a) { if (a[flag]) return; a[flag] = true; }
+  addXP(base * (a && (a.variant === 'GOLD' || a.variant === 'DIAMOND') ? 2 : 1));
+}
+/* ---- boosts ---- */
+let boostMul = { buy:1, speed:1, cash:1 };
+function activateLuck(m, min) {   // the stronger boost runs; the weaker one waits its turn instead of stacking
+  const b = save.boosts, now = Date.now(), dur = min * 60000, cur = b.luck;
+  if (cur.until > now) { if (m > cur.mult) { b.luckQ.push({ mult:cur.mult, dur:cur.until - now }); b.luck = { mult:m, until:now + dur }; } else b.luckQ.push({ mult:m, dur }); }
+  else b.luck = { mult:m, until:now + dur };
+}
+function activateBoost(k, min) { const b = save.boosts, now = Date.now(); b[k] = Math.min(Math.max(b[k], now) + min * 60000, now + BOOST_CAP_MIN * 60000); }
+function passTick(dt) {
+  const b = save.boosts, now = Date.now();
+  if (b.luck.until && b.luck.until <= now) { b.luckQ.sort((x, y) => y.mult - x.mult); const nx = b.luckQ.shift(); b.luck = nx ? { mult:nx.mult, until:now + nx.dur } : { mult:0, until:0 }; persist(); }
+  if (b.luck.until > now && b.luck.mult >= luckNow()) { luck.mult = b.luck.mult; luck.until = b.luck.until; }   // feeds the existing luck system + its on-screen timer
+  boostMul.buy = b.magnet > now ? MAGNET_MUL : 1; boostMul.speed = b.speed > now ? SPEED_MUL_BOOST : 1; boostMul.cash = b.dcash > now ? CASH_MUL_BOOST : 1;
+  BUY_DISTANCE = BUY_BASE * boostMul.buy; PICKUP_DISTANCE = PICKUP_BASE * boostMul.buy;
+  passHud = (passHud || 0) + dt; if (passHud >= 0.25) { passHud = 0; const h = $('boostHud'), rows = []; for (const k of ['magnet', 'speed', 'dcash']) if (b[k] > now) rows.push(BOOST_ICONS[k] + ' ' + BOOST_NAMES[k] + '  ' + fmtMS(Math.ceil((b[k] - now) / 1000)));
+    if (b.luckQ.length) rows.push('🍀 +' + b.luckQ.length + ' luck boost' + (b.luckQ.length > 1 ? 's' : '') + ' waiting'); const t = rows.join('\n'); if (h.dataset.t !== t) { h.dataset.t = t; h.textContent = t; h.style.display = t ? 'block' : 'none'; } }
+}
+let passHud = 0;
+/* ---- show runners you own: base slot first, otherwise the inventory ---- */
+function placeRunnerAt(cfg, variant, slot) {
+  let a; try { a = new Actor(cfg, variant || null); } catch (e) { return null; }
+  a.root.position.copy(W(playerBase, slot.u, slot.y, slot.v)); a.yaw = a.yawT = -playerBase.side * Math.PI / 2; a.root.rotation.y = a.yaw; a.state = 'idle'; a.w.idle = 1; a.w.walk = 0;
+  a.slot = slot; slot.occupied = true; slot.occupant = a; a.xpBuy = a.xpSteal = a.xpSell = true; scene.add(a.root); actors.add(a); earners.push(a); totalIncome += a.income; return a;
+}
+const freeSlot = () => playerBase.slots.find(s => s.unlocked && !s.occupied);
+function giveRunner(cfg, variant) { const s = freeSlot(); if (s && placeRunnerAt(cfg, variant || null, s)) { updateHud(); return 'base'; } save.stored.push({ id:sid(cfg), v:variant || null }); persist(); return 'inventory'; }
+function placeStored(i) { const r = save.stored[i], cfg = ALL_RUNNERS.find(c => sid(c) === r.id), s = freeSlot(); if (!cfg || !s) return toast('No free platform in your base!', true); if (placeRunnerAt(cfg, r.v, s)) { save.stored.splice(i, 1); persist(); updateHud(); renderInv(); } }
+/* ---- claiming ---- */
+const gronosExists = () => earners.some(isG) || walkers.some(isG) || isG(held) || save.stored.some(r => r.id === 'gronos') || bots.some(b => b.earners.some(isG) || b.walkers.some(isG) || isG(b.carry));   // anywhere in the world
+function claimTier(i) {
+  const p = save.pass; if (i < 0 || i > 99 || p.claimed.includes(i) || passTiers() < i + 1) return false;   // locked or already claimed
+  const d = PASS_DEF[i], k = d[0]; let msg = 'Claimed: ' + rewardInfo(i).n;
+  if (k === 'gronos') { if (p.gronos || gronosExists()) return false; p.gronos = 1; const where = giveRunner(GRONOS); msg = where === 'base' ? 'GRONOS joined your base! He earns $1,200,000/s!' : 'Your base is full - GRONOS was sent to your inventory (press I)!'; }
+  else if (k === 'cash') { cash += d[1]; updateHud(); }
+  else if (k === 'luck') activateLuck(d[1], d[2]);
+  else if (BOOST_NAMES[k]) activateBoost(k, d[1]);
+  else if (k === 'cos') { const c = COSMETICS.find(x => x.id === d[1]); if (!save.cosOwned.includes(c.id)) save.cosOwned.push(c.id); save.cos[c.slot] = c.id; applyCosmetics(curModel); setPet(save.cos.pet); }
+  else if (k === 'skin') { if (!save.owned.includes(d[1])) save.owned.push(d[1]); setSkin(d[1]); }
+  else if (k === 'decor') { save.decor = 1; save.decorOff = 0; buildDeco(); }
+  p.claimed.push(i); passSave(); toast(msg, false, 3500); sfx('rebirth'); refreshPassDot(); if ($('passBox').style.display === 'block') renderPass(); return true;
+}
+const claimable = () => { const p = save.pass; for (let i = 0; i < passTiers(); i++) if (!p.claimed.includes(i)) return true; return false; };
+function refreshPassDot() { $('passDot').style.display = claimable() ? 'inline-block' : 'none'; }
+/* ---- the screen ---- */
+const PASS_POS = { top:[1, 18.3, 36.4, 54.6, 74.7], bot:[10, 27.3, 45.7, 64.9, 84], top10:[0.6, 16, 32.6, 49.2, 67.6], bot10:[8.2, 23.8, 40.5, 57.3] };
+function passPage(n) { save.pass.page = Math.max(0, Math.min(9, n)); persist(); renderPass(); }
+function gronosFigure() {   // the villain: red head with a cross + grin, tilted top hat, black suit, burning aura
+  const fl = 'M10 150 L18 110 L8 92 L24 100 L22 62 L36 84 L40 40 L52 70 L60 20 L68 70 L82 40 L84 84 L98 62 L96 100 L112 92 L102 110 L110 150 Z';
+  const sp = (x, y, s) => '<path d="M' + x + ' ' + (y - 9 * s) + ' L' + (x + 3 * s) + ' ' + y + ' L' + x + ' ' + (y + 9 * s) + ' L' + (x - 3 * s) + ' ' + y + ' Z" fill="#050505" stroke="#ff1a1a" stroke-width="1.2"/>';
+  return '<svg viewBox="0 0 120 170" class="gfig"><path d="' + fl + '" fill="#ff1a1a" opacity=".85"/><path d="M26 150 L30 118 L22 104 L34 110 L36 80 L46 100 L52 56 L60 96 L70 56 L76 100 L86 80 L88 110 L98 104 L90 118 L94 150Z" fill="#7a0000"/>' +
+    sp(14, 60, 1.2) + sp(104, 50, 1.1) + sp(108, 110, 1) + sp(10, 120, 0.9) + sp(60, 12, 0.9) +
+    '<rect x="44" y="76" width="32" height="46" fill="#0a0a0a" stroke="#ff1a1a" stroke-width="1.5"/><rect x="48" y="80" width="6" height="40" fill="#222"/>' +
+    '<path d="M44 80 L26 104 L38 116 L46 104" fill="#0a0a0a" stroke="#ff1a1a" stroke-width="1.5"/><path d="M76 80 L96 62 L88 46 L74 58" fill="#0a0a0a" stroke="#ff1a1a" stroke-width="1.5"/>' +
+    '<path d="M48 122 L42 164 L54 164 L60 126 L66 164 L78 164 L72 122Z" fill="#0a0a0a" stroke="#ff1a1a" stroke-width="1.5"/><rect x="38" y="162" width="18" height="6" fill="#0a0a0a"/><rect x="64" y="162" width="18" height="6" fill="#0a0a0a"/><rect x="38" y="166" width="18" height="3" fill="#4a3426"/><rect x="64" y="166" width="18" height="3" fill="#4a3426"/>' +
+    '<circle cx="58" cy="58" r="24" fill="#ff0a0a" stroke="#050505" stroke-width="3"/><path d="M62 46h2v18h-3zM56 50h14v2H56z" fill="#050505"/><path d="M46 64 L50 68 L58 71 L66 68 L70 64" stroke="#050505" stroke-width="2.4" fill="none" stroke-linejoin="round"/>' +
+    '<g transform="rotate(-22 66 38)"><rect x="42" y="34" width="46" height="7" fill="#1b1b1b" stroke="#ff1a1a" stroke-width="1.2"/><rect x="48" y="8" width="34" height="28" fill="#101010" stroke="#ff1a1a" stroke-width="1.2"/><rect x="48" y="28" width="34" height="5" fill="#2c2c2c"/></g></svg>';
+}
+function renderPass() {
+  const p = save.pass, pg = p.page, box = $('passBox'), tiers = passTiers(), tiles = $('passTiles'); tiles.innerHTML = ''; box.classList.toggle('final', pg === 9);
+  const cur = Math.min(100, tiers + 1), into = tiers >= 100 ? 100 : p.xp - tiers * 100;
+  $('passInfo').innerHTML = '<span>TIER ' + cur + '</span><span>XP ' + p.xp.toLocaleString('en-US') + '</span><span>TIERS COMPLETED ' + tiers + '/100</span>'; $('passFill').style.width = into + '%'; $('passFillT').textContent = tiers >= 100 ? 'ALL TIERS UNLOCKED' : into + ' / 100 XP to Tier ' + cur;
+  $('passPage').textContent = 'PAGE ' + (pg + 1) + '/10'; $('passPageName').textContent = PASS_PAGES[pg]; $('passDots').innerHTML = '';
+  for (let i = 0; i < 10; i++) { const b = document.createElement('button'); b.textContent = i + 1; b.className = i === pg ? 'on' : ''; b.onclick = () => passPage(i); $('passDots').appendChild(b); }
+  const mk = (t, x, y, diamond) => { const info = rewardInfo(t), claimed = p.claimed.includes(t), open = tiers >= t + 1, d = document.createElement('div');
+    d.className = 'ptile ' + (claimed ? 'claimed' : open ? 'ready' : 'locked') + (diamond ? ' diamond' : ''); d.style.left = x + '%'; d.style.top = y + '%';
+    const state = claimed ? '<span class="ps">CLAIMED &#10003;</span>' : open ? '<button class="pc">CLAIM</button>' : '<span class="ps">&#128274; ' + ((t + 1) * 100).toLocaleString('en-US') + ' XP</span>';
+    d.innerHTML = diamond ? '<div class="dwrap">' + gronosFigure() + '<div class="gex">EXCLUSIVE</div><div class="gnm">Gronos</div><div class="gin">$1.2M/s</div><div class="gtn">TIER 100</div>' + state + '</div>'
+      : '<b class="tn">' + (t + 1) + '</b><span class="ti">' + info.ic + '</span><span class="tt">' + info.n + '</span>' + state;
+    const btn = d.querySelector('.pc'); if (btn) btn.onclick = e => { e.stopPropagation(); claimTier(t); };
+    d.onclick = () => { $('passDesc').textContent = 'Tier ' + (t + 1) + ' - ' + info.n + ': ' + info.d; }; tiles.appendChild(d); };
+  const base = pg * 10;
+  if (pg < 9) for (let i = 0; i < 10; i++) { const top = i % 2 === 0, j = i >> 1; mk(base + i, PASS_POS[top ? 'top' : 'bot'][j], top ? 40.5 : 57.5); }
+  else { for (let i = 0; i < 9; i++) { const top = i % 2 === 0, j = i >> 1; mk(base + i, PASS_POS[top ? 'top10' : 'bot10'][j], top ? 40.5 : 57.5); } mk(99, 78, 32, true); }
+  $('passDesc').textContent = 'Click a reward to read about it.';
+}
+$('passBtn').onclick = () => { renderPass(); openUI($('passBox')); }; $('passX').onclick = closeUI; $('passPrev').onclick = () => passPage(save.pass.page - 1); $('passNext').onclick = () => passPage(save.pass.page + 1);
+refreshPassDot();
+function renderInvExtra() {   // inventory: show runners in storage + your pass collection
+  const st = $('invStore'); st.innerHTML = ''; if (!save.stored.length) st.textContent = 'Nothing in storage.';
+  save.stored.forEach((r, i) => { const cfg = ALL_RUNNERS.find(c => sid(c) === r.id); if (!cfg) return; const d = document.createElement('div'), s = document.createElement('span'), b = document.createElement('button');
+    d.className = 'srow'; s.innerHTML = '<b>' + cfg.name + '</b><br><small>' + (cfg === GRONOS ? 'Earns $1,200,000/s' : formatMoney(cfg.income) + '/s') + '</small>'; b.textContent = 'Place in base'; b.disabled = !freeSlot(); b.onclick = () => placeStored(i); d.append(s, b); st.appendChild(d); });
+  $('invColl').textContent = 'Your skins, pets, hair, clothes and effects are kept at the Storage stand (the shady stall across the carpet from the shop).';
+}
+/* ============================ THE STORAGE STAND: a shady stall (across the carpet from the shop) where everything you own is kept ============================ */
+const STORE_POS = new V3(8.3, 0, -20), storeStand = new THREE.Group(); storeStand.position.copy(STORE_POS); storeStand.rotation.y = -Math.PI / 2; scene.add(storeStand);
+let storeKeeper, storeAnim, storeSign, storeGem, storeLamp;
+{ const DK = 0x2a2420, TA = 0x2c3a34, TR = 0x1d2622, MT = 0x55595e, add = (...t) => gp(storeStand, t);
+  for (const [x, z, h, tilt] of [[-1.8, -1.2, 4.0, 0.06], [1.8, -1.2, 3.6, -0.05], [-1.8, 1.2, 3.5, -0.07], [1.8, 1.2, 4.2, 0.04]]) add('b', 0.22, h, 0.22, DK, x, h / 2, z, 0.03, 0, 0, tilt);   // crooked posts
+  add('b', 4.6, 0.1, 3.2, TA, 0, 3.9, 0, 0.04, -0.22, 0, 0.1); add('b', 1.6, 0.08, 1.4, TR, -1.2, 3.84, 0.3, 0.02, -0.2, 0, 0.1);   // sagging dark tarp + a patch
+  for (let i = 0; i < 6; i++) add('b', 0.12, 0.5 + (i % 3) * 0.2, 0.04, TR, -1.9 + i * 0.75, 3.5, 1.55, 0.01);   // ragged strips
+  add('b', 3.4, 3.4, 0.1, 0x211c19, 0, 1.8, -1.25, 0.03); for (const y of [1.2, 2.3]) add('b', 3.2, 0.1, 0.55, DK, 0, y, -1.0, 0.03);   // dirty back wall + shelves
+  for (const x of [-1.2, -0.4, 0.4, 1.2]) add('b', 0.5, 0.7, 0.3, [0x1b1b22, 0x2a1a1a, 0x1a2a22, 0x22201a][Math.round((x + 1.2) / 0.8)], x, 2.75, -1.05, 0.03);   // hanging coats
+  add('b', 3.0, 0.04, 0.04, MT, 0, 3.2, -1.05, 0.01);
+  add('b', 0.7, 0.1, 0.5, 0x333333, -1.0, 1.3, -1.0, 0.03); add('b', 0.7, 0.35, 0.05, 0x2a2a2a, -1.0, 1.48, -1.22, 0.03, -0.5); storeGem = new THREE.Mesh(GEO.s, fmat(0x7affc8)); storeGem.scale.setScalar(0.22); storeGem.position.set(-1.0, 1.55, -1.0); storeStand.add(storeGem);   // glowing briefcase
+  add('c', 0.5, 0.06, 0.5, 0x15151a, 0.9, 1.3, -1.0, 0.02); add('c', 0.3, 0.3, 0.3, 0x15151a, 0.9, 1.45, -1.0, 0.02); for (const s of [-1, 1]) add('s', 0.16, 0.12, 0.04, 0x050505, 0.55 + s * 0.1, 2.4, -1.0, 0.01);   // fedora + sunglasses on the shelf
+  add('c', 0.5, 0.5, 0.5, 0x3a3a40, 1.3, 2.45, -1.0, 0.02); for (let i = -2; i <= 2; i++) add('c', 0.03, 0.5, 0.03, 0x888888, 1.3 + i * 0.09, 2.45, -0.76, 0); add('s', 0.12, 0.12, 0.05, 0xff3333, 1.3, 2.45, -1.0, 0);   // little cage, two red eyes inside
+  add('b', 3.4, 0.14, 1.0, DK, 0, 1.0, 0.6, 0.03); add('b', 3.4, 0.7, 0.05, 0x1a1614, 0, 0.62, 1.12, 0.02); for (const x of [-1.6, 1.6]) add('b', 0.14, 1.0, 0.14, DK, x, 0.5, 0.2, 0.02);
+  add('b', 0.7, 0.6, 0.7, 0x4a3a2a, -2.4, 0.3, 0.5, 0.03); add('b', 0.5, 0.45, 0.5, 0x3a2c20, -2.4, 0.85, 0.5, 0.03, 0, 0.4); add('c', 0.7, 0.9, 0.7, 0x35302a, 2.45, 0.45, 0.2, 0.03); add('c', 0.74, 0.07, 0.74, MT, 2.45, 0.7, 0.2, 0.02); add('b', 0.6, 0.5, 0.6, 0x3a2c20, 2.45, 1.15, 0.2, 0.03, 0, 0.6);
+  add('b', 0.5, 0.35, 0.3, 0x111111, 0.6, 1.2, 0.7, 0.02); add('b', 0.5, 0.07, 0.31, 0x777777, 0.6, 1.2, 0.7, 0.01);   // closed suitcase on the counter
+  storeLamp = new THREE.Mesh(GEO.s, fmat(0xff3a2a)); storeLamp.scale.setScalar(0.28); storeLamp.position.set(1.5, 3.4, 1.45); storeStand.add(storeLamp); add('c', 0.03, 0.4, 0.03, 0x222222, 1.5, 3.65, 1.45, 0);
+  storeSign = makeSign('STORAGE', '#7dff9a', 5); storeSign.position.set(0, 5.3, 1.3); storeSign.rotation.z = 0.05; storeStand.add(storeSign);
+}
+COLLIDERS.push({ x0:STORE_POS.x - 1.5, x1:STORE_POS.x + 1.4, z0:STORE_POS.z - 2.8, z1:STORE_POS.z + 2.8 });
+{ storeKeeper = createPlayerModel('male'); storeAnim = new PlayerAnim(); storeKeeper.position.set(0, 0, -0.4);
+  const t0 = toon(0x2f80ff), b0 = toon(0x3d4f86), t1 = toon(0x1c1c24), b1 = toon(0x101014); storeKeeper.traverse(m => { if (m.material === t0) m.material = t1; else if (m.material === b0) m.material = b1; });
+  applyCosmetics(storeKeeper, { hair:'hair_classic', glasses:'gl_shades' }); const H = storeKeeper.userData.P.head;
+  gp(H, ['d', 1.0, 0.9, 1.0, 0x1c1c24, 0, 0.42, -0.04, 0.025]); gp(H, ['s', 0.92, 0.9, 0.5, 0x1c1c24, 0, 0.34, -0.36, 0.02]); gp(H, ['b', 0.66, 0.26, 0.1, 0x2a2a30, 0, 0.2, 0.37, 0.012]);   // hood + bandana over the mouth
+  storeStand.add(storeKeeper); }
+function storeTick(dt) {   // shifty keeper, spinning gem, flickering sign and lamp
+  const P = storeKeeper.userData.P; storeAnim.update(dt, 'idle', 0, false, P, false); P.head.rotation.y = 0.7 * Math.sin(fxClock * 0.9) * Math.sin(fxClock * 0.37 + 1); P.head.rotation.x = 0.12 * Math.sin(fxClock * 1.3);
+  storeGem.rotation.y += dt * 2; storeGem.position.y = 1.55 + 0.05 * Math.sin(fxClock * 3); storeSign.visible = Math.random() > 0.015 || storeSign.visible === false && Math.random() < 0.5; storeLamp.scale.setScalar(0.24 + 0.05 * Math.random());
+}
+const STORE_TABS = { Base:[], Pets:['pet'], 'Hair & Hats':['hair', 'hat'], Face:['glasses', 'mask', 'earrings'], Clothes:['pants', 'shoes', 'back'], Effects:['trail', 'aura'] };
+const SLOT_LABEL = { pet:'Pets', hair:'Hair', hat:'Hats', glasses:'Glasses', mask:'Masks', earrings:'Earrings', pants:'Pants', shoes:'Shoes', back:'Back', trail:'Trails', aura:'Auras' };
+let storeTab = 'Base'; const ownsCos = i => i.pass ? save.cosOwned.includes(i.id) : (!i.price || save.cosOwned.includes(i.id));
+function renderStore() {
+  const tabs = $('storeTabs'), list = $('storeList'); tabs.innerHTML = list.innerHTML = '';
+  for (const t of Object.keys(STORE_TABS)) { const d = document.createElement('div'); d.className = 'tab' + (t === storeTab ? ' on' : ''); d.textContent = t; d.onclick = () => { storeTab = t; renderStore(); }; tabs.appendChild(d); }
+  const head = txt => { const h = document.createElement('div'); h.className = 'sh'; h.textContent = txt; list.appendChild(h); };
+  const row = (name, status, btn, fn, off) => { const d = document.createElement('div'), s = document.createElement('span'), p = document.createElement('b'), b = document.createElement('button'); d.className = 'srow'; s.textContent = name; p.textContent = status; b.textContent = btn; b.disabled = !!off; b.onclick = fn; d.append(s, p, b); list.appendChild(d); };
+  if (storeTab === 'Base') { head('Base skins');
+    for (const [id, name] of [['normal', '🏠 Default Base'], ['gold', '🟡 Gold Base'], ['diamond', '💎 Diamond Base'], ...Object.keys(PASS_SKINS).map(k => [k, PASS_SKINS[k].icon + ' ' + PASS_SKINS[k].name])]) { if (!save.owned.includes(id)) continue; const on = save.skin === id; row(name, on ? 'Applied' : '', on ? 'Applied' : 'Apply', () => { setSkin(id); renderStore(); }, on); }
+    if (save.decor) { head('Decoration'); row('🌀 Gronos Portal Decoration', decoG ? 'Shown' : 'Hidden', decoG ? 'Hide' : 'Show', () => { if (decoG) { playerBase.group.remove(decoG); decoG = null; save.decorOff = 1; } else { save.decorOff = 0; buildDeco(); } persist(); renderStore(); }); } }
+  else for (const slot of STORE_TABS[storeTab]) { head(SLOT_LABEL[slot]); const items = COSMETICS.filter(i => i.slot === slot && ownsCos(i));
+    if (!items.length) { const e = document.createElement('div'); e.className = 'hintS'; e.textContent = 'Nothing here yet.'; list.appendChild(e); }
+    for (const i of items) { const on = (save.cos[slot] || (slot === 'hair' ? 'hair_classic' : null)) === i.id; row((i.icon ? i.icon + ' ' : '') + i.name, on ? 'Equipped' : '', on && slot !== 'hair' ? 'Take off' : 'Equip', () => { save.cos[slot] = on && slot !== 'hair' ? null : i.id; persist(); applyCosmetics(curModel); setPet(save.cos.pet); renderStore(); }, on && slot === 'hair'); } }
+}
+function openStorage() { renderStore(); openUI($('storeBox')); }
+$('storeX').onclick = closeUI;
+/* ---- admin: spawn any show runner straight into your base (no conveyor belt). Gronos can ONLY be spawned from here or the pass - never on the belt. ---- */
+$('admSel').innerHTML = '';
+for (const c of [...ALL_RUNNERS].sort((a, b) => a.price - b.price)) { const o = document.createElement('option'); o.value = sid(c); o.textContent = (c === GRONOS ? 'GRONOS (admin / pass only)' : c.name) + ' - ' + c.rarity; $('admSel').appendChild(o); }
+$('admSpawn').onclick = () => {
+  const cfg = ALL_RUNNERS.find(c => sid(c) === $('admSel').value); if (!cfg) return;
+  if (cfg === GRONOS) { if (gronosExists()) return toast('Gronos already exists - there can only be one!', true); const where = giveRunner(GRONOS); return toast(where === 'base' ? 'Spawned GRONOS in your base!' : 'Base full - GRONOS sent to your inventory (I).', false, 3000); }
+  const v = $('admVar').value === 'NORMAL' ? null : $('admVar').value, n = Math.max(1, Math.min(30, +$('admQty').value || 1)); let inBase = 0, inInv = 0;
+  for (let i = 0; i < n; i++) { if (giveRunner(cfg, v) === 'base') { inBase++; const a = earners[earners.length - 1]; if (a) unlockIndexEntry(sid(cfg), tabOf(a)); } else inInv++; }
+  toast('Spawned ' + n + ' ' + (v ? v.toLowerCase() + ' ' : '') + cfg.name + (inInv ? ' (' + inBase + ' in your base, ' + inInv + ' in your inventory)' : ' in your base') + '!', false, 3000);
+};
+$('admXp1').onclick = () => addXP(100); $('admXp2').onclick = () => addXP(1000); $('admXpMax').onclick = () => addXP(10000);
+
+/* ============================ MAIN LOOP ============================ */
+const clock = new THREE.Clock(); let fpsT = 0, fpsN = 0; const camTarget = new V3(), look3 = new V3();
+function frame() {
+  const dt = Math.min(clock.getDelta(), 0.05);
+  skyTick(dt); if (!serverOn) { renderer.render(scene, camera); return; }   // main menu: nothing runs until you pick Solo / Online
+  menuTick(dt);
+  spawnT += dt; while (spawnT >= SPAWN_INTERVAL) { spawnT -= SPAWN_INTERVAL; spawnRunner(); }
+  for (let i = runners.length - 1; i >= 0; i--) { const a = runners[i]; a.root.position.z += WALK_SPEED * dt; a.yawT = 0;
+    if (a.root.position.z > CARPET_LEN / 2) { scene.remove(a.root); actors.delete(a); runners.splice(i, 1); } }
+  for (let i = walkers.length - 1; i >= 0; i--) {   // bought show runners following waypoints (carpet, entrance, stairs, platform)
+    const a = walkers[i], t = a.route[0], p = a.root.position, dx = t.x - p.x, dz = t.z - p.z, d = Math.hypot(dx, dz), step = BASE_WALK_SPEED * dt;
+    if (d <= step) { p.set(t.x, t.y, t.z); a.route.shift(); a.outside = false; if (a.route.length) beginSeg(a); }
+    else { p.x += dx / d * step; p.z += dz / d * step; a.yawT = Math.atan2(dx, dz); p.y = a.seg.from.y + (t.y - a.seg.from.y) * Math.min(1, 1 - d / a.seg.len); }
+    if (!a.route.length) { a.fresh = false; walkers.splice(i, 1); a.state = 'idle'; a.yawT = -playerBase.side * Math.PI / 2; earners.push(a); totalIncome += a.income; unlockIndexEntry(sid(a.cfg), tabOf(a)); updateHud(); }
+  }
+  for (const a of earners) { a.incomeT += dt; while (a.incomeT >= 1) { a.incomeT -= 1; const pay = a.income * REBIRTHS[playerBase.rebirth].mult * boostMul.cash; cash += pay; updateHud(); spawnFloat('+' + formatMoney(pay), a); /* rebirth money multiplier */ } }
+  if (botsOn) { try { botTick(dt); } catch (err) { botsOn = false; showError('Bot error: ' + err.message + ' ' + ((err.stack || '').split('\n')[1] || '')); } }
+  for (const a of actors) { if (a.far) { a.skipT = (a.skipT || 0) + dt; if (a.skipT < 0.25) continue; a.update(a.skipT); a.skipT = 0; } else a.update(dt); }
+  tickWorld(dt);
+  for (let i = floats.length - 1; i >= 0; i--) { const f = floats[i]; f.age += dt; f.s.position.y += dt * 1.1; f.s.material.opacity = Math.max(0, 1 - f.age / 1.3);
+    if (f.age >= 1.3) { scene.remove(f.s); f.s.material.dispose(); floats.splice(i, 1); } }
+  for (let i = tweens.length - 1; i >= 0; i--) { const w = tweens[i]; w.t += dt; const x = Math.min(1, w.t / w.dur); w.fn(easeBack(x)); if (x >= 1) { w.fn(1); tweens.splice(i, 1); } }
+
+  // Player
+  camYaw += ((keys.ArrowLeft ? 1 : 0) - (keys.ArrowRight ? 1 : 0)) * LOOK_SPEED * dt;   // like Roblox: left / right arrows turn the view
+  camPitch = Math.max(-0.2, Math.min(1.2, camPitch + ((keys.ArrowDown ? 1 : 0) - (keys.ArrowUp ? 1 : 0)) * TILT_SPEED * dt));   // up arrow looks up, down arrow looks down
+  const fw = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0), rt = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0), fx = Math.sin(camYaw), fz = Math.cos(camYaw);
+  let mx = fx * fw - fz * rt, mz = fz * fw + fx * rt; const ml = Math.hypot(mx, mz);
+  if (ml > 0) { mx /= ml; mz /= ml; }
+  const ka = 1 - Math.exp(-9 * dt); pvx += (mx * PLAYER_SPEED * boostMul.speed - pvx) * ka; pvz += (mz * PLAYER_SPEED * boostMul.speed - pvz) * ka;   // eased acceleration
+  player.position.x += pvx * dt; player.position.z += pvz * dt;
+  const spd = Math.hypot(pvx, pvz); if (spd > 0.8) pYaw = turn(pYaw, Math.atan2(pvx, pvz), dt, 12);   // turn smoothly toward movement
+  player.rotation.y = pYaw;
+  player.position.x = Math.max(-BOUNDS.x, Math.min(BOUNDS.x, player.position.x)); player.position.z = Math.max(-BOUNDS.z, Math.min(BOUNDS.z, player.position.z));
+  multiplayerTick(dt);
+  for (const c of COLLIDERS) if (player.position.y < 2 && (!c.when || c.when())) { const r = 0.6, px = player.position.x, pz = player.position.z;
+    if (px > c.x0 - r && px < c.x1 + r && pz > c.z0 - r && pz < c.z1 + r) {
+      const d = [px - (c.x0 - r), (c.x1 + r) - px, pz - (c.z0 - r), (c.z1 + r) - pz], i = d.indexOf(Math.min(...d));
+      if (i === 0) player.position.x = c.x0 - r; else if (i === 1) player.position.x = c.x1 + r; else if (i === 2) player.position.z = c.z0 - r; else player.position.z = c.z1 + r; } }
+  const gy = groundAt(player.position.x, player.position.z, player.position.y), grounded = player.position.y <= gy + 0.001;
+  if (grounded && keys.Space && jumpWind <= 0) jumpWind = 0.09;   // short takeoff crouch, then jump
+  if (jumpWind > 0) { jumpWind -= dt; if (jumpWind <= 0) pVel = 9; }
+  pVel -= 25 * dt; player.position.y += pVel * dt;
+  if (player.position.y <= gy) { if (airborne && pVel < -4) landT = 0.25; player.position.y = gy; pVel = 0; airborne = false; } else airborne = true;
+  const st = jumpWind > 0 ? 'crouch' : airborne ? (pVel > 0 ? 'jump' : 'fall') : landT > 0 ? 'land' : spd > 1 ? 'walk' : 'idle';
+  if (!airborne && landT > 0) landT -= dt;
+  pAnim.update(dt, st, spd, !!held, curModel.userData.P, gender === 'female'); weaponTick(dt);
+  if (held) { held.root.position.set(player.position.x + Math.sin(pYaw) * 0.95, player.position.y + 0.7, player.position.z + Math.cos(pYaw) * 0.95); held.yawT = pYaw; held.move = Math.min(1, spd / PLAYER_SPEED); }
+
+  const d = 10, cp = Math.cos(camPitch);
+  camTarget.set(player.position.x - fx * d * cp, player.position.y + 1.6 + Math.sin(camPitch) * d, player.position.z - fz * d * cp);
+  camera.position.lerp(camTarget, 1 - Math.exp(-12 * dt)); look3.set(player.position.x, player.position.y + 1.6, player.position.z); camera.lookAt(look3);
+  sun.position.set(player.position.x + 30, 60, player.position.z + 22); sun.target.position.copy(player.position);
+
+  // Interaction target: nearest buyable runner > upgrade pad > code stand
+  interact = null; let best = BUY_DISTANCE, pp = player.position;
+  for (const a of runners) { const dd = Math.hypot(a.root.position.x - pp.x, a.root.position.z - pp.z); if (dd < best) { best = dd; interact = { text:cash >= a.cfg.price ? `Press E to buy (${formatMoney(a.cfg.price)})` : `Need ${formatMoney(a.cfg.price)}`, bad:cash < a.cfg.price, pos:a.root.position.clone().setY(7), fn:() => tryBuy(a) }; } }
+  if (!interact && held) {   // holding: sell pad, or place / swap on a platform
+    const sp = playerBase.sellPos;
+    if (Math.hypot(sp.x - pp.x, sp.z - pp.z) < 3.5 && Math.abs(pp.y) < 2) interact = { text:'Press E to sell for ' + formatMoney(Math.floor(held.cfg.price * SELL_RATIO)), pos:sp.clone().setY(5), fn:sellHeld };
+    else { let bs = null, bd = PLACE_DISTANCE;
+      for (const s of playerBase.slots) { if (!s.unlocked) continue; const w = W(playerBase, s.u, s.y, s.v), dd = Math.hypot(w.x - pp.x, w.z - pp.z); if (dd < bd && Math.abs(w.y - pp.y) < 3) { bd = dd; bs = s; } }
+      if (bs) interact = { text:bs.occupied ? 'Press E to swap' : 'Press E to place', pos:W(playerBase, bs.u, bs.y + 5, bs.v), fn:() => placeHeld(bs) }; }
+  }
+  if (!interact && !held) { let ba = null, bd = PICKUP_DISTANCE;   // pick up one of your own show runners
+    for (const a of earners) { const dd = Math.hypot(a.root.position.x - pp.x, a.root.position.z - pp.z); if (dd < bd && Math.abs(a.root.position.y - pp.y) < 3) { bd = dd; ba = a; } }
+    if (ba) interact = { text:'Press E to pick up', pos:ba.root.position.clone().setY(ba.root.position.y + 7), fn:() => pickUp(ba) }; }
+  if (!interact && !held) { let sb = null, sa = null, sd = PICKUP_DISTANCE;   // steal a show runner from a bot's open base
+    for (const bot of bots) for (const a of bot.earners) { const dd = Math.hypot(a.root.position.x - pp.x, a.root.position.z - pp.z); if (dd < sd && Math.abs(a.root.position.y - pp.y) < 3) { sd = dd; sb = bot; sa = a; } }
+    if (sa) interact = { text:'Press E to steal ' + sa.cfg.name + ' from ' + sb.name + ' (' + formatMoney(sa.cfg.price) + ')', pos:sa.root.position.clone().setY(sa.root.position.y + 7), fn:() => stealFromBot(sb, sa) }; }
+  if (!interact) { for (const bot of bots) {   // a locked (fenced) bot base: pay to open it
+    if (Date.now() >= bot.base.fence.until) continue; const g = W(bot.base, -1.5, 0, 0);
+    if (Math.hypot(g.x - pp.x, g.z - pp.z) < 7 && Math.abs(pp.y) < 2) { interact = { text:cash >= UNLOCK_BASE_COST ? 'Press E to unlock ' + bot.name + "'s base (" + formatMoney(UNLOCK_BASE_COST) + ')' : bot.name + "'s base is locked - unlocking costs " + formatMoney(UNLOCK_BASE_COST), bad:cash < UNLOCK_BASE_COST, pos:g.clone().setY(5), fn:() => unlockBot(bot) }; break; } } }
+  if (!interact && Math.hypot(playerBase.upgradePos.x - pp.x, playerBase.upgradePos.z - pp.z) < 3.5 && Math.abs(pp.y) < 2) {
+    const st = rebirthStatus(), todo = st ? [...st.missing.map(nameOf), ...(st.cashOk ? [] : [formatMoney(st.next.cost)])] : [];
+    interact = { text:!st ? 'MAX REBIRTH' : todo.length ? `Rebirth ${playerBase.rebirth + 1} needs: ${todo.join(', ')}` : `Press E to rebirth to Rebirth ${playerBase.rebirth + 1} (${formatMoney(st.next.cost)}, x${st.next.mult} money)`, bad:!!st && todo.length > 0, pos:playerBase.upgradePos.clone().setY(5), fn:tryRebirth };
+  }
+  if (!interact && Math.hypot(standPos.x - pp.x, standPos.z - pp.z) < 5)
+    interact = { text:adminUnlocked ? 'Press E to open the admin menu' : 'Press E to enter a code', pos:standPos.clone().setY(5), fn:adminUnlocked ? openAdmin : openCode };
+  if (!interact && Math.hypot(SHOP_POS.x - pp.x, SHOP_POS.z - pp.z) < 6) interact = { text:'Press E to open the shop', pos:SHOP_POS.clone().setY(7), fn:openShop };
+  if (!interact && Math.hypot(STORE_POS.x - pp.x, STORE_POS.z - pp.z) < 6) interact = { text:'Press E to open the Storage', pos:STORE_POS.clone().setY(6.5), fn:openStorage };
+  if (!interact && Math.hypot(WHEEL_POS.x - pp.x, WHEEL_POS.z - pp.z) < 6) interact = { text:freeReady() ? 'Free spin ready! Press E' : 'Press E to spin', pos:WHEEL_POS.clone().setY(10.5), fn:openSpin };
+  if (!interact && Math.hypot(playerBase.fencePos.x - pp.x, playerBase.fencePos.z - pp.z) < 3.5 && Math.abs(pp.y) < 2)
+    interact = { text:playerBase.fence.closed ? 'Fence closed: ' + fenceTxt : `Press E to close the fence (${fmtMS(FENCE_SECONDS_PER_LEVEL * (playerBase.rebirth + 1))})`, pos:playerBase.fencePos.clone().setY(4.4), fn:pressFence };
+  if (!interact && Math.hypot(playerBase.mirrorPos.x - pp.x, playerBase.mirrorPos.z - pp.z) < 3.5 && Math.abs(pp.y) < 2)
+    interact = { text:'Press E to change character', pos:playerBase.mirrorPos.clone().setY(5.6), fn:toggleGender };
+  if (interact && !uiOpen) showPrompt(interact.text, interact.pos, interact.bad); else promptEl.style.display = 'none';
+
+  renderer.render(scene, camera);
+  fpsN++; fpsT += dt; if (fpsT >= 0.5) { $('fps').textContent = Math.round(fpsN / fpsT) + ' FPS'; fpsN = 0; fpsT = 0; }
+}
+initShop(); setQuality('Medium'); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); camera.position.set(player.position.x, 3, player.position.z);
+renderer.setAnimationLoop(() => { try { frame(); } catch (err) { showError('Game error: ' + err.message + ' ' + ((err.stack || '').split('\n')[1] || '')); renderer.render(scene, camera); } });
+})();
+</script>
+</body>
+</html>
