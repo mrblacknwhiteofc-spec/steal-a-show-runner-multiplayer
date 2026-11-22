@@ -1257,7 +1257,7 @@ function tryBuy(a) {
   if (!slot) return toast('Base full!', 1);
   if (cash < a.cfg.price) return toast('Not enough cash!', 1);
   cash -= a.cfg.price; sfx('buy'); updateHud(); passXP(10, a, 'xpBuy'); runners.splice(runners.indexOf(a), 1);
-  slot.occupied = true; slot.occupant = a; a.slot = slot; a.route = buildRoute(playerBase, slot); beginSeg(a); a.state = 'walk'; a.fresh = true; a.outside = true; walkers.push(a);
+  slot.occupied = true; slot.occupant = a; a.slot = slot; a.route = buildRoute(playerBase, slot); beginSeg(a); a.state = 'walk'; a.fresh = true; a.outside = true; a.netRunnerId = netPlayerId ? netPlayerId + ':' + Date.now() + ':' + Math.random().toString(36).slice(2,7) : null; walkers.push(a);
 }
 const nameOf = id => SHOWRUNNERS.find(c => sid(c) === id).name;
 function rebirthStatus() {   // what the next rebirth needs, and what is still missing
@@ -1968,8 +1968,9 @@ $('inviteX').onclick = () => { $('inviteBox').style.display = 'none'; };
 $('inviteCopy').onclick = () => { try { navigator.clipboard.writeText(server.code); $('inviteCopy').textContent = 'Copied!'; setTimeout(() => { $('inviteCopy').textContent = 'Copy'; }, 1500); } catch (e) { $('inviteCopy').textContent = server.code; } };
 /* ---- REAL-TIME MULTIPLAYER CLIENT ---- */
 const MULTIPLAYER_SERVER = 'wss://steal-a-show-runner-multiplayer.onrender.com';
-let netSocket=null, netPlayerId=null, netSendClock=0;
+let netSocket=null, netPlayerId=null, netSendClock=0, netRunnerClock=0;
 const remotePlayers=new Map();
+const remoteWalkers=new Map();
 const remoteBaseActors=new Map();
 let netBaseClock=0,netBaseSignature='';
 function setBaseOwnerLabel(base,label,local){
@@ -2015,6 +2016,42 @@ function applyRemoteBaseState(data){
   }
   remoteBaseActors.set(data.id,made);
 }
+function sendRunnerEnd(id){if(!id||!netSocket||netSocket.readyState!==WebSocket.OPEN)return;netSocket.send(JSON.stringify({type:'runner-end',runnerId:id}));}
+function receiveRemoteRunner(data){
+ if(!data||!data.runnerId||data.ownerId===netPlayerId)return;
+ const cfg=ALL_RUNNERS.find(c=>sid(c)===data.cfgId);if(!cfg)return;
+ let a=remoteWalkers.get(data.runnerId);
+ if(!a){try{a=new Actor(cfg,data.variant==='GOLD'||data.variant==='DIAMOND'?data.variant:null);}catch(e){return;}a.state='walk';a.fresh=true;a.outside=true;a.remoteOwnerId=data.ownerId;a.remoteRunnerId=data.runnerId;scene.add(a.root);actors.add(a);remoteWalkers.set(data.runnerId,a);}
+ a.root.position.set(Number(data.x)||0,Number(data.y)||0,Number(data.z)||0);a.yawT=Number(data.yaw)||0;
+ a.remoteOwnerId=data.ownerId;a.remoteOwnerName=data.ownerName||'Player';a.cfg=cfg;
+}
+function removeRemoteRunner(id){const a=remoteWalkers.get(id);if(a){scene.remove(a.root);actors.delete(a);remoteWalkers.delete(id);}}
+function requestSnipeRemote(a){
+ if(!a||a.snipePending||!a.remoteRunnerId)return;
+ const slot=playerBase.slots.find(s=>s.unlocked&&!s.occupied);
+ if(!slot)return toast('Base full!',1);
+ if(cash<a.cfg.price)return toast('Not enough cash!',1);
+ if(!netSocket||netSocket.readyState!==WebSocket.OPEN)return toast('Multiplayer connection required.',1);
+ a.snipePending=true;netSocket.send(JSON.stringify({type:'runner-snipe',runnerId:a.remoteRunnerId}));
+ toast('Trying to buy '+a.cfg.name+' from '+(a.remoteOwnerName||'another player')+'...',false,1800);
+}
+function handleRunnerSnipe(msg){
+ const local=walkers.find(a=>a.netRunnerId===msg.runnerId);
+ if(local&&msg.ownerId===netPlayerId){
+  walkers.splice(walkers.indexOf(local),1);if(local.slot){local.slot.occupied=false;local.slot.occupant=null;}
+  scene.remove(local.root);actors.delete(local);sendRunnerEnd(msg.runnerId);syncMyBase();toast(msg.buyerName+' bought your '+local.cfg.name+'!',true,3000);return;
+ }
+ if(msg.buyerId===netPlayerId){
+  let a=remoteWalkers.get(msg.runnerId);
+  const cfg=ALL_RUNNERS.find(c=>sid(c)===msg.cfgId);if(!a&&cfg){try{a=new Actor(cfg,msg.variant==='GOLD'||msg.variant==='DIAMOND'?msg.variant:null);scene.add(a.root);actors.add(a);a.root.position.set(msg.x||0,msg.y||0,msg.z||0);}catch(e){a=null;}}
+  removeRemoteRunner(msg.runnerId);
+  if(!a)return;
+  const slot=playerBase.slots.find(s=>s.unlocked&&!s.occupied);if(!slot){scene.remove(a.root);actors.delete(a);return;}
+  cash-=a.cfg.price;updateHud();passXP(10,a,'xpBuy');a.netRunnerId=msg.runnerId;a.remoteRunnerId=null;a.remoteOwnerId=null;a.snipePending=false;a.fresh=true;a.outside=true;
+  slot.occupied=true;slot.occupant=a;a.slot=slot;a.route=buildRoute(playerBase,slot);beginSeg(a);a.state='walk';walkers.push(a);syncMyBase();toast('You bought '+a.cfg.name+' from '+msg.ownerName+'!',false,3000);return;
+ }
+ removeRemoteRunner(msg.runnerId);
+}
 function syncMyBase(){
   if(!netSocket||netSocket.readyState!==WebSocket.OPEN||!netPlayerId)return;
   const runners=playerBase.slots.map((slot,s)=>slot.occupied&&slot.occupant&&slot.occupant.cfg?{id:sid(slot.occupant.cfg),v:slot.occupant.variant||null,s}:null).filter(Boolean);
@@ -2034,6 +2071,7 @@ function netMessage(msg){
   if(server.mode==='online'&&bots.length===0){const real=Math.random;Math.random=seededRandom(server.code);try{botLobby();}finally{Math.random=real;}}
   removeBotAtBase(playerBase.id);setBaseOwnerLabel(playerBase,'YOUR BASE',true);
   (msg.players||[]).forEach(p=>{addRemotePlayer(p);removeBotAtBase(p.baseId);applyRemoteBaseState(p);if(p.baseId!==undefined)setBaseOwnerLabel(bases[p.baseId],(p.name||'Player')+"'s Base",false);});
+  (msg.walkers||[]).forEach(receiveRemoteRunner);
   restoreProgress();passOnStart();syncMyBase();toast('Connected! Invite code: '+server.code,false,4500);
  }else if(msg.type==='player-joined'){
   const p=msg.player;addRemotePlayer(p);removeBotAtBase(p&&p.baseId);if(p&&p.baseId!==undefined){setBaseOwnerLabel(bases[p.baseId],(p.name||'Player')+"'s Base",false);applyRemoteBaseState(p);}toast((p&&p.name||'A player')+' joined!',false,3000);
@@ -2042,11 +2080,14 @@ function netMessage(msg){
   const pBase=Number(msg.baseId);if(Number.isInteger(pBase)&&bases[pBase]){resetBaseToZero(bases[pBase]);setBaseOwnerLabel(bases[pBase],'Empty Base',false);}
   toast((msg.name||'A player')+' left.',false,2500);
  }else if(msg.type==='base-state'){applyRemoteBaseState(msg.player);}
+ else if(msg.type==='runner-walk'){receiveRemoteRunner(msg);}
+ else if(msg.type==='runner-snipe'){handleRunnerSnipe(msg);}
+ else if(msg.type==='runner-end'){removeRemoteRunner(msg.runnerId);}
  else if(msg.type==='state'){(msg.players||[]).forEach(addRemotePlayer);}
  else if(msg.type==='error'){$('joinErr').textContent=msg.message||'Could not join the online room.';toast(msg.message||'Multiplayer connection error.',true,5000);}
 }
 function connectMultiplayer(mode,inviteCode){try{netSocket=new WebSocket(MULTIPLAYER_SERVER);netSocket.addEventListener('open',()=>{const displayName=curUser&&accounts[curUser]?accounts[curUser].name:'Guest';netSocket.send(JSON.stringify({type:'join',mode,code:inviteCode,name:displayName,gender}));});netSocket.addEventListener('message',e=>{try{netMessage(JSON.parse(e.data));}catch(err){console.warn('Bad multiplayer message',err);}});netSocket.addEventListener('close',()=>{if(serverOn)toast('Disconnected from multiplayer server.',true,4500);});netSocket.addEventListener('error',()=>toast('Could not connect to multiplayer. Check your connection.',true,4500));}catch(err){toast('Your browser could not start multiplayer.',true,4500);}}
-function multiplayerTick(dt){if(netSocket&&netSocket.readyState===WebSocket.OPEN&&netPlayerId){netSendClock+=dt;netBaseClock+=dt;if(netSendClock>=0.08){netSendClock=0;netSocket.send(JSON.stringify({type:'move',x:player.position.x,y:player.position.y,z:player.position.z,yaw:pYaw}));}if(netBaseClock>=0.35){netBaseClock=0;syncMyBase();}}for(const rp of remotePlayers.values()){const k=1-Math.exp(-12*dt),t=rp.target;rp.root.position.x+=(t.x-rp.root.position.x)*k;rp.root.position.y+=(t.y-rp.root.position.y)*k;rp.root.position.z+=(t.z-rp.root.position.z)*k;let dy=((t.yaw-rp.root.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;rp.root.rotation.y+=dy*k;}}
+function multiplayerTick(dt){if(netSocket&&netSocket.readyState===WebSocket.OPEN&&netPlayerId){netSendClock+=dt;netBaseClock+=dt;netRunnerClock+=dt;if(netSendClock>=0.08){netSendClock=0;netSocket.send(JSON.stringify({type:'move',x:player.position.x,y:player.position.y,z:player.position.z,yaw:pYaw}));}if(netBaseClock>=0.35){netBaseClock=0;syncMyBase();}if(netRunnerClock>=0.12){netRunnerClock=0;for(const a of walkers)if(a.fresh&&a.netRunnerId)netSocket.send(JSON.stringify({type:'runner-walk',runnerId:a.netRunnerId,cfgId:sid(a.cfg),variant:a.variant||null,x:a.root.position.x,y:a.root.position.y,z:a.root.position.z,yaw:a.yawT||0}));}}for(const rp of remotePlayers.values()){const k=1-Math.exp(-12*dt),t=rp.target;rp.root.position.x+=(t.x-rp.root.position.x)*k;rp.root.position.y+=(t.y-rp.root.position.y)*k;rp.root.position.z+=(t.z-rp.root.position.z)*k;let dy=((t.yaw-rp.root.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;rp.root.rotation.y+=dy*k;}}
 window.addEventListener('beforeunload',()=>{try{if(netSocket)netSocket.close();}catch(e){}});
 
 /* ---- accounts: username + password, stored in this browser (there is no game server). Sign in again any time to get your progress back. ---- */
@@ -2410,7 +2451,7 @@ function frame() {
     const a = walkers[i], t = a.route[0], p = a.root.position, dx = t.x - p.x, dz = t.z - p.z, d = Math.hypot(dx, dz), step = BASE_WALK_SPEED * dt;
     if (d <= step) { p.set(t.x, t.y, t.z); a.route.shift(); a.outside = false; if (a.route.length) beginSeg(a); }
     else { p.x += dx / d * step; p.z += dz / d * step; a.yawT = Math.atan2(dx, dz); p.y = a.seg.from.y + (t.y - a.seg.from.y) * Math.min(1, 1 - d / a.seg.len); }
-    if (!a.route.length) { a.fresh = false; walkers.splice(i, 1); a.state = 'idle'; a.yawT = -playerBase.side * Math.PI / 2; earners.push(a); totalIncome += a.income; unlockIndexEntry(sid(a.cfg), tabOf(a)); updateHud(); }
+    if (!a.route.length) { if(a.netRunnerId)sendRunnerEnd(a.netRunnerId); a.fresh = false; walkers.splice(i, 1); a.state = 'idle'; a.yawT = -playerBase.side * Math.PI / 2; earners.push(a); totalIncome += a.income; unlockIndexEntry(sid(a.cfg), tabOf(a)); updateHud(); }
   }
   for (const a of earners) { a.incomeT += dt; while (a.incomeT >= 1) { a.incomeT -= 1; const pay = a.income * REBIRTHS[playerBase.rebirth].mult * boostMul.cash; cash += pay; updateHud(); spawnFloat('+' + formatMoney(pay), a); /* rebirth money multiplier */ } }
   if (botsOn) { try { botTick(dt); } catch (err) { botsOn = false; showError('Bot error: ' + err.message + ' ' + ((err.stack || '').split('\n')[1] || '')); } }
@@ -2454,6 +2495,7 @@ function frame() {
   // Interaction target: nearest buyable runner > upgrade pad > code stand
   interact = null; let best = BUY_DISTANCE, pp = player.position;
   for (const a of runners) { const dd = Math.hypot(a.root.position.x - pp.x, a.root.position.z - pp.z); if (dd < best) { best = dd; interact = { text:cash >= a.cfg.price ? `Press E to buy (${formatMoney(a.cfg.price)})` : `Need ${formatMoney(a.cfg.price)}`, bad:cash < a.cfg.price, pos:a.root.position.clone().setY(7), fn:() => tryBuy(a) }; } }
+  if (!interact && !held) { let ra=null,rd=BUY_DISTANCE;for(const a of remoteWalkers.values()){if(a.snipePending)continue;const dd=Math.hypot(a.root.position.x-pp.x,a.root.position.z-pp.z);if(dd<rd){rd=dd;ra=a;}}if(ra)interact={text:cash>=ra.cfg.price?'Press E to buy '+ra.cfg.name+' from '+(ra.remoteOwnerName||'player')+' ('+formatMoney(ra.cfg.price)+')':'Need '+formatMoney(ra.cfg.price),bad:cash<ra.cfg.price,pos:ra.root.position.clone().setY(7),fn:()=>requestSnipeRemote(ra)};}
   if (!interact && held) {   // holding: sell pad, or place / swap on a platform
     const sp = playerBase.sellPos;
     if (Math.hypot(sp.x - pp.x, sp.z - pp.z) < 3.5 && Math.abs(pp.y) < 2) interact = { text:'Press E to sell for ' + formatMoney(Math.floor(held.cfg.price * SELL_RATIO)), pos:sp.clone().setY(5), fn:sellHeld };
