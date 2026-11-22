@@ -1984,7 +1984,7 @@ function resetBaseToZero(base){
   base.rebirth=0;setRebirth(base,0,false);
 }
 function removeBotAtBase(baseId){
-  const index=bots.findIndex(b=>b.base&&b.base.id===Number(baseId));if(index<0)return;
+  let index=bots.findIndex(b=>b.base&&b.base.id===Number(baseId));if(index<0)index=bots.length-1;if(index<0)return;
   const bot=bots.splice(index,1)[0],base=bot.base;
   for(const a of [...(bot.earners||[]),...(bot.walkers||[]),...(bot.carry?[bot.carry]:[])]){
     if(a.root)scene.remove(a.root);actors.delete(a);
@@ -2029,6 +2029,7 @@ function netMessage(msg){
   netPlayerId=msg.id;server.code=msg.code||server.code;$('inviteCode').textContent=server.code;$('inviteInfo').textContent=(server.mode==='solo'?'Private solo room':'Public online room')+' - share this code with friends.';
   playerBase=bases[Number(msg.baseId)]||playerBase;player.position.copy(W(playerBase,-3,0,8));camYaw=playerBase.side>0?-Math.PI/2:Math.PI/2;netBaseSignature='';
   for(const b of bases)setBaseOwnerLabel(b,'Empty Base',false);
+  bots.forEach(botSign);
   setBaseOwnerLabel(playerBase,'YOUR BASE',true);
   if(server.mode==='online'&&bots.length===0){const real=Math.random;Math.random=seededRandom(server.code);try{botLobby();}finally{Math.random=real;}}
   removeBotAtBase(playerBase.id);setBaseOwnerLabel(playerBase,'YOUR BASE',true);
