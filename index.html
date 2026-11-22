@@ -1977,6 +1977,12 @@ function setBaseOwnerLabel(base,label,local){
   const txt=label||'Empty Base',color=local?'#ffe14a':'#ffffff',size=local?18:Math.min(150,Math.floor(980/(txt.length*0.62)));
   const sign=makeSign(txt,color,size);sign.position.set(PAD_W/2,17,0);sign.rotation.y=-Math.PI/2;base.group.add(sign);base.sign=sign;base.owner=label||null;
 }
+function resetBaseToZero(base){
+  base.decks.forEach((d,i)=>{if(d)d.visible=false;});
+  base.ramps.forEach((r,i)=>{if(r)r.visible=false;});
+  for(const slot of base.slots){slot.occupied=false;slot.occupant=null;slot.unlocked=false;slot.ped.visible=false;slot.ped.scale.setScalar(1);}
+  base.rebirth=0;setRebirth(base,0,false);
+}
 function removeBotAtBase(baseId){
   const index=bots.findIndex(b=>b.base&&b.base.id===Number(baseId));if(index<0)return;
   const bot=bots.splice(index,1)[0],base=bot.base;
@@ -1984,9 +1990,8 @@ function removeBotAtBase(baseId){
     if(a.root)scene.remove(a.root);actors.delete(a);
   }
   if(bot.root)scene.remove(bot.root);
-  if(bot.label){scene.remove(bot.label);if(bot.label.material){if(bot.label.material.map)bot.label.material.map.dispose();bot.label.material.dispose();}}
-  for(const slot of base.slots){slot.occupied=false;slot.occupant=null;}
-  base.group.visible=true;setBaseOwnerLabel(base,'Empty Base',false);
+  if(bot.label&&bot.label.material){if(bot.label.material.map)bot.label.material.map.dispose();bot.label.material.dispose();}
+  resetBaseToZero(base);base.group.visible=true;setBaseOwnerLabel(base,'Empty Base',false);
 }
 function clearRemoteBase(ownerId,baseId){
   const list=remoteBaseActors.get(ownerId)||[];
@@ -1997,7 +2002,7 @@ function clearRemoteBase(ownerId,baseId){
 function applyRemoteBaseState(data){
   if(!data||!data.id||data.id===netPlayerId||!Number.isInteger(Number(data.baseId)))return;
   const base=bases[Number(data.baseId)];if(!base)return;
-  removeBotAtBase(base.id);clearRemoteBase(data.id,base.id);base.group.visible=true;
+  removeBotAtBase(base.id);clearRemoteBase(data.id,base.id);resetBaseToZero(base);base.group.visible=true;
   setBaseOwnerLabel(base,(data.name||'Player')+"'s Base",false);
   const rebirth=Math.max(0,Math.min(REBIRTHS.length-1,Number(data.rebirth)||0));setRebirth(base,rebirth,false);
   const made=[];
@@ -2026,14 +2031,14 @@ function netMessage(msg){
   for(const b of bases)setBaseOwnerLabel(b,'Empty Base',false);
   setBaseOwnerLabel(playerBase,'YOUR BASE',true);
   if(server.mode==='online'&&bots.length===0){const real=Math.random;Math.random=seededRandom(server.code);try{botLobby();}finally{Math.random=real;}}
-  removeBotAtBase(playerBase.id);
+  removeBotAtBase(playerBase.id);setBaseOwnerLabel(playerBase,'YOUR BASE',true);
   (msg.players||[]).forEach(p=>{addRemotePlayer(p);removeBotAtBase(p.baseId);applyRemoteBaseState(p);if(p.baseId!==undefined)setBaseOwnerLabel(bases[p.baseId],(p.name||'Player')+"'s Base",false);});
   restoreProgress();passOnStart();syncMyBase();toast('Connected! Invite code: '+server.code,false,4500);
  }else if(msg.type==='player-joined'){
   const p=msg.player;addRemotePlayer(p);removeBotAtBase(p&&p.baseId);if(p&&p.baseId!==undefined){setBaseOwnerLabel(bases[p.baseId],(p.name||'Player')+"'s Base",false);applyRemoteBaseState(p);}toast((p&&p.name||'A player')+' joined!',false,3000);
  }else if(msg.type==='player-left'){
   const old=remotePlayers.get(msg.id);removeRemotePlayer(msg.id);if(old&&old.baseId!==undefined)clearRemoteBase(msg.id,old.baseId);
-  const pBase=Number(msg.baseId);if(Number.isInteger(pBase)&&bases[pBase])setBaseOwnerLabel(bases[pBase],'Empty Base',false);
+  const pBase=Number(msg.baseId);if(Number.isInteger(pBase)&&bases[pBase]){resetBaseToZero(bases[pBase]);setBaseOwnerLabel(bases[pBase],'Empty Base',false);}
   toast((msg.name||'A player')+' left.',false,2500);
  }else if(msg.type==='base-state'){applyRemoteBaseState(msg.player);}
  else if(msg.type==='state'){(msg.players||[]).forEach(addRemotePlayer);}
