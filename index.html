@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Steal a Show Runner</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap">
+<style>
+  :root { --bg:#d8efff; box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#1d2433; } }
+  :root[data-theme="dark"] { --bg:#1d2433; }
+  html, body { margin:0; height:100%; background:var(--bg); overflow:hidden; font-family:"Comic Sans MS","Comic Sans","Comic Neue",cursive; font-weight:700; user-select:none; }
+  canvas { display:block; }
+  .t { color:#fff; -webkit-text-stroke:5px #000; paint-order:stroke fill; }
+  .t.bad { color:#ff4a4a; }
+  #hud { position:fixed; top:calc(12px + env(safe-area-inset-top,0px)); left:16px; line-height:1.25; }
+  #cash { font-size:34px; color:#35e635; } #lvl { font-size:19px; color:#9ad1ff; } #inc { font-size:19px; color:#ffe14a; }
+  #panel { position:fixed; top:calc(12px + env(safe-area-inset-top,0px)); right:12px; z-index:5; display:flex; gap:6px; align-items:center; }
+  button, select, input { font:700 14px "Comic Sans MS","Comic Sans","Comic Neue",cursive; padding:6px 10px; border:2px solid #000; border-radius:8px; background:#fff; color:#000; }
+  button { cursor:pointer; } #fps { background:#fff; color:#000; border:2px solid #000; border-radius:8px; padding:6px 10px; font-size:14px; }
+  #adminBtn { display:none; }
+  #luckHud { position:fixed; left:16px; bottom:calc(16px + env(safe-area-inset-bottom,0px)); display:none; align-items:center; gap:10px; z-index:4; pointer-events:none; background:rgba(0,0,0,.45); border:3px solid #000; border-radius:14px; padding:6px 14px 6px 8px; }
+  #luckHud img { width:52px; height:52px; display:block; } #luckTxt { font-size:24px; color:#5dff6a; line-height:1.1; } #luckTime { font-size:17px; color:#fff; }
+  .x { position:absolute; top:8px; right:8px; }
+  #ptr { position:absolute; left:50%; top:-8px; transform:translateX(-50%); border:14px solid transparent; border-top:30px solid #e00; border-bottom:0; }
+  #idxTabs { display:flex; gap:8px; margin:8px 0; } .tab { flex:1; padding:8px; border:3px solid #000; border-radius:10px; cursor:pointer; text-align:center; background:#eee; }
+  .tab.on { outline:3px solid #000; } .tab.gold { background:#fff3b0; box-shadow:0 0 14px #ffc400; } .tab.dia { background:#d8f6ff; box-shadow:0 0 14px #6fd8ff; }
+  #idxBar { height:12px; border:2px solid #000; border-radius:8px; overflow:hidden; background:#ccc; margin-bottom:8px; } #idxFill { height:100%; width:0; transition:width .4s; }
+  .idxH { margin:12px 0 4px; font-size:22px; -webkit-text-stroke:4px #000; paint-order:stroke fill; }
+  .card { display:inline-block; vertical-align:top; width:150px; margin:4px; padding:6px; border:3px solid #000; border-radius:10px; text-align:center; font-size:12px; position:relative; cursor:pointer; }
+  .card img { width:110px; height:110px; display:block; margin:0 auto; } .card.lock { background:#555; color:#ddd; cursor:default; } .q { position:absolute; left:0; right:0; top:30px; font-size:44px; color:#fff; }
+  .card.n { background:#e9f5e0; } .card.g { background:linear-gradient(#fff3b0,#ffd54a); } .card.d { background:linear-gradient(#e8fbff,#9fe3ff); }
+  .card.g::after, .card.d::after { content:''; position:absolute; inset:0; border-radius:8px; pointer-events:none; background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.7), transparent 40%); animation:glint 4s ease-in-out infinite; }
+  @keyframes glint { 0%,100% { opacity:.15 } 50% { opacity:.8 } }
+  .newb { position:absolute; top:-8px; right:-8px; background:#e00; color:#fff; border-radius:8px; padding:1px 6px; font-size:11px; z-index:2; } .dot { display:inline-block; width:10px; height:10px; border-radius:50%; background:#e00; margin-left:4px; }
+  #idxPop { position:fixed; right:16px; bottom:16px; font-size:18px; opacity:0; transition:opacity .3s; pointer-events:none; } #idxTotal { margin:10px 0; }
+  #shopTabs { display:flex; gap:8px; margin:8px 0; } .srow { display:flex; align-items:center; gap:8px; margin:6px 0; padding:6px 8px; border:2px solid #000; border-radius:8px; } .srow span { flex:1; } .sh { font-size:18px; margin:10px 0 2px; } #shopMsg { min-height:1.4em; margin-top:8px; }
+  #unlockBox { display:none; position:fixed; left:50%; top:14%; transform:translateX(-50%); width:min(400px,92vw); box-sizing:border-box; background:#000; color:#fff; border:3px solid #555; border-radius:10px; padding:10px 16px 12px; z-index:7; font-size:17px; line-height:1.35; }
+  #unlockBox #unlockX { position:absolute; top:4px; right:8px; background:none; border:0; color:#fff; font-size:22px; cursor:pointer; line-height:1; } #unlockTitle { color:#ffe14a; font-size:19px; margin:0 26px 6px 0; } #unlockList div { margin:4px 0; } #unlockList .hint { color:#aaa; font-size:14px; margin-top:8px; }
+  #passBox { display:none; position:fixed; inset:0; z-index:15; overflow:hidden; background:linear-gradient(90deg,#0047ab 0%,#1f7fc4 42%,#5ce1e6 100%); color:#fff; font-family:"Arial Rounded MT Bold","Trebuchet MS","Segoe UI",sans-serif; }
+  #passBox.final::before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 88% 56%,rgba(140,50,220,.6),transparent 52%),linear-gradient(rgba(25,0,50,.25),rgba(25,0,50,.38)); pointer-events:none; }
+  #passBox .pcloud { position:absolute; } #passBox .pcloud i { position:absolute; background:#fff; border-radius:50%; } #passSun { position:absolute; right:-7vw; top:-15vw; width:32vw; height:32vw; border-radius:50%; background:radial-gradient(circle at 30% 70%,#ffe066 0%,#ffb347 55%,#ff8a4d 100%); }
+  #passTitle { position:absolute; left:50%; top:.5vh; transform:translateX(-50%); width:min(28vw,420px); pointer-events:none; overflow:visible; }
+  #passS1, #passSub, #passPage, #passInfo { font-family:Impact,"Arial Narrow",sans-serif; color:#7dffc9; text-shadow:0 0 12px #2cff9a,2px 2px #0a4a3a; text-align:center; }
+  #passS1 { position:absolute; top:13.5vh; left:0; right:0; font-size:5.2vh; line-height:1; } #passSub { position:absolute; top:17.5vh; left:0; right:0; font-size:6.4vh; letter-spacing:.02em; line-height:1; }
+  #passInfo { position:absolute; top:26vh; left:50%; transform:translateX(-50%); display:flex; gap:2.6vw; font-size:3vh; white-space:nowrap; }
+  #passBar { position:absolute; top:31.2vh; left:50%; transform:translateX(-50%); width:min(38vw,640px); height:3.4vh; background:rgba(0,0,0,.35); border:2px solid #000; border-radius:99px; overflow:hidden; } #passFill { height:100%; background:linear-gradient(90deg,#7dffc9,#ffd84a); transition:width .4s; }
+  #passFillT { position:absolute; inset:0; text-align:center; line-height:3.4vh; font-size:2vh; color:#000; font-weight:900; }
+  #passLine { position:absolute; left:0; right:0; top:54.6vh; height:1.4vh; background:linear-gradient(90deg,#ffd84a,#ff9150); }
+  .ptile { position:absolute; width:8.6vw; height:16vh; min-width:106px; min-height:116px; box-sizing:border-box; border-radius:8px; background:linear-gradient(90deg,rgba(125,135,150,.88),rgba(160,195,160,.8)); border:2px solid rgba(0,0,0,.25); display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:4px 3px 5px; text-align:center; font-size:clamp(11px,1.45vh,15px); line-height:1.05; cursor:pointer; color:#fff; text-shadow:1px 1px #000; overflow:hidden; }
+  .ptile .tn { position:absolute; left:6px; top:2px; font-size:clamp(12px,1.8vh,18px); color:#ffe14a; } .ptile .ti { font-size:clamp(26px,5.2vh,50px); line-height:1.15; margin-top:1.2vh; } .ptile .tt { font-weight:900; } .ptile .ps { font-size:clamp(10px,1.35vh,14px); opacity:.9; }
+  .ptile .pc, .ptile .ps { display:block; } .pc { width:92%; padding:3px 0; border:2px solid #000; border-radius:6px; background:#4dff6a; color:#000; font:inherit; font-weight:900; cursor:pointer; text-shadow:none; }
+  .ptile.ready { border-color:#6dff7a; box-shadow:0 0 16px #6dff7a; animation:pready 1s ease-in-out infinite alternate; } @keyframes pready { from { transform:scale(1); } to { transform:scale(1.04); } } .ptile.claimed { filter:saturate(.45) brightness(.82); } .ptile.locked .ti { opacity:.4; }
+  .ptile.diamond { width:24vw; height:46vh; min-width:0; min-height:0; border:0; border-radius:0; clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%); background:linear-gradient(135deg,#4a1f86 0%,#150826 55%,#5a22a8 100%); animation:none; box-shadow:none; padding:0; }
+  .ptile.diamond .dwrap { position:absolute; inset:19% 25%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.2vh; } .gfig { height:15vh; } .gex { color:#ffee00; font-family:Impact,sans-serif; font-size:2.4vh; letter-spacing:.06em; } .gnm { color:#ff4a4a; font-size:3.2vh; font-weight:900; } .gin { color:#fff; font-family:Impact,sans-serif; font-size:2.6vh; } .gtn { color:#c9a8ff; font-size:1.5vh; }
+  .ptile.diamond.ready { box-shadow:none; background:linear-gradient(135deg,#7a2fd6 0%,#1d0a36 55%,#9a3cff 100%); }
+  #passDesc { position:absolute; top:79vh; left:50%; transform:translateX(-50%); width:min(70vw,900px); text-align:center; font-size:2.2vh; text-shadow:1px 1px #000; min-height:3em; }
+  #passPageBox { position:absolute; bottom:4.2vh; left:50%; transform:translateX(-50%); text-align:center; } #passPage { font-size:6vh; line-height:1; } #passPageName { font-size:2vh; color:#bfffe9; text-shadow:1px 1px #000; }
+  .parrow { position:absolute; bottom:5.5vh; width:6vh; height:6vh; border:3px solid #000; border-radius:50%; background:#c8ffe9; color:#000; font-size:2.6vh; cursor:pointer; } #passPrev { left:calc(50% - 22vw); } #passNext { left:calc(50% + 22vw - 6vh); }
+  #passDots { position:absolute; bottom:.8vh; left:50%; transform:translateX(-50%); display:flex; gap:6px; } #passDots button { width:3.2vh; height:3.2vh; border:2px solid #000; border-radius:50%; background:rgba(255,255,255,.55); font:inherit; font-size:1.6vh; cursor:pointer; padding:0; } #passDots button.on { background:#7dffc9; }
+  #passX { position:absolute; top:1.4vh; right:1.4vw; width:5vh; height:5vh; border:3px solid #000; border-radius:50%; background:#fff; font-size:2.4vh; cursor:pointer; z-index:2; }
+  #xpPop { position:fixed; left:50%; top:17%; transform:translate(-50%,-14px); opacity:0; transition:all .35s; color:#7dffc9; font-size:34px; text-shadow:2px 2px #000; z-index:8; pointer-events:none; }
+  #boostHud { position:fixed; left:16px; bottom:calc(92px + env(safe-area-inset-bottom,0px)); display:none; z-index:4; white-space:pre-line; color:#fff; background:rgba(0,0,0,.45); border:3px solid #000; border-radius:12px; padding:6px 12px; font-size:17px; line-height:1.35; pointer-events:none; }
+  #passDot { display:none; width:10px; height:10px; border-radius:50%; background:#f33; margin-left:6px; vertical-align:middle; }
+  #storeBox { background:#14181a !important; color:#c8f0d8 !important; border-color:#3b4a40 !important; } #storeBox h2 { color:#7dff9a; letter-spacing:.14em; text-shadow:0 0 8px #1a8a4a; }
+  #storeTabs { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 10px; } #storeBox .tab { flex:0 0 auto !important; width:auto !important; padding:5px 12px; background:#222a27; color:#a9d8bb; border:2px solid #3b4a40; border-radius:6px; cursor:pointer; box-shadow:none; } #storeBox .tab.on { background:#2f4a3a; color:#fff; border-color:#7dff9a; }
+  #storeBox .srow { background:#1d2422; border-color:#33423a; gap:8px; } #storeBox .srow b { margin:0 6px 0 auto; color:#7dff9a; font-size:13px; font-weight:400; } #storeBox button { background:#2b3a32; color:#d8ffe6; border:2px solid #4a6a58; } #storeBox button:disabled { opacity:.5; } #storeBox .sh { color:#ffb347; } #storeBox .hintS { color:#8fb09c; }
+  #hotbar, #invBar { display:flex; gap:6px; } #hotbar { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(14px + env(safe-area-inset-bottom,0px)); z-index:4; } #invBar { margin:6px 0 10px; }
+  .hb { position:relative; width:62px; height:62px; box-sizing:border-box; border:3px solid #000; border-radius:10px; background:rgba(0,0,0,.5); color:#fff; text-align:center; cursor:pointer; overflow:hidden; }
+  .hb.empty { background:rgba(0,0,0,.28); } .hb.on { border-color:#ffe14a; box-shadow:0 0 12px #ffb000; background:rgba(120,60,0,.65); }
+  .hbn { position:absolute; left:4px; top:1px; font-size:13px; } .hbi { display:block; font-size:30px; line-height:44px; } .hb small { position:absolute; left:0; right:0; bottom:1px; font-size:11px; }
+  #invList .srow { align-items:flex-start; } #invList small { font-weight:400; }
+  #spinMsg { min-height:1.4em; margin:8px 0; font-size:18px; } #fenceHud { font-size:19px; color:#ff7a7a; }
+  #freeBadge { background:#e00; color:#fff; border-radius:6px; padding:0 5px; margin-left:4px; }
+  #prompt { position:fixed; left:0; top:0; display:none; font-size:20px; white-space:nowrap; pointer-events:none; z-index:3; }
+  #toast { position:fixed; left:0; right:0; bottom:18%; text-align:center; font-size:26px; opacity:0; transition:opacity .25s; pointer-events:none; }
+  #levelup { position:fixed; left:0; right:0; top:30%; text-align:center; font-size:72px; color:#ffe14a; pointer-events:none; opacity:0; }
+  #levelup.go { animation:pop 1.8s ease-out; }
+  @keyframes pop { 0%{opacity:0;transform:scale(.3)} 15%{opacity:1;transform:scale(1.2)} 30%{transform:scale(1)} 80%{opacity:1} 100%{opacity:0;transform:scale(1.05)} }
+  #bcast { position:fixed; left:0; right:0; top:calc(10px + env(safe-area-inset-top,0px)); text-align:center; font-size:48px; color:#ff2a2a; opacity:0; transition:opacity .8s; pointer-events:none; padding:0 80px; }
+  .modal { display:none; position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:10; background:#fff; color:#111; border:4px solid #000; border-radius:16px; padding:20px 24px; min-width:300px; box-shadow:0 8px 30px rgba(0,0,0,.4); user-select:text; }
+  .modal h2 { margin:0 0 12px; } .modal .row { display:flex; gap:8px; margin:10px 0; } .modal input { flex:1; min-width:0; }
+  #codeErr { color:#e00; margin-top:8px; min-height:1em; } #admX { position:absolute; top:8px; right:8px; }
+  #menu { position:fixed; inset:0; z-index:20; overflow:hidden; background:linear-gradient(90deg,#0047ab 0%,#1f7fc4 42%,#5ce1e6 100%); font-family:"Arial Rounded MT Bold","Trebuchet MS","Segoe UI",sans-serif; color:#000; }
+  #menu .cloud { position:absolute; animation:cfloat 16s ease-in-out infinite alternate; } #menu .cloud i { position:absolute; background:#fff; border-radius:50%; } @keyframes cfloat { from{transform:translateX(-1.2vw)} to{transform:translateX(1.2vw)} }
+  #menuSun { position:absolute; right:-7vw; top:-15vw; width:32vw; height:32vw; border-radius:50%; background:radial-gradient(circle at 30% 70%,#ffe066 0%,#ffb347 55%,#ff8a4d 100%); }
+  #bnw { position:absolute; left:1.2vw; top:1.4vh; display:flex; flex-direction:column; line-height:.9; font-family:Impact,"Arial Black",sans-serif; letter-spacing:.12em; }
+  #bnw .b1 { font-size:4.4vh; color:#ff3df0; text-shadow:2px 0 #00e5ff,-2px 0 #fff; margin-left:5.5vw } #bnw .b2 { font-size:4vh; color:#000; -webkit-text-stroke:1px #fff; text-shadow:3px 0 #ff3df0,-3px 0 #00e5ff; }
+  #menuTitle { position:absolute; left:50%; top:1.5vh; transform:translateX(-50%); width:min(98vw,1100px); height:auto; pointer-events:none; }
+  #menuBtns { position:absolute; left:50%; top:31.5vh; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:1.8vh; }
+  .mbtn { display:flex; align-items:center; justify-content:center; gap:1.2vw; width:clamp(260px,20.6vw,440px); height:clamp(46px,6.9vh,74px); border:0; border-radius:6px; cursor:pointer; font:inherit; font-weight:900; font-size:clamp(28px,5.2vh,56px); color:#000; padding:0 1vw; transition:transform .1s,filter .1s; }
+  .mbtn:hover { transform:scale(1.04); filter:brightness(1.08); } .mbtn:active { transform:scale(.98); } .mbtn svg { fill:#000; flex:none; }
+  #joinRow { display:flex; gap:6px; margin-top:1.4vh; } #joinRow input { width:150px; padding:6px 10px; border:2px solid #000; border-radius:6px; font:inherit; text-transform:uppercase; text-align:center; letter-spacing:.15em; } #joinRow button, #signBtn { padding:6px 14px; border:0; border-radius:6px; cursor:pointer; font:inherit; font-weight:900; background:linear-gradient(90deg,#b0b0b0,#fff); }
+  #joinErr { min-height:1.2em; color:#ffe14a; font-size:15px; text-shadow:1px 1px #000; }
+  #ver { position:absolute; left:1.4vw; bottom:.6vh; font-family:Impact,"Arial Narrow",sans-serif; font-size:6.4vh; color:#7dffc9; letter-spacing:.04em; text-shadow:2px 2px #0a4a3a; }
+  #signBtn { position:absolute; right:1vw; bottom:2.5vh; font-size:clamp(16px,2.4vh,26px); padding:1.2vh 2.4vw; }
+  #socialLinks { position:absolute; left:50%; bottom:2.2vh; transform:translateX(-50%); display:flex; align-items:center; justify-content:center; gap:clamp(8px,1.2vw,16px); z-index:2; }
+  #socialLinks a { width:clamp(48px,5.5vh,62px); height:clamp(48px,5.5vh,62px); display:flex; align-items:center; justify-content:center; padding:0; border:2px solid #000; border-radius:13px; color:#000; text-decoration:none; box-shadow:0 3px 0 rgba(0,0,0,.35); transition:transform .1s,filter .1s; }
+  #socialLinks a:hover { transform:translateY(-3px) scale(1.08); filter:brightness(1.08); }
+  #socialLinks .discord { background:#5865F2; color:#fff; }
+  #socialLinks .xlink { background:#000; color:#fff; }
+  #socialLinks .youtube { background:#FF0033; color:#fff; }
+  #socialLinks .socialIcon { width:65%; height:65%; display:block; fill:currentColor; }
+  @media (max-width:520px) { #socialLinks { bottom:1vh; gap:8px; } #socialLinks a { width:44px; height:44px; border-radius:10px; } #ver { font-size:4vh; bottom:8vh; } #signBtn { bottom:8vh; } }
+  #settingsBox, #signBox { z-index:30; width:min(480px,92vw); box-sizing:border-box; max-height:88vh; overflow:auto; } .modal .x { position:absolute; top:8px; right:8px; } .hintS { font-size:14px; font-weight:400; margin:6px 0; } #signErr { min-height:1.2em; color:#d00; margin-top:6px; } #signName { font-size:22px; margin:8px 0; } #setCtl { font-size:14px; font-weight:400; line-height:1.5; }
+  .srow input[type=range] { width:120px; } .srow b { width:3.2em; text-align:right; }
+  #inviteBox { display:none; position:fixed; left:50%; top:12%; transform:translateX(-50%); width:min(340px,90vw); box-sizing:border-box; background:#000; color:#fff; border:3px solid #555; border-radius:10px; padding:10px 16px 14px; z-index:7; text-align:center; }
+  #inviteBox #inviteX { position:absolute; top:4px; right:8px; background:none; border:0; color:#fff; font-size:22px; cursor:pointer; line-height:1; } #inviteTitle { color:#ffe14a; font-size:18px; } #inviteCode { font-size:46px; letter-spacing:.18em; margin:4px 0; } #inviteInfo { font-size:14px; color:#aaa; font-weight:400; margin-bottom:8px; }
+  #overlay { position:fixed; inset:0; z-index:8; background:rgba(0,0,0,.55); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; color:#fff; text-align:center; cursor:pointer; line-height:1.6; }
+  #overlay h1 { font-size:48px; margin:0; } #overlay p { font-size:18px; margin:0; }
+</style>
+</head>
+<body>
+<div id="hud"><div id="cash" class="t"></div><div id="lvl" class="t"></div><div id="inc" class="t"></div><div id="fenceHud" class="t"></div></div>
+<div id="panel"><span id="fps">FPS</span><button id="fpsBtn">FPS</button><button id="spinBtn">Spin<span id="freeBadge">FREE!</span></button><button id="idxBtn">Index<span id="idxDot" class="dot" style="display:none"></span></button><button id="charBtn">Character</button><button id="adminBtn">Admin</button>
+  <button id="passBtn">Pass<span id="passDot"></span></button>
+  <button id="setBtn">Settings</button>
+  <select id="quality"><option>Low</option><option selected>Medium</option><option>High</option></select></div>
+<div id="luckHud"><img id="luckImg" alt="Four leaf clover"><div><div id="luckTxt" class="t"></div><div id="luckTime" class="t"></div></div></div>
+<div id="prompt" class="t"></div><div id="toast" class="t"></div><div id="levelup" class="t">REBIRTH!</div><div id="bcast"></div>
+<div id="codeBox" class="modal"><h2>Enter Code</h2><div class="row"><input id="codeIn" type="text" autocomplete="off" placeholder="Code"><button id="codeGo">Submit</button></div><div id="codeErr"></div></div>
+<div id="admin" class="modal"><button id="admX">Close</button><h2>ADMIN MENU</h2>
+  <div class="row"><select id="admSel"></select><select id="admVar"><option>NORMAL</option><option>GOLD</option><option>DIAMOND</option></select>x<input id="admQty" type="number" value="1" min="1" max="30" style="width:3.2em"><button id="admSpawn">Spawn in my base</button></div>
+  <div class="row"><input id="admMsg" type="text" placeholder="Message"><button id="admSend">Send</button></div>
+  <div class="row"><input id="admMoney" type="number" placeholder="Amount"><button id="admGive">Give</button><button id="admSet">Set</button></div><div class="row"><button id="admReset">Reset free spin</button></div><div class="row"><button id="admIdxReset">Reset Index</button><select id="admIdxTab"><option value="normal">Normal</option><option value="gold">Gold</option><option value="diamond">Diamond</option></select><button id="admIdxAll">Unlock all</button></div>
+  <div class="row">Rebirth: <select id="admRb"></select><button id="admRbSet">Set rebirth</button></div>
+  <div class="row">Bots: <button id="admBotUp">Rank up all bots</button><button id="admBotSteal">Bots steal now</button></div>
+  <div class="row">Pass: <button id="admXp1">+100 XP</button><button id="admXp2">+1000 XP</button><button id="admXpMax">Max XP</button></div>
+  <div class="row">Luck: <select id="admLuck"><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>20</option><option>50</option><option>100</option></select>x
+    <select id="admLuckT"><option>5</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option><option>60</option></select>min
+    <button id="admLuckGo">Start luck</button><button id="admLuckOff">Stop</button></div></div>
+<div id="spinBox" class="modal" style="text-align:center"><button id="spinX" class="x">Close</button><h2>SPIN WHEEL</h2>
+  <div style="position:relative;width:340px;margin:14px auto 0"><canvas id="wheelCv" width="680" height="680" style="width:340px;height:340px"></canvas><div id="ptr"></div></div>
+  <div class="row"><button id="spinFree">FREE spin!</button><button id="spinBuy">Buy spin</button></div><div id="spinMsg"></div><button id="spinEquip" style="display:none">Equip now</button></div>
+<div id="idxBox" class="modal" style="width:min(760px,94vw);max-height:84vh;overflow:auto"><button id="idxX" class="x">Close</button><h2>INDEX</h2>
+  <div id="idxTabs"></div><div id="idxBar"><div id="idxFill"></div></div><div id="idxGrid"></div><div id="idxTotal"></div><div class="row">Base Look: <select id="skinSel"></select></div></div>
+<div id="idxDetail" class="modal" style="text-align:center;width:340px"><button id="idxDX" class="x">Back</button><h2 id="idxDName"></h2><div id="idxDHold" style="height:300px"></div><div id="idxDStats"></div></div>
+<div id="shopBox" class="modal" style="width:min(520px,94vw);max-height:84vh;overflow:auto"><button id="shopX" class="x">Close</button><h2>THE SHOP</h2><div id="shopCash"></div><div id="shopTabs"></div><div id="shopList"></div><div id="shopMsg"></div></div>
+<div id="hotbar"></div>
+<div id="xpPop"></div><div id="boostHud"></div>
+<div id="passBox">
+  <div class="pcloud" style="left:-4vw;top:-3vw;width:24vw;height:14vw"><i style="left:0;top:2vw;width:12vw;height:12vw"></i><i style="left:6vw;top:0;width:12vw;height:11vw"></i><i style="left:10vw;top:4vw;width:13vw;height:10vw"></i></div>
+  <div class="pcloud" style="right:14vw;top:0;width:24vw;height:15vw"><i style="left:3vw;top:6vw;width:12vw;height:9vw"></i><i style="left:7vw;top:0;width:12vw;height:12vw"></i><i style="left:13vw;top:3vw;width:11vw;height:11vw"></i></div><div id="passSun"></div>
+  <svg id="passTitle" viewBox="0 0 400 150" preserveAspectRatio="xMidYMin meet"><defs><path id="pt1" d="M 150 44 Q 200 6 252 40"/><path id="pt2" d="M 40 134 Q 200 38 360 134"/>
+    <filter id="pglow" x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    <g filter="url(#pglow)" fill="#f1fff0" stroke="#46e06c" stroke-width="3" stroke-linejoin="round" style="paint-order:stroke;font-family:'Arial Rounded MT Bold','Trebuchet MS','Comic Sans MS',sans-serif;font-weight:900"><text font-size="34" text-anchor="middle"><textPath href="#pt1" startOffset="50%">Steal a</textPath></text><text font-size="50" text-anchor="middle"><textPath href="#pt2" startOffset="50%">Showrunner</textPath></text></g></svg>
+  <div id="passS1">S1</div><div id="passSub">SIMPLE BEGINNINGS</div>
+  <div id="passInfo"></div><div id="passBar"><div id="passFill"></div><span id="passFillT"></span></div>
+  <div id="passLine"></div><div id="passTiles"></div><div id="passDesc"></div>
+  <button id="passPrev" class="parrow">&#9664;</button><div id="passPageBox"><div id="passPage"></div><div id="passPageName"></div></div><button id="passNext" class="parrow">&#9654;</button><div id="passDots"></div><button id="passX">&#10005;</button>
+</div>
+
+<div id="unlockBox"><button id="unlockX" title="Close">✕</button><div id="unlockTitle"></div><div id="unlockList"></div></div>
+<div id="storeBox" class="modal" style="width:min(540px,94vw);max-height:84vh;overflow:auto"><button id="storeX" class="x">Close</button><h2>STORAGE</h2><div class="hintS">"Psst... everything you own is kept here. No questions asked."</div><div id="storeTabs"></div><div id="storeList"></div></div>
+<div id="invBox" class="modal" style="width:min(560px,94vw);max-height:84vh;overflow:auto"><button id="invX" class="x">Close</button><h2>INVENTORY</h2><div id="invBar"></div><div class="sh">Weapons</div><div id="invList"></div><div class="sh">Show runners in storage</div><div id="invStore"></div><div class="sh">Collection</div><div id="invColl"></div></div>
+<div id="idxPop" class="t"></div><div id="doneBox" class="modal" style="top:auto;bottom:14px;transform:translateX(-50%);text-align:center"><div id="doneTxt"></div><button id="doneEquip">Equip now</button></div>
+<div id="menu">
+  <div id="menuSun"></div>
+  <div class="cloud" style="left:-4vw;top:-3vw;width:24vw;height:14vw"><i style="left:0;top:2vw;width:12vw;height:12vw"></i><i style="left:6vw;top:0;width:12vw;height:11vw"></i><i style="left:10vw;top:4vw;width:13vw;height:10vw"></i></div>
+  <div class="cloud" style="right:14vw;top:0;width:24vw;height:15vw;animation-delay:-5s"><i style="left:3vw;top:6vw;width:12vw;height:9vw"></i><i style="left:7vw;top:0;width:12vw;height:12vw"></i><i style="left:13vw;top:3vw;width:11vw;height:11vw"></i></div>
+  <div id="bnw"><span class="b1">BNW</span><span class="b2">PRODUCTIONS</span></div>
+  <svg id="menuTitle" viewBox="0 0 1000 440" preserveAspectRatio="xMidYMin meet" style="overflow:visible">
+    <defs><path id="tp1" d="M 330 150 Q 500 30 680 135"/><path id="tp2" d="M 50 370 Q 500 140 950 370"/>
+      <filter id="glow" x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    <g filter="url(#glow)" fill="#f1fff0" stroke="#46e06c" stroke-width="7" stroke-linejoin="round" style="paint-order:stroke;font-family:'Arial Rounded MT Bold','Trebuchet MS','Comic Sans MS',sans-serif;font-weight:900">
+      <text font-size="120" text-anchor="middle"><textPath href="#tp1" startOffset="50%">Steal a</textPath></text>
+      <text font-size="142" text-anchor="middle"><textPath href="#tp2" startOffset="50%">Showrunner</textPath></text></g>
+  </svg>
+  <div id="menuBtns">
+    <button class="mbtn" id="mSolo" style="background:linear-gradient(90deg,#7ed957,#c3e85f)"><svg viewBox="0 0 24 40" width="26" height="44"><circle cx="12" cy="6" r="5"/><path d="M5 14h14l-1 14h-3v11h-3V30h-2v9H9V28H6z"/></svg><span>Solo</span></button>
+    <button class="mbtn" id="mOnline" style="background:linear-gradient(90deg,#8a5cff,#5ce1e6)"><svg viewBox="0 0 50 44" width="48" height="44"><g><circle cx="25" cy="6" r="5"/><path d="M17 14h16l1 16h-4v12h-3V32h-4v10h-3V30h-4z"/><circle cx="9" cy="14" r="4"/><path d="M3 20h12l1 12h-3v10h-3V34H8v8H5V32H2z"/><circle cx="41" cy="14" r="4"/><path d="M35 20h12l1 12h-3v10h-3V34h-2v8h-3V32h-3z"/></g></svg><span>Online</span></button>
+    <button class="mbtn" id="mSettings" style="background:linear-gradient(90deg,#b0b0b0,#ffffff)"><svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="#000" stroke-width="1.3" stroke-linejoin="round"><circle cx="12" cy="12" r="3.4"/><path d="M12 2l1.7 2.7 3.1-.8.9 3.1 3.1.9-.8 3.1L22 12l-2.7 1.7.8 3.1-3.1.9-.9 3.1-3.1-.8L12 22l-1.7-2.7-3.1.8-.9-3.1-3.1-.9.8-3.1L2 12l2.7-1.7-.8-3.1 3.1-.9.9-3.1 3.1.8z"/></svg><span>Settings</span></button>
+    <div id="joinRow"><input id="joinCode" maxlength="6" placeholder="Invite code" autocomplete="off" spellcheck="false"><button id="joinGo">Join</button></div><div id="joinErr"></div>
+  </div>
+  <div id="socialLinks" aria-label="Social media links">
+    <a class="discord" href="https://discord.gg/f5uyx5733" target="_blank" rel="noopener noreferrer" aria-label="Join our Discord" title="Discord"><svg class="socialIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.73 5.36A19.2 19.2 0 0 0 15 3.9l-.58 1.18a17.7 17.7 0 0 0-4.84 0L9 3.9a19.1 19.1 0 0 0-4.73 1.46C1.27 9.8.46 14.13.87 18.4a19.4 19.4 0 0 0 5.8 2.93l1.25-2.04a12.6 12.6 0 0 1-1.97-.95l.48-.38c3.8 1.76 7.91 1.76 11.66 0l.49.38c-.63.38-1.29.7-1.98.95l1.25 2.04a19.3 19.3 0 0 0 5.8-2.93c.49-4.96-.83-9.25-3.92-13.04ZM8.54 14.9c-1.14 0-2.08-1.04-2.08-2.32s.91-2.32 2.08-2.32 2.1 1.05 2.08 2.32c0 1.28-.92 2.32-2.08 2.32Zm6.92 0c-1.14 0-2.08-1.04-2.08-2.32s.91-2.32 2.08-2.32 2.1 1.05 2.08 2.32c0 1.28-.91 2.32-2.08 2.32Z"/></svg></a>
+    <a class="xlink" href="https://x.com/StealAShowruner" target="_blank" rel="noopener noreferrer" aria-label="Follow us on X" title="X"><svg class="socialIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 2H22l-6.78 7.75L23.2 22h-6.25l-4.9-7.42L5.56 22H2.43l7.25-8.29L1.8 2h6.4l4.43 6.77L18.9 2Zm-1.1 18h1.73L7.27 3.9H5.41L17.8 20Z"/></svg></a>
+    <a class="youtube" href="https://www.youtube.com/@BNWProductions-OFC" target="_blank" rel="noopener noreferrer" aria-label="Visit our YouTube" title="YouTube"><svg class="socialIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.12C19.55 3.57 12 3.57 12 3.57s-7.55 0-9.4.51A3 3 0 0 0 .5 6.2 31.3 31.3 0 0 0 0 12a31.3 31.3 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.12c1.85.51 9.4.51 9.4.51s7.55 0 9.4-.51a3 3 0 0 0 2.1-2.12A31.3 31.3 0 0 0 24 12a31.3 31.3 0 0 0-.5-5.8ZM9.55 15.6V8.4L15.8 12l-6.25 3.6Z"/></svg></a>
+  </div>
+  <div id="ver">V 1.0.0</div><button id="signBtn">Sign In</button>
+</div>
+<div id="netStatus" style="position:fixed;left:16px;top:112px;z-index:6;background:rgba(0,0,0,.72);color:#fff;border:2px solid #555;border-radius:8px;padding:5px 9px;font:700 13px Arial;display:none">Offline</div>
+<div id="inviteBox"><button id="inviteX" title="Close">&#10005;</button><div id="inviteTitle">INVITE CODE</div><div id="inviteCode"></div><div id="inviteInfo"></div><button id="inviteCopy">Copy</button></div>
+<div id="settingsBox" class="modal"><button id="setX" class="x">Close</button><h2>SETTINGS</h2>
+  <div class="srow"><span>&#128161; Lights (brightness)</span><input id="setBright" type="range" min="50" max="150" step="5"><b id="setBrightV"></b></div>
+  <div class="srow"><span>Shadows</span><input id="setShadow" type="checkbox"></div>
+  <div class="srow"><span>&#128266; Sound volume</span><input id="setVol" type="range" min="0" max="100" step="5"><b id="setVolV"></b></div>
+  <div class="srow"><span>Mute all sounds</span><input id="setMute" type="checkbox"></div>
+  <div class="srow"><span>Show rebirth unlock screens</span><input id="setRb" type="checkbox"></div>
+  <div class="sh">Controls</div><div id="setCtl">WASD move &middot; Arrow keys look &middot; Space jump &middot; E interact &middot; G character<br>1-5 hotbar &middot; F use weapon &middot; I inventory &middot; P pass &middot; B invite code &middot; R respawn</div>
+  <div class="row"><button id="setMenu">Main Menu</button></div></div>
+<div id="signBox" class="modal"><button id="signX" class="x">Close</button><h2 id="signTitle">SIGN IN</h2>
+  <div id="signForm"><div class="row"><input id="signUser" placeholder="Username" maxlength="16" autocomplete="username"></div><div class="row"><input id="signPass" type="password" placeholder="Password" autocomplete="current-password"></div>
+    <div class="row"><button id="signGo">Sign In / Create Account</button></div><div class="hintS">New? Just type a username and password and your account is made. Next time, sign in with the same ones to get your progress back.</div></div>
+  <div id="signedIn" style="display:none"><div id="signName"></div><div class="hintS">Your progress saves to this account automatically.</div><div class="row"><button id="signOut">Sign Out</button></div></div>
+  <div id="signErr"></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ============================ SETTINGS ============================ */
+const STARTING_CASH = 1000;
+const SPAWN_INTERVAL = 2;          // seconds between carpet spawns
+const CARPET_TRAVEL_TIME = 30;     // seconds START -> END (speed scales with map size)
+let BUY_DISTANCE = 4; const BUY_BASE = 4;   // BUY_DISTANCE grows while the Runner Magnet boost is on
+const MAP_SCALE = 2.5;             // 1 = old map size
+const LOOK_SPEED = 2.6, TILT_SPEED = 1.6;   // arrow keys turn / tilt the camera (radians per second)
+const SELL_RATIO = 0.5, PICKUP_BASE = 4, PLACE_DISTANCE = 3.5; let PICKUP_DISTANCE = 4;
+const BASE_WALK_SPEED = 10;        // speed of show runners walking to a platform
+const PLAYER_SPEED = 14;           // units/second (carpet speed is about 6.7)
+const CODES = { '363213': 'admin' };   // add more codes here
+// Rebirths replace base levels. Index = rebirth number (0 = where every player starts).
+// need = show runner ids that must be standing on a platform in your base, cost = cash you must have,
+// startCash = what you start with after that rebirth (all show runners and cash are reset),
+// mult = money multiplier applied to everything your show runners earn, floors = platforms unlocked per [ground, second, third] floor.
+const REBIRTHS = [
+  { cost:0,       startCash:1000,  mult:1,   need:[],                    floors:[4] },
+  { cost:5000,    startCash:1000,  mult:1.5, need:['gaurd', 'vizzor'],   floors:[6] },
+  { cost:30000,   startCash:5000,  mult:2,   need:['bomb', 'shrubb'],    floors:[10] },
+  { cost:100000,  startCash:10000, mult:2.5, need:['angy', 'bot777'],    floors:[10, 4] },
+  { cost:500000,  startCash:15000, mult:3,   need:['swamoo', 'nonono'],  floors:[10, 6] },
+  { cost:1000000, startCash:20000, mult:3.5, need:['steg', 'flaming'],   floors:[10, 8] },
+  { cost:1500000, startCash:25000, mult:4,   need:['kat', 'swamman'],    floors:[10, 10] }   // assumed: +2 platforms and +$5k start cash, like the steps before it
+];
+const FONT = '"Comic Sans MS","Comic Sans","Comic Neue",cursive';
+const RARITY_COLORS = { COMMON:'#44FF00', RARE:'#2222FF', EPIC:'#FF22FF', LEGENDARY:'#CCFF00', EXCLUSIVE:'#FFEE00' };   // Legendary is the top tier
+const CRUMP = { name:'CRUMP', rarity:'COMMON', price:25, income:1, weight:100,
+  colors:{ head:0x9B5CFF, ring:0x7fd4ff, face:0x000000, hat:0xffffff, torso:0x0A96FF, arm:0xffffff,
+           hand:0x9B5CFF, leg:0xffffff, shoe:0x7a4a24, outline:0x000000 } };
+// Happy Man Man: weight is lower than Crump so he spawns a bit less often
+const HAPPY = { name:'HAPPY MAN MAN', rarity:'COMMON', price:100, income:10, weight:80, build:'hmm', anim:'hmm',
+  colors:{ head:0xffffff, line:0x000000 } };
+// Rare transformations (rolled on every spawn) and their income multipliers
+const DIAMOND_CHANCE = 1 / 50000, GOLD_CHANCE = 1 / 50000, GOLD_INCOME_MULT = 1, DIAMOND_INCOME_MULT = 1;
+const FREE_SPIN_COOLDOWN_HOURS = 24, SPIN_BASE_PRICE = 1000, SPIN_PRICE_STEP = 1000, DUPLICATE_BASE_CASH = 100000;
+const INDEX_REWARDS = { normal:{ cash:0 }, gold:{ cash:0 }, diamond:{ cash:0 } };   // extra cash when a tab is completed (Gold / Diamond also give their base)
+const INDEX_TABS = { normal:{ label:'Normal', color:'#44FF00' }, gold:{ label:'Gold', color:'#FFD700' }, diamond:{ label:'Diamond', color:'#7FE0FF' } };
+const FENCE_SECONDS_PER_LEVEL = 60, FENCE_COOLDOWN_SECONDS = 0;
+// Shop: Punch is a weapon you buy once (PUNCH_PRICE), then you can upgrade its level (Lv2 = $2k, Lv3 = $4k, then doubles each level up to Lv10: more reach, faster punches)
+const PUNCH_PRICE = 1000, PUNCH_MAX = 10, PUNCH_BASE_COST = 2000, punchCost = L => PUNCH_BASE_COST * 2 ** (L - 2);
+const SLOT_NAMES = { hair:'Hairstyles', glasses:'Glasses', pants:'Pants', shoes:'Shoes', earrings:'Earrings', pet:'Pets' };
+const COSMETICS = [   // slot, price, color, optional style; add more items here and they appear in the shop
+  { id:'hair_classic', slot:'hair', name:'Classic', price:0, color:null }, { id:'hair_pink', slot:'hair', name:'Pink Hair', price:500, color:0xff7eb6 }, { id:'hair_blue', slot:'hair', name:'Blue Hair', price:500, color:0x2f80ff },
+  { id:'hair_blonde', slot:'hair', name:'Blonde Hair', price:700, color:0xf5d76e }, { id:'hair_bun', slot:'hair', name:'Bun', price:1000, color:0x7a3b1d, style:'bun' }, { id:'hair_long', slot:'hair', name:'Long Hair', price:1200, color:0x7a3b1d, style:'long' },
+  { id:'hair_mohawk', slot:'hair', name:'Mohawk', price:1500, color:0x222222, style:'mohawk' }, { id:'hair_afro', slot:'hair', name:'Afro', price:2500, color:0x3b2a1e, style:'afro' },
+  { id:'gl_round', slot:'glasses', name:'Round Glasses', price:800, color:0x222222, style:'round' }, { id:'gl_shades', slot:'glasses', name:'Shades', price:1200, color:0x111111, style:'shades' }, { id:'gl_goggles', slot:'glasses', name:'Goggles', price:2000, color:0x44ccff, style:'goggles' },
+  { id:'pa_red', slot:'pants', name:'Red Pants', price:600, color:0xd83a3a }, { id:'pa_green', slot:'pants', name:'Green Pants', price:600, color:0x2fa84f }, { id:'pa_black', slot:'pants', name:'Black Pants', price:600, color:0x222222 }, { id:'pa_shorts', slot:'pants', name:'Blue Shorts', price:700, color:0x3f7fff, style:'shorts' },
+  { id:'sh_red', slot:'shoes', name:'Red Sneakers', price:500, color:0xe03030 }, { id:'sh_boots', slot:'shoes', name:'Brown Boots', price:800, color:0x5a3a1e, style:'boots' }, { id:'sh_gold', slot:'shoes', name:'Gold Shoes', price:5000, color:0xffd700 },
+  { id:'ea_studs', slot:'earrings', name:'Gold Studs', price:400, color:0xffd700, style:'studs' }, { id:'ea_hoops', slot:'earrings', name:'Gold Hoops', price:900, color:0xffd700, style:'hoops' }, { id:'ea_diamond', slot:'earrings', name:'Diamond Studs', price:2500, color:0x8fe3ff, style:'studs' },
+  { id:'pet_blobby', slot:'pet', name:'Blobby', price:3000 }, { id:'pet_crump', slot:'pet', name:'Mini Crump', price:6000 }, { id:'pet_robo', slot:'pet', name:'Robo-Pup', price:8000 }, { id:'pet_bubble', slot:'pet', name:'Bubble', price:10000 }];   // fence lasts 60 s x base level
+const WHEEL_PRIZES = [   // 8 equal segments, in wheel order; w = weight
+  { label:'$50', cash:50, w:30, color:'#ff6b6b' }, { label:'$100', cash:100, w:25, color:'#ffd166' }, { label:'$1K', cash:1000, w:20, color:'#06d6a0' }, { label:'$5K', cash:5000, w:12, color:'#4cc9f0' },
+  { label:'$50K', cash:50000, w:7, color:'#b388ff' }, { label:'$100K', cash:100000, w:4, color:'#ff9f1c' }, { label:'GOLD BASE', skin:'gold', w:1.5 }, { label:'DIAMOND BASE', skin:'diamond', w:0.5 }];
+// Short money style for nameplates and prompts: $50, $950, $1k, $6.7k, $250k, $1.5M (the top-left cash display keeps full commas)
+function formatMoney(n) { const f = (v, s) => '$' + (Math.round(v * 10) / 10) + s; return n >= 1e6 ? f(n / 1e6, 'M') : n >= 1e3 ? f(n / 1e3, 'k') : '$' + (Math.round(n * 10) / 10); }
+
+/* New show runners are data. spec: head/torso = [shape, w, h, d, color, outline, outlineColor]; shapes: s sphere, b box, c cylinder, k cone, d dome, p cap.
+   legs/arms: n length, t thickness, c color, gap/ang, box, foot ('box' | 'out' | 'fork'). face: [x, y, w, h, tilt, color, 'o' oval]. x (extras): [attach, shape, w, h, d, color, x, y, z, outline, rx, ry, rz, outlineColor, pulse]
+   attach: h head, t torso, r whole rig, w head-wobble group (hats, ears, antennae). gait/idle: animation parameters. */
+const RUNNERS_NEW = [
+{ id:'gaurd', name:'GAURD', rarity:'COMMON', price:500, income:30, weight:60, build:'gen', gait:{ f:8, leg:0.9, arm:0.1, bob:0.04, sway:0.01 }, idle:{ f:1.4, arm:0.02, sq:0.012, turn:0.5 },
+  spec:{ head:['s',1.3,1.3,1.2,0x2a2a2a,0.06], torso:['b',1.1,1.5,0.5,0x3a3a3a,0.05], legs:{ n:1.9, t:0.28, c:0x3a3a3a, gap:0.42, box:1 }, arms:{ n:1.9, t:0.1, c:0x3a3a3a, ang:0.5 },
+    face:[...[-0.4,-0.2,0,0.2,0.4].map(x => [x,0.15,0.02,0.9,0,0x0a0a0a]), ...[0.45,0.15,-0.15].map(y => [0,y,0.95,0.02,0,0x0a0a0a]), [0.3,0.1,0.42,0.1,-0.4,0xffffff],[0.3,-0.12,0.04,0.16,0,0x3399ff]],
+    x:[['h','c',1.8,0.22,1.5,0x2a2a2a,0,-0.62,0,0.05],['t','b',1.4,0.25,0.5,0x3a3a3a,0,0.65,0,0.04], ...[0,1].flatMap(i => [0,1,2].map(j => ['t','b',0.4,0.36,0.06,0x222222,-0.25 + i * 0.5,0.45 - j * 0.45,0.27,0.02]))] } },
+{ id:'burrito', name:'BURRITO BOY', rarity:'COMMON', price:1000, income:50, weight:45, build:'gen', gait:{ f:11, leg:0.7, arm:0, bob:0.05, sway:0.18, hat:0.15, sq:0.04 }, idle:{ f:1.6, sq:0.05, sway:0.02, hat:0.1, turn:0.1 },
+  spec:{ head:['b',1.6,2.1,1.1,0xa89f6b,0.04,0x7fd4ff], legs:{ n:1.1, t:0.06, c:0, gap:0.7, foot:'out' },
+    face:[[-0.36,0.25,0.56,0.56,0,0,'o'],[-0.36,0.25,0.47,0.47,0,0xffffff,'o'],[0.36,0.25,0.56,0.56,0,0,'o'],[0.36,0.25,0.47,0.47,0,0xffffff,'o'],[-0.34,0.25,0.04,0.34,0,0],[0.38,0.25,0.04,0.34,0,0],
+      [-0.45,0.62,0.3,0.06,0,0],[0.4,0.62,0.55,0.06,0.1,0],[0,-0.02,0.12,0.04,0,0],[-0.35,-0.45,0.6,0.07,0.2,0],[-0.45,-0.52,0.4,0.08,0.2,0xffffff]],
+    x:[['w','d',1.4,0.9,0.9,0x4a2a10,0,1.05,0],['w','b',0.2,0.2,0.2,0xff2a2a,-0.4,1.45,0.1,0.02,0.3,0.5,0.4],['w','b',0.2,0.2,0.2,0xff2a2a,0.1,1.55,-0.1,0.02,0.2,0.3,-0.3],['w','b',0.2,0.2,0.2,0xff2a2a,0.5,1.42,0.15,0.02,0.4,0.2,0.5],['w','b',0.2,0.2,0.2,0xff2a2a,-0.05,1.35,0.25,0.02,0.1,0.6,0.2],
+       ['w','c',0.05,0.5,0.05,0xffd800,0.2,1.5,-0.2,0,0.5,0,0.4],['w','c',0.05,0.5,0.05,0xffd800,-0.3,1.45,-0.15,0,0.4,0,-0.5],['w','c',0.05,0.45,0.05,0xffd800,0.55,1.45,0,0,0.3,0,-0.3]] } },
+{ id:'vizzor', name:'vizzor', rarity:'COMMON', price:2000, income:100, weight:35, build:'gen', gait:{ f:6, leg:0, arm:0.2, bob:0.05, sway:0.03, lean:0.12 }, idle:{ f:1.3, bob:0.1, sway:0.01, sq:0.01, arm:0.05, head:0.05 },
+  spec:{ lift:1.3, head:['b',1.8,1.4,1.1,0x3a3d44,0.05], torso:['b',0.9,1.1,0.5,0x000a55,0.05], arms:{ n:1.1, t:0.14, c:0x3355ff, ang:0.9, box:1, only:'R' },
+    face:[[-0.25,0.05,0.34,0.44,0,0xff2222,'o'],[0.3,0.05,0.34,0.44,0,0xff2222,'o'],[0.35,0.4,1.0,0.05,-0.15,0],[0.05,-0.32,0.28,0.05,0.1,0]],
+    x:[['h','b',1.5,1.1,0.02,0x0033ee,0,0,0.546,0],['t','b',1.8,1.5,0.8,0x050b2c,0,-0.3,-0.7],['t','b',2.0,0.4,1.7,0x050b2c,0,-0.8,-0.3],['t','b',1.0,0.2,0.16,0x3355ff,0,0.1,0.33,0.03,0,0,0.12],
+       ['r','s',1.5,0.14,1.5,0x44ff44,0,0.78,-0.3,0,0,0,0,0,1],['r','s',1.1,0.14,1.1,0x44ff44,0,0.5,-0.3,0,0,0,0,0,1],['r','s',0.7,0.14,0.7,0x44ff44,0,0.26,-0.3,0,0,0,0,0,1]] } },
+{ id:'bomb', name:'bomb bomb bomb', rarity:'RARE', price:5000, income:500, weight:20, build:'gen', gait:{ f:7, leg:0, arm:0, bob:0.35, sway:0.12, sq:0.14, lean:0.05 }, idle:{ f:6.28, sway:0.03, bob:0.01, sq:0.07 },
+  spec:{ lift:0.3, head:['c',1.6,2.2,1.6,0xff1111,0.07], face:[[-0.32,0.3,0.42,0.58,0,0xffffff,'o'],[-0.32,0.25,0.12,0.3,0,0xff1111,'o'],[0.34,0.3,0.46,0.62,0,0,'o']],
+    x:[...[0.65,0.95,1.3,1.65,2.0,2.4,2.8,3.14,-2.8,-2.4,-2.0,-1.65,-1.3,-0.95,-0.65].map(t => ['h','b',0.07,2.15,0.07,0,0.81 * Math.sin(t),0,0.81 * Math.cos(t),0.01,0,t,0]),
+       ['h','t',1.62,1.62,0.5,0,0,0.65,0,0,Math.PI / 2],['h','t',1.62,1.62,0.5,0,0,-0.65,0,0,Math.PI / 2],['h','c',1.2,0.25,1.2,0,0,1.18,0,0.04],['h','c',1.4,0.18,1.4,0,0,-1.15,0,0.04]] } },
+{ id:'shrubb', name:'shrubb', rarity:'RARE', price:6000, income:550, weight:17, build:'gen', gait:{ f:9, leg:0.7, arm:0, bob:0.05, sway:0.03, hat:0.2, sq:0.03, head:0.08 }, idle:{ f:1.5, sq:0.03, hat:0.12, head:0.12, sway:0.02 },
+  spec:{ hp:[0,2.35,1.45], head:['s',1.0,1.0,1.0,0x6b3f0f,0.06], legs:{ n:1.1, t:0.08, c:0x6b3f0f, gap:1.0, quad:1, zs:0.85 }, face:[[0.25,0.1,0.05,0.22,0,0],[0,-0.18,0.3,0.06,0.1,0],[-0.1,-0.22,0.12,0.04,-0.4,0]],
+    x:[...Array.from({ length:24 }, (_, i) => ['r','s',0.75 + 0.25 * (i % 3) / 2,0.7 + 0.2 * (i % 3) / 2,0.75 + 0.25 * (i % 3) / 2,0x33ff22,(((i * 5) % 9) - 4) / 8 * 1.1,1.5 + (((i * 3) % 8) / 7) * 0.9,-1.3 + 2.6 * ((i * 7) % 12) / 11,0.05]),
+       ...[[-0.3,0.4],[-0.15,0.5],[0,0.55],[0.15,0.52],[0.3,0.45],[-0.4,0.25]].map(([x,y]) => ['h','s',0.26,0.26,0.26,0x33ff22,x,y,-0.1,0.04]),['r','c',0.09,1.2,0.09,0x6b3f0f,0,2.25,-1.5,0.03,-0.9]] } },
+{ id:'angy', name:'ANGY MAN MAN', rarity:'RARE', price:10000, income:600, weight:14, build:'angy', anim:'angy', colors:{ head:0xffffff, line:0x000000 },
+  faceMarks:[['eye',0.1,0.04,0.03],['eye',0.3,0.04,-0.03],['mouth',0.04,0.27,-0.4],['mouth',0.36,0.27,0.4],['mouth',0.1,-0.3,0]] },
+{ id:'bot777', name:'MAN BOT-777', rarity:'RARE', price:12000, income:800, weight:11, build:'gen', gait:{ f:6, leg:0.5, arm:0.35, bob:0.03, sway:0.05, hat:0.25 }, idle:{ f:1.3, arm:0.15, turn:0.4, hat:0.1 },
+  spec:{ head:['d',1.7,1.9,1.35,0x6b3f0a,0.06], torso:['b',1.4,1.5,0.7,0x6b3f0a,0.05], legs:{ n:1.5, t:0.22, c:0x555555, gap:0.7, box:1, rib:1, foot:'box', fc:0x6b3f0a }, arms:{ n:1.4, t:0.14, c:0x555555, ang:0.7, box:1, rib:1, hc:0x6b3f0a },
+    face:[[-0.4,0.3,0.46,0.58,0,0,'o'],[-0.4,0.3,0.38,0.5,0,0x002d70,'o'],[0.4,0.3,0.46,0.58,0,0,'o'],[0.4,0.3,0.38,0.5,0,0x002d70,'o']],
+    x:[['h','c',0.7,0.05,0.5,0x555555,0,-0.03,0,0.02],['h','c',0.7,0.05,0.5,0x555555,0,-0.08,0,0.02],['h','c',0.7,0.05,0.5,0x555555,0,-0.13,0,0.02],
+       ['w','c',0.04,0.6,0.04,0,-0.3,1.2,0,0,0,0,0.25],['w','c',0.04,0.5,0.04,0,-0.45,1.65,0,0,0,0,-0.3],['w','s',0.2,0.25,0.2,0x6b3f0a,-0.53,1.95,0,0.04],
+       ['w','c',0.04,0.6,0.04,0,0.3,1.2,0,0,0,0,-0.25],['w','c',0.04,0.5,0.04,0,0.45,1.65,0,0,0,0,0.3],['w','s',0.2,0.25,0.2,0x6b3f0a,0.53,1.95,0,0.04],
+       ['t','b',0.9,0.8,0.06,0x444444,0,0.15,0.37,0.02],['t','c',0.28,0.08,0.28,0xff2222,0,0.3,0.43,0,Math.PI / 2,0,0,0,1],
+       ['t','b',0.14,0.05,0.04,0xff2222,-0.25,-0.1,0.41,0],['t','b',0.14,0.05,0.04,0x22ff22,0,-0.1,0.41,0],['t','b',0.14,0.05,0.04,0x2244ff,0.25,-0.1,0.41,0]] } },
+{ id:'swamoo', name:'SWAMOO', rarity:'RARE', price:15000, income:900, weight:9, build:'gen', gait:{ f:6, leg:0, arm:0, bob:0.3, sway:0.15, sq:0.15, lean:0.1, hat:0.2 }, idle:{ f:1.3, bob:0.08, sway:0.1, hat:0.12, sq:0.02 },
+  spec:{ lift:0.2, head:['s',2.0,2.0,2.0,0xffe600,0.03,0x7fd4ff], grad:[0xff2a00,0xffe600,[0,0.85,0.5],3],
+    face:[[-0.42,0.2,0.4,0.07,0.78,0],[-0.42,0.2,0.4,0.07,-0.78,0],[0.42,0.2,0.4,0.07,0.78,0],[0.42,0.2,0.4,0.07,-0.78,0],[0,-0.35,0.5,0.06,-0.2,0],[0.45,-0.48,0.2,0.32,0,0],[0.45,-0.48,0.15,0.26,0,0xff2222]],
+    x:[['w','c',1.1,1.45,1.1,0xff0000,-1.2,1.3,0,0.05,0,0,0.78],['w','c',1.9,0.14,1.9,0xff0000,-0.75,0.82,0,0.05,0,0,0.78]] } },
+{ id:'nonono', name:'NO NO NO', rarity:'RARE', price:20000, income:2000, weight:7, build:'gen', gait:{ f:14, leg:0.4, arm:0.03, bob:0.03, sway:0.02, head:0.12 }, idle:{ f:3, sway:0.02, head:0.05, turn:0.5, arm:0.02, bob:0.01 },
+  spec:{ head:['b',1.15,1.7,0.8,0xff0000,0.05], torso:['b',1.3,1.3,0.5,0xff0000,0.05], legs:{ n:1.6, t:0.4, box:1, c:0xff0000, gap:0.85 }, arms:{ n:1.1, t:0.2, box:1, c:0xff0000, ang:-0.5, hc:0xff0000 }, sign:['DO NOT BUY ME!!!','PLZ I BEG OF YOU'],
+    face:[[-0.26,0.45,0.36,0.06,0.3,0],[0.26,0.45,0.36,0.06,-0.3,0],[-0.26,0.2,0.05,0.16,0,0],[0.26,0.2,0.05,0.16,0,0],[0.02,0.08,0.12,0.04,-0.3,0]], x:[['t','b',1.9,1.3,0.08,0xffffff,0,0,0.4,0.04]] } },
+{ id:'flaming', name:'Flaming', rarity:'EPIC', price:25000, income:5000, weight:4, build:'gen', gait:{ f:10, leg:0.6, arm:0.5, bob:0.18, sway:0.05, head:0.12, lean:-0.1 }, idle:{ f:1.6, arm:0.1, head:0.08, sq:0.04 },
+  spec:{ embers:1, head:['f',1.7,2.4,0.3,0xff9900,0], legs:{ n:1.0, t:0.05, c:0xff9900, gap:0.55, foot:'three', fc:0xff9900 }, arms:{ n:0.9, t:0.05, c:0xff9900, ang:0.5, x:0.85, y:0.5 },
+    face:[[-0.28,-0.42,0.42,0.05,0.03,0],[0.28,-0.42,0.42,0.05,0.03,0],[-0.3,-0.6,0.05,0.28,0,0],[0.3,-0.6,0.05,0.28,0,0],[0,-0.82,0.5,0.05,0.25,0],[0.3,-0.8,0.05,0.05,0,0]] } },
+{ id:'steg', name:'STEG', rarity:'EPIC', price:30000, income:6700, weight:3, build:'gen', gait:{ f:7, leg:0.9, arm:0.3, bob:0.07, sway:0.06, head:0.05 }, idle:{ f:1.5, arm:0.2, head:0.06, sq:0.02 },
+  spec:{ head:['e',1.7,2.3,1.3,0xffffff,0.07], legs:{ n:1.2, t:0.05, c:0, gap:0.6, foot:'out' }, arms:{ n:1.0, t:0.05, c:0, ang:0.5, x:0.85, y:1.1, bR:-2.2 },
+    face:[[0,0.8,0.06,0.35,0.5,0],[0.1,0.55,0.06,0.3,-0.5,0],[-0.3,0.3,0.3,0.05,0.15,0],[0.25,0.3,0.3,0.05,-0.15,0],[-0.3,0.1,0.05,0.2,0,0],[0.25,0.1,0.05,0.2,0,0],[0.5,0,0.2,0.04,0.2,0],[0.5,-0.1,0.2,0.04,0.2,0],[0.5,-0.2,0.2,0.04,0.2,0],[0,-0.55,0.6,0.04,0,0],[0,-0.5,0.07,0.07,0,0xffffff]] } },
+{ id:'kat', name:'Wierd Kat thing', rarity:'LEGENDARY', price:50000, income:9000, weight:1.5, build:'gen', gait:{ f:12, leg:0.9, arm:0.8, bob:0.08, sway:0.1, hat:0.2, head:0.12 }, idle:{ f:2, arm:0.3, sway:0.08, hat:0.15, head:0.1, sq:0.03 },
+  spec:{ head:['s',2.0,1.6,1.3,0xffa31a,0.04,0x0a1a4a], torso:['s',0.9,1.3,0.6,0xffa31a,0.04,0x0a1a4a], legs:{ n:1.9, t:0.1, c:0xffa31a, gap:0.5, ang:0.5 }, arms:{ n:1.8, t:0.09, c:0xffa31a, ang:1.35, only:'R' },
+    face:[[0,-0.3,1.0,0.6,0,0xffffff,'o'],[-0.5,0.2,0.5,0.4,0.35,0xffffff,'o'],[0.5,0.2,0.5,0.4,-0.35,0xffffff,'o'],[-0.45,0.2,0.12,0.22,0,0,'o'],[0.45,0.2,0.12,0.22,0,0,'o'],[0,-0.1,0.16,0.12,0,0x0a1a4a,'o'],[0,-0.42,0.8,0.28,0,0x0a1a4a,'o'],[0,-0.4,0.74,0.2,0,0xffffff,'o'],[-0.7,-0.22,0.5,0.02,0.2,0x0a1a4a],[0.7,-0.22,0.5,0.02,-0.2,0x0a1a4a],[-0.7,-0.28,0.5,0.02,-0.1,0x0a1a4a],[0.7,-0.28,0.5,0.02,0.1,0x0a1a4a]],
+    x:[['w','k',0.6,1.1,0.4,0xffa31a,-0.65,1.1,0,0.04,0,0,0.2,0x0a1a4a],['w','k',0.6,1.1,0.4,0xffa31a,0.65,1.1,0,0.04,0,0,-0.2,0x0a1a4a],['t','s',0.5,0.7,0.1,0xffffff,0,0.1,0.31,0],['r','c',0.1,1.6,0.1,0xffa31a,-0.8,1.7,-0.5,0.03,0,0,0.9],['r','s',0.16,0.4,0.16,0xffffff,-1.3,2.4,-0.5,0.03]] } },
+{ id:'swamman', name:'Swamman', rarity:'LEGENDARY', price:60000, income:11000, weight:1.2, build:'gen', gait:{ f:7, leg:0.7, arm:0.15, bob:0.05, sway:0.02, hat:0.08 }, idle:{ f:1.3, arm:0.05, hat:0.1, turn:0.1, sq:0.01 },
+  spec:{ head:['s',1.4,1.4,1.2,0xffb000,0.05], grad:[0xffe14a,0xff7a1a,[0,-1,0.3],1], torso:['b',0.9,1.5,0.4,0xd82020,0.05], legs:{ n:1.6, t:0.2, box:1, c:0xd82020, gap:0.44, stripe:0 }, arms:{ n:1.2, t:0.06, c:0, ang:0.3, bR:-1.6 }, face:[[0.2,0.1,0.35,0.07,0,0],[0.2,0.1,0.07,0.35,0,0]],
+    x:[['w','c',1.0,1.5,1.0,0xd82020,0,1.55,0,0.04],['w','c',1.03,0.2,1.03,0,0,1.1,0,0],['w','b',0.5,0.1,0.05,0,0,1.8,0.51,0],['w','b',0.1,0.5,0.05,0,0,1.8,0.51,0],['w','c',1.7,0.1,1.7,0,0,0.78,0,0.03],
+       ['t','b',0.92,0.1,0.42,0,0,0.4,0,0.01],['t','b',0.92,0.1,0.42,0,0,0.05,0,0.01],['t','b',0.92,0.1,0.42,0,0,-0.3,0,0.01],
+       ['t','b',0.9,1.1,0.1,0,-0.85,0,0.45,0.03,0,0,0,0x888888],['t','c',0.06,1.2,0.06,0x7a4a21,-1.45,-0.2,0.4,0.01],['t','s',0.14,0.14,0.14,0xff2222,-1.45,-0.85,0.4,0.02]] } },
+{ id:'dash', name:'DASH', rarity:'LEGENDARY', price:70000, income:20000, weight:1, build:'gen', gait:{ f:9, leg:0, arm:0, bob:0.05, sway:0.04, sq:0.15, lean:0.35, head:0.04 }, idle:{ f:1.5, bob:0.12, sway:0.01, sq:0.03 },
+  spec:{ lift:0.2, head:['s',2.2,1.8,1.5,0x0a8cff,0.05,0x0060c0],
+    face:[[-0.5,0.2,0.65,0.7,0,0,'o'],[-0.5,0.2,0.55,0.6,0,0x66bbff,'o'],[-0.5,0.2,0.07,0.4,0,0],[0.5,0.15,0.4,0.58,0,0,'o'],[0.5,0.15,0.3,0.48,0,0x66bbff,'o'],[0.5,0.55,0.6,0.07,-0.4,0],[-0.1,-0.4,0.25,0.06,0,0],[0.3,-0.45,0.7,0.06,-0.3,0]],
+    x:[['r','b',0.07,0.07,1.8,0x66eeff,-0.7,1.0,-1.6,0,0,0,0,0,1],['r','b',0.07,0.07,1.5,0x66eeff,-0.4,1.3,-1.5,0,0,0,0,0,1],['r','b',0.07,0.07,2.0,0x66eeff,-0.9,1.6,-1.7,0,0,0,0,0,1],['r','b',0.07,0.07,1.4,0x66eeff,-0.2,1.8,-1.4,0,0,0,0,0,1],['r','b',0.07,0.07,1.7,0x66eeff,-0.6,0.7,-1.55,0,0,0,0,0,1]] } },
+{ id:'dknight', name:'DARK KNIGHT', rarity:'LEGENDARY', price:100000, income:35000, weight:0.8, build:'gen', gait:{ f:6, leg:0.6, arm:0.5, bob:0.1, sway:0.07, lean:0.25, head:0.1 }, idle:{ f:1.2, sq:0.03, head:0.08, lean:0.15, arm:0.05 },
+  spec:{ head:['b',2.0,1.5,1.5,0x333333,0.07], torso:['s',1.7,1.7,1.1,0xffb800,0.07], legs:{ n:1.0, t:0.34, box:1, c:0xffb800, gap:0.9, foot:'box', fc:0xffb800 }, arms:{ n:1.0, t:0.3, box:1, c:0xffb800, ang:0.35 }, face:[[0.4,0.1,0.55,0.1,-0.3,0xffffff]],
+    x:[['h','b',1.1,0.5,0.8,0xffffff,0,-0.95,0.15,0.04],['h','b',1.12,0.05,0.82,0,0,-0.85,0.15,0],['h','b',1.12,0.05,0.82,0,0,-1.0,0.15,0],['t','s',0.8,1.0,0.1,0xffffff,0,0.1,0.55,0],['t','b',0.5,0.05,0.05,0,0,0.3,0.6,0],['t','b',0.5,0.05,0.05,0,0,0.1,0.6,0],['t','b',0.5,0.05,0.05,0,0,-0.1,0.6,0]] } },
+{ id:'freak', name:'FREAK', rarity:'LEGENDARY', price:200000, income:100000, weight:0.5, build:'gen', gait:{ f:5, leg:0.6, arm:0.25, bob:0.03, sway:0.05, lean:0.3, hat:0.2, head:0.1 }, idle:{ f:1.3, sway:0.06, head:0.1, hat:0.1, turn:0.2, lean:0.1 },
+  spec:{ head:['s',1.6,1.2,1.3,0x7a0000,0.07], torso:['b',0.8,1.6,0.4,0x7a0000,0.06], legs:{ n:1.8, t:0.22, box:1, c:0x7a0000, gap:0.5 }, arms:{ n:1.4, t:0.2, box:1, c:0x7a0000, ang:0.15 },
+    face:[[-0.3,0.2,0.4,0.06,0.4,0],[0.3,0.2,0.4,0.06,-0.4,0],[-0.3,0,0.3,0.05,-0.5,0],[0.3,0,0.3,0.05,0.5,0]],
+    x:[['h','s',1.0,0.6,0.7,0x7a0000,0.8,-0.15,0.2,0.06],['w','k',0.35,0.6,0.3,0x7a0000,-0.4,0.75,0,0.05],['w','k',0.5,0.8,0.4,0x7a0000,0.45,0.8,0,0.05],['r','c',0.08,1.6,0.08,0,-0.6,1.0,-0.6,0,0,0,0.9]] } },
+{ id:'crumble', name:'CRUMBLE', rarity:'LEGENDARY', price:250000, income:150000, weight:0.35, build:'gen', gait:{ f:8, leg:0.6, arm:0.5, bob:0.05, sway:0.03, head:0.05 }, idle:{ f:1.5, arm:0.05, hat:0.15, head:0.06, sq:0.02 },
+  spec:{ head:['b',1.4,1.4,1.0,0xffdddd,0.06], torso:['b',1.2,1.4,0.5,0xccccff,0.05], legs:{ n:1.5, t:0.22, box:1, c:0x000070, gap:0.5 }, arms:{ n:1.5, t:0.18, box:1, c:0xccccff, ang:0.05 },
+    face:[[-0.25,0.1,0.05,0.3,0,0],[0.25,0.1,0.05,0.45,0,0],[0,-0.1,0.05,0.05,0,0],[0,-0.35,0.4,0.05,0.1,0]],
+    x:[['w','k',0.3,0.6,0.3,0xffdddd,-0.5,0.95,0,0.05,0,0,0.3],['w','k',0.25,0.5,0.25,0xffdddd,-0.25,0.9,0,0.05,0,0,0.1],['w','k',0.25,0.45,0.25,0xffdddd,-0.7,0.85,0,0.05,0,0,0.6]] } },
+{ id:'smol', name:'SMOL', rarity:'LEGENDARY', price:350000, income:200000, weight:0.2, build:'gen', gait:{ f:16, leg:0.8, arm:0.1, bob:0.04, sway:0.03, head:0.06 }, idle:{ f:1.6, leg:0.5, arm:0.02, head:0.1, sq:0.03 },
+  spec:{ scale:0.6, head:['s',1.7,1.7,1.5,0x8899ff,0.07], torso:['b',0.6,0.85,0.35,0xff88cc,0.05], legs:{ n:0.55, t:0.1, box:1, c:0x000070, gap:0.3 }, arms:{ n:0.6, t:0.1, box:1, c:0xff88cc, ang:1.45, only:'R' },
+    face:[[-0.35,0.25,0.42,0.06,-0.4,0],[0.35,0.25,0.42,0.06,0.4,0],[-0.35,0.08,0.2,0.04,0,0],[0.35,0.08,0.2,0.04,0,0],[0,-0.3,0.45,0.05,0,0]],
+    x:[['t','b',0.18,0.2,0.4,0xffffff,-0.22,0.3,0.0,0.02]] } },
+{ id:'bubbles', name:'BUBBLES', rarity:'LEGENDARY', price:550000, income:550000, weight:0.05, build:'gen', gait:{ f:4, leg:0, arm:0, bob:0.1, sway:0.03, sq:0.05 }, idle:{ f:1.2, bob:0.1, sq:0.04, sway:0.02 },
+  spec:{ lift:3.0, head:['s',2.2,2.6,1.6,0xff2222,0.07], grad:[0xffffff,0xff2222,[0,0.1,1],2.4],
+    x:[['r','s',1.3,2.8,1.0,0xff2222,0,1.5,0,0.07,0,0,0,0,0,[0xffffff,0xff2222,[0,0.1,1],2.2]],
+       ['r','s',1.0,1.0,1.0,0x2255ff,2.0,1.5,0,0.06,0,0,0,0,1,[0xe8f4ff,0x2255ff,[-0.2,0.3,1],2]],['r','s',0.7,0.7,0.7,0x2255ff,2.5,2.5,0.3,0.06,0,0,0,0,1,[0xe8f4ff,0x2255ff,[-0.2,0.3,1],2]],
+       ['r','s',0.6,0.6,0.6,0x2255ff,1.8,2.7,-0.3,0.06,0,0,0,0,1,[0xe8f4ff,0x2255ff,[-0.2,0.3,1],2]],['r','s',0.5,0.5,0.5,0x2255ff,2.4,0.8,0.2,0.06,0,0,0,0,1,[0xe8f4ff,0x2255ff,[-0.2,0.3,1],2]],
+       ['r','s',0.5,1.1,0.5,0x88ccff,3.0,1.7,0,0.06,0,0,0,0,1,[0xffffff,0x88ccff,[-0.2,0.3,1],2]]] } }
+];
+const SHOWRUNNERS = [CRUMP, HAPPY, ...RUNNERS_NEW];   // add new show runners here: spawning and the admin dropdown update automatically
+/* ===== LUCK: a temporary multiplier (set in the admin menu) that makes rarer show runners spawn more often ===== */
+const luck = { mult:1, until:0 };
+const luckNow = () => (Date.now() < luck.until ? luck.mult : 1);
+const LUCK_POWER = { COMMON:0, RARE:0.5, EPIC:0.75, LEGENDARY:1, EXCLUSIVE:0 };
+const effWeight = c => c.weight * Math.pow(luckNow(), LUCK_POWER[c.rarity] || 0);
+function pickWeighted(list) { let r = Math.random() * list.reduce((s, c) => s + effWeight(c), 0); for (const c of list) if ((r -= effWeight(c)) < 0) return c; return list[0]; }
+
+// Visible error banner: any crash shows its message on screen instead of leaving a blank page
+function showError(msg) {
+  let e = document.getElementById('err');
+  if (!e) { e = document.createElement('div'); e.id = 'err'; e.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99;background:#b00;color:#fff;font:13px monospace;padding:6px 10px;white-space:pre-wrap;max-height:30vh;overflow:auto'; document.body.appendChild(e); }
+  e.textContent = msg;
+}
+addEventListener('error', ev => showError('Error: ' + ev.message + ' (line ' + ev.lineno + ')'));
+addEventListener('unhandledrejection', ev => showError('Error: ' + (ev.reason && ev.reason.stack ? ev.reason.stack.split('\n').slice(0, 3).join('\n') : ev.reason)));
+
+(async () => {
+// Wait for the fonts before any canvas text is drawn
+await Promise.race([Promise.all([document.fonts.load('700 40px "Comic Neue"'), document.fonts.ready]).catch(() => {}), new Promise(r => setTimeout(r, 3000))]);
+
+const CARPET_LEN = 80 * MAP_SCALE, CARPET_W = 8, BASE_SPACING = 16 * MAP_SCALE, CHAR_SCALE = 0.6;
+const WALK_SPEED = CARPET_LEN / CARPET_TRAVEL_TIME;
+const BOUNDS = { x:75, z:CARPET_LEN / 2 + 35 };   // invisible walls
+const V3 = THREE.Vector3, $ = id => document.getElementById(id), fmt = n => '$' + Math.floor(n).toLocaleString('en-US');
+
+/* ============================ RENDERER / SCENE ============================ */
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+const MAXANISO = renderer.capabilities.getMaxAnisotropy();
+const scene = new THREE.Scene(); scene.fog = new THREE.Fog(0xd8efff, 160, 480);
+const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 900);
+{ const c = document.createElement('canvas'); c.width = 2; c.height = 256; const x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 0, 256);
+  g.addColorStop(0, '#5ea8ff'); g.addColorStop(1, '#d8efff'); x.fillStyle = g; x.fillRect(0, 0, 2, 256);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; scene.background = t; }
+const hemi = new THREE.HemisphereLight(0xffffff, 0x8fae7a, 0.9); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffffff, 0.9); sun.castShadow = true; sun.shadow.radius = 4;
+Object.assign(sun.shadow.camera, { left:-60, right:60, top:60, bottom:-60, near:1, far:160 }); scene.add(sun, sun.target);
+
+const QUALITY = { Low:{ pr:1, shadow:0 }, Medium:{ pr:1.5, shadow:1024 }, High:{ pr:2, shadow:2048 } };
+function setQuality(n) { const q = QUALITY[n]; renderer.setPixelRatio(Math.min(window.devicePixelRatio, q.pr)); renderer.setSize(innerWidth, innerHeight);
+  sun.castShadow = q.shadow > 0 && settings.shadows; if (q.shadow) { sun.shadow.mapSize.set(q.shadow, q.shadow); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } } }
+$('quality').onchange = e => { setQuality(e.target.value); e.target.blur(); };
+$('fpsBtn').onclick = e => { $('fps').style.display = $('fps').style.display === 'none' ? '' : 'none'; e.target.blur(); };
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); setQuality($('quality').value); });
+
+/* ============================ CRISP CANVAS TEXT (drawn once, mipmapped, max anisotropy) ============================ */
+function makeLabel(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const ctx = c.getContext('2d');
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; draw(ctx);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.generateMipmaps = true;
+  t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.anisotropy = MAXANISO; return t;
+}
+function outlined(ctx, text, x, y, size, fill, stroke, lw = 12) {
+  ctx.font = `700 ${size}px ${FONT}`; ctx.lineWidth = lw; ctx.lineJoin = 'round';
+  ctx.strokeStyle = stroke; ctx.strokeText(text, x, y); ctx.fillStyle = fill; ctx.fillText(text, x, y);
+}
+// Sign plane (4:1). depthWrite off + polygonOffset so it never z-fights; floats away from surfaces.
+function makeSign(text, fill, w, h = w / 4) {
+  const tex = makeLabel(1024, 256, c => outlined(c, text, 512, 128, 150, fill, '#000', 24));
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map:tex, transparent:true, side:THREE.DoubleSide, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2, fog:false }));
+  m.renderOrder = 5; m.userData.noSkin = true; return m;
+}
+
+/* ============================ TOON / SHARED GEOMETRY ============================ */
+const gradient = new THREE.DataTexture(new Uint8Array([120, 190, 255]), 3, 1, THREE.LuminanceFormat);
+gradient.minFilter = gradient.magFilter = THREE.NearestFilter; gradient.needsUpdate = true;
+const matCache = {}, toon = c => matCache[c] || (matCache[c] = new THREE.MeshToonMaterial({ color:c, gradientMap:gradient }));
+const outlineMat = new THREE.MeshBasicMaterial({ color:0x000000, side:THREE.BackSide });
+function addOutline(mesh, t) { const g = mesh.geometry; g.computeBoundingBox(); const s = new V3(); g.boundingBox.getSize(s);
+  const o = new THREE.Mesh(g, outlineMat); o.scale.set((s.x + 2 * t) / s.x, (s.y + 2 * t) / s.y, (s.z + 2 * t) / s.z); mesh.add(o); }
+function part(parent, geo, color, pos, t = 0.035) { const m = new THREE.Mesh(geo, toon(color)); m.position.set(...pos); m.castShadow = true; if (t) addOutline(m, t); parent.add(m); return m; }
+const HEAD_R = 0.7;
+const G = { torso:new THREE.BoxGeometry(0.62, 0.8, 0.34), neck:new THREE.CylinderGeometry(0.06, 0.06, 0.2, 16), head:new THREE.SphereGeometry(HEAD_R, 48, 36),
+  brim:new THREE.CylinderGeometry(0.62, 0.62, 0.06, 48), top:new THREE.CylinderGeometry(0.38, 0.4, 0.95, 48), arm:new THREE.BoxGeometry(0.14, 0.75, 0.14),
+  hand:new THREE.SphereGeometry(0.1, 20, 14), leg:new THREE.CylinderGeometry(0.06, 0.06, 1.1, 14), shoe:new THREE.SphereGeometry(0.14, 20, 14).scale(0.9, 0.7, 1.5),
+  eye:new THREE.PlaneGeometry(0.045, 0.19), mouth:new THREE.PlaneGeometry(0.22, 0.04) };
+const faceMat = new THREE.MeshBasicMaterial({ color:0x000000 }), ringMats = {}, plateMats = {}, HAT_TILT = THREE.MathUtils.degToRad(-17);
+
+/* ============================ createCharacter(config) ============================ */
+const tc = s => s.toLowerCase().replace(/\b\w/g, m => m.toUpperCase());
+/** Nameplate sprite: texture drawn once per character type (name text shrinks to fit). */
+function makePlate(cfg, variant) {
+  const key = cfg.name + (variant || ''), mat = plateMats[key] || (plateMats[key] = new THREE.SpriteMaterial({
+    map:makeLabel(512, 512, x => { if (variant) outlined(x, variant, 256, 34, 44, variant === 'GOLD' ? '#FFD700' : '#7FE0FF', '#000');
+      outlined(x, cfg.rarity, 256, 90, 54, RARITY_COLORS[cfg.rarity], cfg.rarity === 'RARE' ? '#fff' : '#000');
+      outlined(x, cfg.name, 256, 205, Math.min(84, Math.floor(470 / (cfg.name.length * 0.62))), '#000', '#fff');
+      outlined(x, formatMoney(cfg.price), 256, 320, 64, '#000', '#fff');
+      outlined(x, formatMoney(cfg.income) + '/s', 256, 425, 64, '#000', '#fff'); }), depthTest:false, depthWrite:false, transparent:true }));
+  const s = new THREE.Sprite(mat); s.scale.set(3.4, 3.4, 1); s.position.y = 4.4; s.renderOrder = 10; return s;
+}
+const H = { head:new THREE.SphereGeometry(0.9, 48, 36), body:new THREE.CylinderGeometry(0.05, 0.05, 0.95, 12), leg:new THREE.CylinderGeometry(0.045, 0.045, 1.0, 12),
+  arm:new THREE.CylinderGeometry(0.04, 0.04, 0.7, 12), foot:new THREE.CylinderGeometry(0.04, 0.04, 0.3, 10),
+  eye:new THREE.PlaneGeometry(0.06, 0.26), tick:new THREE.PlaneGeometry(0.035, 0.1), mouth:new THREE.PlaneGeometry(0.24, 0.05) };
+/** Builds any show runner; an optional GOLD / DIAMOND variant recolors it and adds the nameplate line. */
+function createCharacter(cfg, variant) {
+  const root = (cfg.build === 'hmm' ? createHMM : cfg.build === 'angy' ? createAngy : cfg.build === 'gen' ? createGeneric : createCrump)(cfg);
+  if (cfg.post) cfg.post(root);   // optional extras (Gronos: hat, flames, sparkles)
+  if (variant) { const old = root.userData.plate, p = makePlate(cfg, variant); p.position.copy(old.position); root.remove(old); root.add(p); root.userData.plate = p; applyTransformation(root, variant); }
+  return root;
+}
+
+/** Happy Man Man: big white head, black tube stick body (tubes show from every angle), forked feet. */
+function createHMM(cfg) {
+  const c = cfg.colors, root = new THREE.Group(), rig = new THREE.Group(), P = {}, ink = toon(c.line);
+  rig.scale.setScalar(CHAR_SCALE); root.add(rig);
+  const tube = (parent, geo, pos, rot = [0, 0, 0]) => { const m = new THREE.Mesh(geo, ink); m.position.set(...pos); m.rotation.set(...rot); m.castShadow = true; parent.add(m); return m; };
+  tube(rig, H.body, [0, 1.45, 0]);
+  P.head = part(rig, H.head, c.head, [0, 2.75, 0], 0); addOutline(P.head, 0.09);   // thick outline
+  const R = 0.9, mark = (geo, x, y, tilt) => { const m = new THREE.Mesh(geo, faceMat); m.position.set(x, y, Math.sqrt(R * R - x * x - y * y) + 0.004);
+    m.rotation.set(-y / R * 0.8, x / R * 0.9, tilt, 'YXZ'); P.head.add(m); };
+  (cfg.faceMarks || [['eye', 0.2, 0.12, 0.05], ['eye', 0.42, 0.12, -0.04], ['tick', 0.6, 0.22, 0.5], ['mouth', 0.32, -0.2, -0.25]]).forEach(m => mark(H[m[0]], m[1], m[2], m[3]));   // face sits front-right
+  for (const s of [-1, 1]) { const k = s < 0 ? 'L' : 'R';
+    const arm = P['arm' + k] = new THREE.Group(); arm.position.set(0, 1.72, 0); rig.add(arm); tube(arm, H.arm, [s * 0.1, -0.33, 0], [0, 0, s * 0.25]);
+    const leg = P['leg' + k] = new THREE.Group(); leg.position.set(s * 0.07, 1.0, 0); rig.add(leg); tube(leg, H.leg, [0, -0.5, 0]);
+    tube(leg, H.foot, [0.07, -1.0, 0.12], [Math.PI / 2, 0, 0.35]); tube(leg, H.foot, [-0.07, -1.0, 0.12], [Math.PI / 2, 0, -0.35]); }
+  const plate = makePlate(cfg); root.add(plate);
+  root.userData = { rig, parts:P, plate, apply:p => { P.armL.rotation.x = p.armL; P.armR.rotation.x = p.armR; P.legL.rotation.x = p.legL; P.legR.rotation.x = p.legR;
+    rig.position.y = p.bob; rig.rotation.z = p.sway; P.head.position.y = 2.75 + p.hat; P.head.rotation.z = p.head; } };
+  return root;
+}
+
+function createCrump(cfg) {
+  const c = cfg.colors, root = new THREE.Group(), rig = new THREE.Group(), P = {};
+  rig.scale.setScalar(CHAR_SCALE); root.add(rig);
+  P.torso = part(rig, G.torso, c.torso, [0, 1.62, 0]); P.neck = part(rig, G.neck, c.hand, [0, 2.1, 0], 0.025);
+  P.head = part(rig, G.head, c.head, [0, 2.85, 0], 0); addOutline(P.head, 0.07);
+  const rm = ringMats[c.ring] || (ringMats[c.ring] = new THREE.MeshBasicMaterial({ color:c.ring, side:THREE.BackSide }));
+  const ring = new THREE.Mesh(G.head, rm); ring.scale.setScalar(1 + 0.035 / HEAD_R); P.head.add(ring);
+  const face = (geo, x, y, tilt, sy = 1) => { const m = new THREE.Mesh(geo, faceMat);
+    m.position.set(x, y, Math.sqrt(HEAD_R * HEAD_R - x * x - y * y) + 0.004); m.rotation.set(-y / HEAD_R * 0.8, x / HEAD_R * 0.9, tilt, 'YXZ'); m.scale.y = sy; P.head.add(m); };
+  face(G.eye, -0.2, 0.06, 0.08); face(G.eye, 0.2, 0.04, -0.05, 0.85); face(G.mouth, 0, -0.2, 0);
+  P.hat = new THREE.Group(); P.hat.position.set(0, 2.85 + HEAD_R - 0.08, 0); rig.add(P.hat);
+  part(P.hat, G.brim, c.hat, [0, 0.03, 0], 0.045); part(P.hat, G.top, c.hat, [0, 0.53, 0], 0.045);
+  for (const s of [-1, 1]) { const k = s < 0 ? 'L' : 'R';
+    const arm = P['arm' + k] = new THREE.Group(); arm.position.set(s * 0.43, 1.96, 0); rig.add(arm);
+    part(arm, G.arm, c.arm, [0, -0.375, 0], 0.03); part(arm, G.hand, c.hand, [0, -0.82, 0], 0.03);
+    const leg = P['leg' + k] = new THREE.Group(); leg.position.set(s * 0.16, 1.22, 0); rig.add(leg);
+    part(leg, G.leg, c.leg, [0, -0.55, 0], 0.03); part(leg, G.shoe, c.shoe, [0, -1.12, 0.07], 0.03); }
+  const plate = makePlate(cfg); root.add(plate);
+  root.userData = { rig, parts:P, plate, apply:p => { P.armL.rotation.x = p.armL; P.armR.rotation.x = p.armR; P.legL.rotation.x = p.legL; P.legR.rotation.x = p.legR;
+    rig.position.y = p.bob; rig.rotation.z = p.sway; P.hat.rotation.z = HAT_TILT + p.hat; P.head.rotation.z = p.head; } };
+  return root;
+}
+
+/* ============================ ANIMATION SYSTEM ============================ */
+const ANIMS = {
+  idle: t => ({ armL:Math.sin(t * 1.3) * 0.05, armR:-Math.sin(t * 1.3) * 0.05, legL:0, legR:0, bob:Math.sin(t * 1.8) * 0.02, sway:Math.sin(t * 0.9) * 0.035,
+    hat:Math.pow(Math.max(0, Math.sin(t * 0.45)), 6) * 0.18, head:Math.sin(t * 0.7) * 0.03 }),
+  walk: t => { const p = t * 9, s = Math.sin(p);
+    return { armL:-s * 0.55, armR:s * 0.55, legL:s * 0.6, legR:-s * 0.6, bob:Math.abs(Math.cos(p)) * 0.06, sway:s * 0.03, hat:Math.sin(p * 2) * 0.07, head:0 }; }
+};
+const POSE_KEYS = ['armL', 'armR', 'legL', 'legR', 'bob', 'sway', 'hat', 'head', 'lean', 'turn', 'sqy'];   // lean = forward tilt, turn = head turn, sqy = squash/stretch
+// Held pose: limp and still, with a small bob that follows the player's movement (a.move 0..1)
+ANIMS.hold = (t, a) => { const m = Math.sin(t * 9) * a.move; return { armL:0.15, armR:0.15, legL:0.2, legR:-0.1, bob:m * 0.05, sway:m * 0.06, hat:0, head:0 }; };
+const ANIMS_HMM = {   // Happy Man Man: looser, bouncier, happier ('hat' = head bob)
+  idle: t => ({ armL:Math.sin(t * 1.6) * 0.12, armR:-Math.sin(t * 1.6) * 0.12, legL:0, legR:0, bob:Math.sin(t * 2) * 0.02, sway:Math.sin(t * 1.1) * 0.06, hat:Math.sin(t * 2) * 0.04, head:Math.sin(t * 0.9) * 0.06 }),
+  walk: t => { const p = t * 10, s = Math.sin(p); return { armL:-s * 0.9, armR:s * 0.9, legL:s * 0.8, legR:-s * 0.8, bob:Math.abs(Math.cos(p)) * 0.16, sway:s * 0.08, hat:Math.sin(p * 2) * 0.06, head:Math.sin(p) * 0.1 }; },
+  hold: ANIMS.hold };
+const ANIMS_ANGY = {   // Angy Man Man: heavy and stompy, tiny smooth tremble when idle
+  idle: t => ({ armL:0.04, armR:0.04, legL:0, legR:0, bob:Math.sin(t * 6) * 0.015, sway:Math.sin(t * 25) * 0.008, hat:Math.sin(t * 6) * 0.03, head:Math.sin(t * 22) * 0.015 }),
+  walk: t => { const p = t * 12, s = Math.sin(p); return { armL:-s * 1.1, armR:s * 1.1, legL:s * 0.9, legR:-s * 0.9, bob:Math.abs(Math.cos(p)) * 0.1, sway:s * 0.1, hat:0, head:0.2 }; },
+  hold: ANIMS.hold };
+const ANIM_SETS = { crump:ANIMS, hmm:ANIMS_HMM, angy:ANIMS_ANGY };
+
+/* ---- Generic parametric builder: every config with build:'gen' is made from its spec (see RUNNERS_NEW) ---- */
+const GEO = { s:new THREE.SphereGeometry(0.5, 32, 24), b:new THREE.BoxGeometry(1, 1, 1), c:new THREE.CylinderGeometry(0.5, 0.5, 1, 20), k:new THREE.ConeGeometry(0.5, 1, 12),
+  d:new THREE.SphereGeometry(0.5, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), p:new THREE.SphereGeometry(0.5, 32, 10, 0, Math.PI * 2, 0, 0.55) };
+const planeG = new THREE.PlaneGeometry(1, 1), circG = new THREE.CircleGeometry(0.5, 24), fmats = {}, omats = {};
+const fmat = c => fmats[c] || (fmats[c] = new THREE.MeshBasicMaterial({ color:c }));
+const omat = c => !c ? outlineMat : omats[c] || (omats[c] = new THREE.MeshBasicMaterial({ color:c, side:THREE.BackSide }));
+function gp(parent, [g, w, h, d, c, x = 0, y = 0, z = 0, o = 0.04, rx = 0, ry = 0, rz = 0, oc = 0]) {   // toon part + sibling outline (uniform thickness)
+  const m = new THREE.Mesh(GEO[g], toon(c)); m.scale.set(w, h, d); m.position.set(x, y, z); m.rotation.set(rx, ry, rz); m.castShadow = true; parent.add(m);
+  if (o) { const k = new THREE.Mesh(GEO[g], omat(oc)); k.scale.set(w + 2 * o, h + 2 * o, d + 2 * o); k.position.copy(m.position); k.rotation.copy(m.rotation); parent.add(k); }
+  return m;
+}
+GEO.e = (() => { const g = new THREE.SphereGeometry(0.5, 32, 24), p = g.attributes.position;   // egg: sphere tapered toward a point on top
+  for (let i = 0; i < p.count; i++) { const t = Math.max(0, p.getY(i) / 0.5), k = 1 - 0.55 * Math.pow(t, 1.5); p.setX(i, p.getX(i) * k); p.setZ(i, p.getZ(i) * k); }
+  g.computeVertexNormals(); return g; })();
+GEO.f = (() => { const pts = [[0, 0.07], [0.2, 0.12], [0.38, 0.33], [0.5, 0], [0.63, 0.15], [0.8, 0.25], [1, 0.4], [0.95, 0.72], [0.75, 0.98], [0.3, 0.92], [0.08, 0.8], [0.02, 0.45]], sh = new THREE.Shape();   // flat flame outline
+  pts.forEach(([x, y], i) => i ? sh.lineTo(x - 0.5, 0.5 - y) : sh.moveTo(x - 0.5, 0.5 - y));
+  return new THREE.ExtrudeGeometry(sh, { depth:1, bevelEnabled:false }).translate(0, 0, -0.5); })();
+function applyGradGeom(g, c0, c1, dir, pw) {   // vertex-color radial gradient: c0 where the surface faces dir, fading to c1
+  const d = new V3(...dir).normalize(), a = new THREE.Color(c0), b = new THREE.Color(c1), p = g.attributes.position, n = new V3(), col = new Float32Array(p.count * 3), c = new THREE.Color();
+  for (let i = 0; i < p.count; i++) { n.fromBufferAttribute(p, i).normalize(); c.copy(b).lerp(a, Math.pow(Math.max(0, n.dot(d)), pw)); col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b; }
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3)); return g;
+}
+function applyGrad(mesh, [c0, c1, dir, pw]) { mesh.geometry = applyGradGeom(mesh.geometry.clone(), c0, c1, dir, pw); mesh.material = new THREE.MeshToonMaterial({ vertexColors:true, gradientMap:gradient }); }
+function createGeneric(cfg) {
+  const s = cfg.spec, root = new THREE.Group(), rig = new THREE.Group(), CS = CHAR_SCALE * (s.scale || 1), A = s.arms, Lg = s.legs, Tt = s.torso, Hd = s.head;
+  const P = { pulse:[], armLs:[], armRs:[], legLs:[], legRs:[], bR:A ? (A.bR || 0) : 0 };
+  rig.scale.setScalar(CS); root.add(rig);
+  const L = (s.lift || 0) + (Lg ? Lg.n : 0), Th = Tt ? Tt[2] : 0, gap = Tt ? 0.12 : 0, hy = L + Th + gap + (Hd[0] === 'd' ? 0 : Hd[2] / 2);
+  const t = P.t = new THREE.Group(); t.position.y = L + Th / 2; rig.add(t);
+  if (Tt) { gp(t, [Tt[0], Tt[1], Tt[2], Tt[3], Tt[4], 0, 0, 0, Tt[5] ?? 0.04, 0, 0, 0, Tt[6] || 0]); gp(rig, ['c', 0.12, 0.2, 0.12, 0, 0, L + Th + 0.06, 0, 0.02]); }
+  const h = P.head = new THREE.Group(); h.position.set(...(s.hp || [0, hy, 0])); rig.add(h);
+  const w = P.w = new THREE.Group(); h.add(w);
+  const hm = gp(h, [Hd[0], Hd[1], Hd[2], Hd[3], Hd[4], 0, 0, 0, Hd[5] ?? 0.05, 0, 0, 0, Hd[6] || 0]); if (s.grad) applyGrad(hm, s.grad);   // optional radial color gradient on the head
+  (s.face || []).forEach(([x, y, fw, fh, tilt = 0, c = 0, shp], i) => {   // flat face marks on the front (later marks draw on top)
+    const flat = 'bcf'.includes(Hd[0]), tp = Hd[0] === 'e' ? 1 - 0.55 * Math.pow(Math.max(0, y / (Hd[2] / 2)), 1.5) : 1, k = Math.sqrt(Math.max(0.05, 1 - (x / (Hd[1] / 2 * tp)) ** 2 - (y / (Hd[2] / 2)) ** 2));
+    const m = new THREE.Mesh(shp === 'o' ? circG : planeG, fmat(c)); m.scale.set(fw, fh, 1); m.position.set(x, y, Hd[3] / 2 * (flat ? 1 : k * tp) + 0.012 + i * 0.004); m.rotation.z = tilt; h.add(m); });
+  const grp = { h, t, r:rig, w };
+  (s.x || []).forEach(e => { const [a, ...pt] = e, m = gp(grp[a], pt); if (pt[14]) applyGrad(m, pt[14]); if (pt[13]) { m.userData.s0 = m.scale.clone(); P.pulse.push(m); } });
+  if (A) for (const sd of [-1, 1]) { const k = sd < 0 ? 'L' : 'R'; if (A.only && A.only !== k) continue;
+    const pv = new THREE.Group(); pv.position.set(sd * (A.x ?? ((Tt ? Tt[1] / 2 : 0.5) + A.t)), A.y ?? (Th / 2 - 0.15), 0); t.add(pv); P['arm' + k + 's'].push(pv);
+    const wd = A.t * (A.box ? 1.6 : 1), sx = Math.sin(sd * A.ang) * A.n, cy = Math.cos(A.ang) * A.n;
+    gp(pv, [A.box ? 'b' : 'c', wd, A.n, wd, A.c, sx / 2, -cy / 2, 0, 0.03, 0, 0, sd * A.ang]);
+    if (A.rib) for (let r = 1; r < 6; r++) gp(pv, ['b', wd * 1.06, 0.04, wd * 1.06, 0, sx * r / 6, -cy * r / 6, 0, 0, 0, 0, sd * A.ang]);
+    if (A.hc) gp(pv, ['b', A.t * 2, A.t * 2, A.t * 2, A.hc, sx, -cy, 0, 0.03]); }
+  if (Lg) for (const [sx, zz, k] of Lg.quad ? [[-1, 1, 'L'], [1, -1, 'L'], [1, 1, 'R'], [-1, -1, 'R']] : [[-1, 0, 'L'], [1, 0, 'R']]) {   // quadrupeds move diagonal pairs together
+    const pv = new THREE.Group(); pv.position.set(sx * Lg.gap / 2, L, zz * (Lg.zs || 0.8)); rig.add(pv); P['leg' + k + 's'].push(pv);
+    { const a = Lg.ang || 0; gp(pv, [Lg.box ? 'b' : 'c', Lg.t, Lg.n, Lg.t, Lg.c, sx * Math.sin(a) * Lg.n / 2, -Math.cos(a) * Lg.n / 2, 0, 0.03, 0, 0, sx * a]); }   // ang = splay
+    if (Lg.rib) for (let r = 1; r < 6; r++) gp(pv, ['b', Lg.t * 1.06, 0.04, Lg.t * 1.06, 0, 0, -Lg.n * r / 6, 0, 0]);   // ribbed segments
+    if (Lg.stripe != null) gp(pv, ['b', 0.05, Lg.n * 0.9, 0.02, Lg.stripe, 0, -Lg.n / 2, Lg.t / 2 + 0.01, 0]);   // stripe down the front
+    if (Lg.foot === 'box') gp(pv, ['b', Lg.t * 1.3, 0.16, Lg.t * 2.2, Lg.fc ?? Lg.c, 0, -Lg.n + 0.08, Lg.t * 0.5, 0.03]);
+    else if (Lg.foot === 'out') gp(pv, ['b', 0.5, 0.1, 0.14, Lg.fc ?? 0, sx * 0.22, -Lg.n + 0.05, 0.04, 0.02]);
+    else if (Lg.foot === 'fork' || Lg.foot === 'three') for (const f of Lg.foot === 'three' ? [-1, 0, 1] : [-1, 1]) gp(pv, ['c', 0.07, 0.3, 0.07, Lg.fc ?? 0, f * 0.07, -Lg.n + 0.02, 0.12, 0, Math.PI / 2, 0, f * 0.35]); }
+  if (s.sign) {   // sign text: crisp canvas texture offset in front of the board, no z-fighting
+    const tex = makeLabel(512, 256, c => s.sign.forEach((tx, i) => outlined(c, tx, 256, 75 + i * 95, 44, '#000', '#fff', 5)));
+    const m = new THREE.Mesh(planeG, new THREE.MeshBasicMaterial({ map:tex, transparent:true, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2 })); m.scale.set(1.8, 0.9, 1); m.position.set(0, 0, 0.5); t.add(m); }
+  if (s.embers) { P.embers = []; const em = new THREE.MeshBasicMaterial({ color:0xff9900 }); for (let i = 0; i < 5; i++) { const e = new THREE.Mesh(GEO.b, em); rig.add(e); P.embers.push(e); } }
+  const plate = makePlate(cfg); root.add(plate); root.updateMatrixWorld(true); plate.position.y = new THREE.Box3().setFromObject(rig).max.y + 1.8;
+  root.userData = { rig, parts:P, plate, apply:(p, tm) => {
+    P.armLs.forEach(a => a.rotation.x = p.armL); P.armRs.forEach(a => a.rotation.x = p.armR + P.bR); P.legLs.forEach(l => l.rotation.x = p.legL); P.legRs.forEach(l => l.rotation.x = p.legR);
+    rig.position.y = p.bob; rig.rotation.set(p.lean, 0, p.sway); rig.scale.set(CS * (1 - p.sqy * 0.5), CS * (1 + p.sqy), CS * (1 - p.sqy * 0.5));   // whole-body hop / squash for limbless characters
+    h.rotation.set(0, p.turn, p.head); w.rotation.z = p.hat;
+    P.pulse.forEach((m, i) => m.scale.copy(m.userData.s0).multiplyScalar(1 + 0.08 * Math.sin(tm * 2.4 + i * 2.1)));   // smooth sine pulse
+    if (P.embers) P.embers.forEach((e, i) => { const ph = (tm * 0.5 + i * 0.2) % 1; e.position.set(Math.sin(i * 2.1) * 0.5, 2.4 + ph * 1.8, i % 2 ? 0.3 : -0.3); e.scale.setScalar(0.14 * (1 - ph)); }); } };
+  return root;
+}
+function createAngy(cfg) {   // Happy Man Man's body, angry face, and a red-to-white radial glow on the head that pulses slowly
+  const r = createHMM(cfg), hd = r.userData.parts.head, mat = new THREE.MeshToonMaterial({ vertexColors:true, gradientMap:gradient });
+  hd.geometry = applyGradGeom(GEO.s.clone().scale(1.8, 1.8, 1.8), 0xff1a1a, 0xffffff, [0, 0.8, 0.6], 4); hd.material = mat;
+  r.userData.tick = t => mat.emissive.setRGB(0.1 + 0.08 * Math.sin(t * 1.3), 0, 0);
+  return r;
+}
+function makeAnimSet(g, i) {   // builds walk / idle / hold from the parameters in each config
+  return {
+    walk: t => { const p = t * g.f, s = Math.sin(p); return { legL:s * g.leg, legR:-s * g.leg, armL:-s * g.arm, armR:s * g.arm, bob:Math.abs(Math.cos(p)) * g.bob, sway:s * g.sway, lean:g.lean || 0, sqy:(g.sq || 0) * Math.cos(p * 2), hat:Math.sin(p * 2) * (g.hat || 0), head:Math.sin(p) * (g.head || 0), turn:0 }; },
+    idle: t => { const f = i.f || 1.5, s = Math.sin(t * f); return { armL:s * (i.arm || 0), armR:-s * (i.arm || 0), legL:0, legR:Math.max(0, Math.sin(t * f * 3)) * (i.leg || 0), bob:Math.sin(t * f * 1.2) * (i.bob || 0.02), sway:Math.sin(t * f * 0.5) * (i.sway || 0), sqy:s * (i.sq || 0), hat:Math.sin(t * f * 0.8) * (i.hat || 0), head:Math.sin(t * f * 0.4) * (i.head || 0), turn:Math.sin(t * f * 0.35) * (i.turn || 0), lean:i.lean || 0 }; },
+    hold: ANIMS.hold };
+}
+for (const c of SHOWRUNNERS) if (c.gait) ANIM_SETS[c.id] = makeAnimSet(c.gait, c.idle);   // (Gronos gets his in the Pass section)
+
+/* ---- Gold / Diamond transformation: recolors any built character; black lines and outlines stay ---- */
+const T_GOLD = { main:0xFFD700, pale:0xFFF1A8, glow:0x553d00, spark:0xfff4b0 }, T_DIAMOND = { main:0x8FE3FF, pale:0xEAF8FF, glow:0x153a55, spark:0xcaf4ff };
+const sparkGeo = new THREE.OctahedronGeometry(0.12), sparkMats = {};
+function applyTransformation(char, type) {
+  const T = type === 'GOLD' ? T_GOLD : T_DIAMOND;
+  char.traverse(o => { if (!o.isMesh || o.material === outlineMat || o.material === faceMat || o.material.side === THREE.BackSide && o.material.color.getHex() === 0) return;
+    const c = o.material.color; if (!c || Math.max(c.r, c.g, c.b) < 0.08) return;   // keep black lines
+    const hex = Math.min(c.r, c.g, c.b) > 0.9 ? T.pale : T.main;
+    o.material = o.material.isMeshBasicMaterial ? new THREE.MeshBasicMaterial({ color:hex, side:o.material.side }) : new THREE.MeshPhongMaterial({ color:hex, specular:0xffffff, shininess:type === 'GOLD' ? 70 : 140, emissive:T.glow }); });
+  const sp = new THREE.Group(), mat = sparkMats[type] || (sparkMats[type] = new THREE.MeshBasicMaterial({ color:T.spark }));
+  for (let i = 0; i < 5; i++) sp.add(new THREE.Mesh(sparkGeo, mat));
+  char.add(sp); char.userData.sparkles = sp;
+}
+function animateSparkles(g, t) { g.children.forEach((m, i) => { const a = t * 0.6 + i * 1.26; m.position.set(Math.cos(a), 0.8 + i * 0.5 + Math.sin(t * 1.3 + i) * 0.2, Math.sin(a)); m.scale.setScalar(0.5 + 0.5 * (0.5 + 0.5 * Math.sin(t * 1.7 + i * 1.9))); m.rotation.y = t + i; }); }
+const turn = (a, b, dt, r) => a + Math.atan2(Math.sin(b - a), Math.cos(b - a)) * (1 - Math.exp(-r * dt));
+class Actor {
+  constructor(cfg, variant) { this.cfg = cfg; this.variant = variant || null; this.root = createCharacter(cfg, this.variant); this.state = 'walk'; this.t = Math.random() * 10; this.w = { idle:0, walk:1, hold:0 }; this.move = 0;
+    this.yaw = 0; this.yawT = 0; this.route = null; this.slot = null; this.incomeT = 0; this.fx = (Math.random() - 0.5) * 1.4; }
+  get income() { return this.cfg.income * (this.variant === 'GOLD' ? GOLD_INCOME_MULT : this.variant === 'DIAMOND' ? DIAMOND_INCOME_MULT : 1); }
+  update(dt) {
+    this.t += dt; let sum = 0;
+    for (const k in this.w) { this.w[k] += ((k === this.state ? 1 : 0) - this.w[k]) * (1 - Math.exp(-10 * dt)); sum += this.w[k]; }
+    const pose = {}; POSE_KEYS.forEach(k => pose[k] = 0);
+    for (const k in this.w) { const p = ANIM_SETS[this.cfg.anim || this.cfg.id || 'crump'][k](this.t, this), w = this.w[k] / sum; POSE_KEYS.forEach(q => pose[q] += (p[q] || 0) * w); }
+    const u = this.root.userData; u.apply(pose, this.t); if (u.tick) u.tick(this.t); if (u.sparkles) animateSparkles(u.sparkles, this.t);   // each character type applies the pose to its own parts
+    
+    
+    this.yaw = turn(this.yaw, this.yawT, dt, 10); this.root.rotation.y = this.yaw;
+  }
+}
+
+/* ============================ TWEENS (level-up animations) ============================ */
+const tweens = [];
+const tween = (dur, fn) => tweens.push({ t:0, dur, fn });
+const easeBack = x => 1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2);
+
+/* ============================ MAP ============================ */
+{ const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
+  x.fillStyle = '#6cbf5a'; x.fillRect(0, 0, 64, 64); x.fillStyle = '#62b350'; x.fillRect(0, 0, 32, 32); x.fillRect(32, 32, 32, 32);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(300, 300); t.anisotropy = MAXANISO;
+  const g = new THREE.Mesh(new THREE.PlaneGeometry(1200, 1200), new THREE.MeshLambertMaterial({ map:t })); g.rotation.x = -Math.PI / 2; g.receiveShadow = true; scene.add(g); }
+// Rock wall: instanced brown pillars (body, outline, grass cap, cracks) packed around the whole map
+{ const WX = BOUNDS.x + 10, WZ = BOUNDS.z + 10, pil = [];
+  const run = (fixed, alongX, from, to) => { for (let c = from; c < to;) { const w = 5 + Math.random() * 4, h = 25 + Math.random() * 20;
+    pil.push({ x:alongX ? c + w / 2 : fixed, z:alongX ? fixed : c + w / 2, sx:alongX ? w : 8, sz:alongX ? 8 : w, h, inX:alongX ? 0 : (fixed < 0 ? 1 : -1), inZ:alongX ? (fixed < 0 ? 1 : -1) : 0, alongX }); c += w - 0.4; } };
+  run(-WZ, true, -WX - 8, WX + 8); run(WZ, true, -WX - 8, WX + 8); run(-WX, false, -WZ, WZ); run(WX, false, -WZ, WZ);
+  const bg = GEO.b.clone().translate(0, 0.5, 0), n = pil.length;
+  const body = new THREE.InstancedMesh(bg, toon(0x7a4a21), n), edge = new THREE.InstancedMesh(bg, outlineMat, n), cap = new THREE.InstancedMesh(bg, toon(0x44cc33), n), crack = new THREE.InstancedMesh(bg, toon(0x4a2a10), n * 2);
+  const M = new THREE.Matrix4(), q = new THREE.Quaternion(), pv = new V3(), sc = new V3();
+  pil.forEach((p, i) => {
+    body.setMatrixAt(i, M.compose(pv.set(p.x, 0, p.z), q, sc.set(p.sx, p.h, p.sz)));
+    edge.setMatrixAt(i, M.compose(pv.set(p.x, -0.2, p.z), q, sc.set(p.sx + 0.6, p.h + 0.4, p.sz + 0.6)));
+    cap.setMatrixAt(i, M.compose(pv.set(p.x, p.h - 0.2, p.z), q, sc.set(p.sx + 1.4, 1.5, p.sz + 1.4)));   // grass overhang
+    [-1, 1].forEach((sd, j) => crack.setMatrixAt(i * 2 + j, M.compose(
+      pv.set(p.x + p.inX * (p.sx / 2 + 0.03) + (p.alongX ? sd * p.sx * 0.22 : 0), p.h * 0.15, p.z + p.inZ * (p.sz / 2 + 0.03) + (p.alongX ? 0 : sd * p.sz * 0.22)), q,
+      p.alongX ? sc.set(0.5, p.h * 0.6, 0.06) : sc.set(0.06, p.h * 0.6, 0.5))));
+  });
+  [body, edge, cap, crack].forEach(m => { m.frustumCulled = false; scene.add(m); });
+}
+const lam = (c) => new THREE.MeshLambertMaterial({ color:c });
+const box = (w, h, d, m, x, y, z, parent = scene, shadow = true) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); b.position.set(x, y, z); b.castShadow = shadow; b.receiveShadow = true; parent.add(b); return b; };
+
+const gold = lam(0xffc93c);
+box(CARPET_W, 0.06, CARPET_LEN, lam(0xc4121f), 0, 0.03, 0, scene, false);
+for (const s of [-1, 1]) box(0.4, 0.1, CARPET_LEN, gold, s * (CARPET_W / 2 + 0.2), 0.05, 0, scene, false);
+const postGeo = new THREE.CylinderGeometry(0.12, 0.16, 1.1, 16), knobGeo = new THREE.SphereGeometry(0.2, 16, 12);
+for (const s of [-1, 1]) for (let z = -CARPET_LEN / 2; z <= CARPET_LEN / 2; z += 10) {
+  const p = new THREE.Mesh(postGeo, gold); p.position.set(s * (CARPET_W / 2 + 0.7), 0.55, z); p.castShadow = true; scene.add(p);
+  const k = new THREE.Mesh(knobGeo, gold); k.position.set(p.position.x, 1.15, z); scene.add(k); }
+for (const [txt, col, z] of [['START', '#2ee62e', -CARPET_LEN / 2 - 1], ['END', '#ff4a4a', CARPET_LEN / 2 + 1]]) { const s = makeSign(txt, col, 12); s.position.set(0, 6, z); scene.add(s); }
+
+// Base layout. Local base coords: u = distance outward from the carpet, v = along the carpet, y = height.
+const PAD_W = 30, PAD_D = 36;
+const FLOORS = [ { top:0.2, rows:10, sp:3 }, { top:6, rows:5, sp:6 }, { top:12, rows:10, sp:3 } ];   // 2 columns per floor (u = 19, 26)
+const COLS = [19, 26], RAMP1 = { u0:2, u1:14, v:0 }, RAMP2 = { u0:15, u1:28, v:15.5 };
+const PAD_COLORS = [0xff9aa2, 0xffd28a, 0xfff08a, 0xb5ead7, 0x9ad1ff, 0xc7b8ff, 0xffb3e6, 0xa8e6cf, 0xffc4a3, 0xd0e6a5];
+const W = (b, u, y, v) => new V3(b.side * (12 + u), y, b.z + b.side * v);   // local -> world
+const pedGeo = new THREE.CylinderGeometry(0.9, 1.0, 0.35, 32), pedMat = lam(0xf4f4f4), railMat = lam(0x6b4a2b), deckMat = lam(0xe9e1d3), pillarMat = lam(0x8a7f70), rampMat = lam(0xb98b55);
+const bases = [];
+
+function ramp(g, r, y0, y1) {
+  const run = r.u1 - r.u0, rise = y1 - y0, m = new THREE.Mesh(new THREE.BoxGeometry(Math.hypot(run, rise), 0.4, 3.6), rampMat);
+  m.position.set((r.u0 + r.u1) / 2, (y0 + y1) / 2 - 0.2, r.v); m.rotation.z = Math.atan2(rise, run); m.castShadow = m.receiveShadow = true; m.visible = false; g.add(m); return m;
+}
+const FENCE_COLLIDERS = [];
+/** Wooden fence (instanced posts + rails) around the whole base footprint, a gate gap on the carpet side, a gate barrier and the FENCE button. */
+function buildFence(b, g) {
+  const wood = toon(0x8a5a2b), mk = (m) => new THREE.InstancedMesh(GEO.b, m, 70);
+  const post = mk(wood), pOut = mk(outlineMat), rail = mk(wood), rOut = mk(outlineMat);
+  pOut.userData.noSkin = rOut.userData.noSkin = true;   // outlines stay black
+  const M = new THREE.Matrix4(), q = new THREE.Quaternion(), pv = new V3(), sc = new V3(); let np = 0, nr = 0;
+  const seg = (u0, v0, u1, v1) => {
+    const du = u1 - u0, dv = v1 - v0, len = Math.hypot(du, dv), n = Math.ceil(len / 3), alongU = Math.abs(du) > Math.abs(dv);
+    for (let i = 0; i <= n; i++) { const u = u0 + du * i / n, v = v0 + dv * i / n;
+      post.setMatrixAt(np, M.compose(pv.set(u, 1.0, v), q, sc.set(0.35, 1.6, 0.35))); pOut.setMatrixAt(np++, M.compose(pv.set(u, 1.0, v), q, sc.set(0.5, 1.75, 0.5))); }
+    for (const y of [0.7, 1.3]) { const cu = (u0 + u1) / 2, cv = (v0 + v1) / 2;
+      rail.setMatrixAt(nr, M.compose(pv.set(cu, y, cv), q, alongU ? sc.set(len, 0.14, 0.14) : sc.set(0.14, 0.14, len))); rOut.setMatrixAt(nr++, M.compose(pv.set(cu, y, cv), q, alongU ? sc.set(len, 0.26, 0.26) : sc.set(0.26, 0.26, len))); }
+    const a = W(b, Math.min(u0, u1) - 0.3, 0, Math.min(v0, v1) - 0.3), c = W(b, Math.max(u0, u1) + 0.3, 0, Math.max(v0, v1) + 0.3);
+    FENCE_COLLIDERS.push({ x0:Math.min(a.x, c.x), x1:Math.max(a.x, c.x), z0:Math.min(a.z, c.z), z1:Math.max(a.z, c.z) });
+  };
+  seg(30, -18, 30, 18); seg(0, -18, 30, -18); seg(0, 18, 30, 18); seg(0, -18, 0, -4); seg(0, 4, 0, 18);   // gate gap: v from -4 to 4
+  post.count = pOut.count = np; rail.count = rOut.count = nr;
+  [post, pOut, rail, rOut].forEach(m => { m.frustumCulled = false; g.add(m); });
+  b.fence = { until:0, amt:0, closed:false, cool:0 };
+  const gate = new THREE.Mesh(new THREE.BoxGeometry(0.15, 3, 8).translate(0, 1.7, 4), new THREE.MeshBasicMaterial({ color:0xff2a2a, transparent:true, opacity:0.4, depthWrite:false }));
+  gate.position.set(0, 0, -4); gate.scale.z = 0.001; gate.visible = false; gate.userData.noSkin = true; g.add(gate); b.gate = gate;
+  const pd = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.9, 1.1, 24), lam(0x777777)); pd.position.set(-2.5, 0.55, 6); g.add(pd);
+  const bt = new THREE.Mesh(new THREE.SphereGeometry(0.65, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshLambertMaterial({ color:0xff1111, emissive:0x660000 })); bt.position.set(-2.5, 1.1, 6); bt.userData.noSkin = true; g.add(bt);
+  const fs = makeSign('FENCE', '#ff6a6a', 5); fs.position.set(-2.5, 3.2, 6); fs.rotation.y = -Math.PI / 2; g.add(fs);
+  b.fencePos = W(b, -2.5, 0, 6);
+}
+function buildBase(side, i) {
+  const b = { id:bases.length, side, z:(i - 2) * BASE_SPACING, owner:null, rebirth:0, slots:[], surfaces:[], decks:[], ramps:[] };   // owner: null | 'player' (multiplayer/AI later)
+  const g = new THREE.Group(); g.position.set(side * 12, 0, b.z); g.rotation.y = side > 0 ? 0 : Math.PI; scene.add(g); b.group = g;
+  box(PAD_W, 0.2, PAD_D, lam(PAD_COLORS[b.id]), PAD_W / 2, 0.1, 0, g, false);
+  buildFence(b, g);
+  FLOORS.forEach((F, f) => {
+    let parent = g;
+    if (f) { const dg = new THREE.Group(); dg.visible = false; g.add(dg); b.decks[f] = dg; parent = dg;
+      box(16, 0.4, PAD_D, deckMat, 22, F.top - 0.2, 0, dg);
+      for (const u of [15, 29]) for (const v of [-PAD_D / 2 + 1, PAD_D / 2 - 1]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, F.top, 12), pillarMat); p.position.set(u, F.top / 2 - 0.2, v); p.castShadow = true; dg.add(p); }
+      b.surfaces.push({ f, u0:14, u1:30, v0:-PAD_D / 2, v1:PAD_D / 2, h:() => F.top }); }
+    for (let k = 0; k < F.rows * 2; k++) {   // slot k: column k%2, row k/2 (platform number = k)
+      const u = COLS[k % 2], v = (Math.floor(k / 2) - (F.rows - 1) / 2) * F.sp;
+      const ped = new THREE.Mesh(pedGeo, pedMat); ped.position.set(u, F.top + 0.175, v); ped.castShadow = ped.receiveShadow = true; ped.visible = false; parent.add(ped);
+      b.slots.push({ floor:f, k, u, v, y:F.top + 0.35, ped, unlocked:false, occupied:false, occupant:null }); }
+  });
+  b.ramps[1] = ramp(g, RAMP1, 0, 6); b.ramps[2] = ramp(g, RAMP2, 6, 12);
+  b.surfaces.push({ f:1, u0:RAMP1.u0, u1:RAMP1.u1, v0:-1.8, v1:1.8, h:u => (u - RAMP1.u0) / (RAMP1.u1 - RAMP1.u0) * 6 });
+  b.surfaces.push({ f:2, u0:RAMP2.u0, u1:RAMP2.u1, v0:RAMP2.v - 1.8, v1:RAMP2.v + 1.8, h:u => 6 + (u - RAMP2.u0) / (RAMP2.u1 - RAMP2.u0) * 6 });
+  // Upgrade pad
+  const up = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 0.25, 40), new THREE.MeshLambertMaterial({ color:0xffd23c, emissive:0x553c00 })); up.position.set(7, 0.3, -10); up.receiveShadow = true; g.add(up);
+  const us = makeSign('REBIRTH', '#ffe14a', 6); us.position.set(7, 3.2, -10); us.rotation.y = -Math.PI / 2; g.add(us);
+  b.upgradePos = W(b, 7, 0, -10);
+  // Sell pad
+  const sp = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 0.25, 40), new THREE.MeshLambertMaterial({ color:0xff4a4a, emissive:0x550000 })); sp.position.set(7, 0.3, 10); sp.receiveShadow = true; g.add(sp);
+  const ss = makeSign('SELL', '#ff6a6a', 6); ss.position.set(7, 3.2, 10); ss.rotation.y = -Math.PI / 2; g.add(ss); b.sellPos = W(b, 7, 0, 10);
+  // Mirror (change character)
+  const mr = new THREE.Group(); mr.position.set(9, 0, 15.5); mr.rotation.y = -Math.PI / 2; g.add(mr);
+  box(3, 4, 0.25, railMat, 0, 2.2, 0, mr);
+  const gl = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 3.5), new THREE.MeshLambertMaterial({ color:0xbfe6ff, emissive:0x335566, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2 })); gl.position.set(0, 2.2, 0.14); mr.add(gl);
+  const ms = makeSign('MIRROR', '#9ad1ff', 6); ms.position.set(0, 5, 0.3); mr.add(ms); b.mirrorPos = W(b, 9, 0, 15.5);
+  bases.push(b); return b;
+}
+for (const side of [-1, 1]) for (let i = 0; i < 5; i++) buildBase(side, i);
+
+// Unlocks platforms / floors / stairs for a rebirth, with rise-in animation
+function setRebirth(b, R, animate) {
+  b.rebirth = R; const cfg = REBIRTHS[R];
+  const reveal = (obj, rise) => { if (obj.visible) return; obj.visible = true; if (!animate) return; const y0 = obj.position.y; tween(0.9, e => obj.position.y = y0 - rise * (1 - e)); };
+  FLOORS.forEach((F, f) => {
+    const n = cfg.floors[f] || 0;
+    if (f && n) { reveal(b.decks[f], 8); reveal(b.ramps[f], 8); }
+    b.slots.filter(s => s.floor === f && s.k < n && !s.unlocked).forEach(s => { s.unlocked = true; s.ped.visible = true; if (animate) tween(0.8, e => s.ped.scale.setScalar(Math.max(e, 0.01))); });
+  });
+}
+bases.forEach(b => setRebirth(b, 0, false));
+const playerBase = bases[Math.floor(Math.random() * bases.length)]; playerBase.owner = 'player';
+for (const b of bases) { const own = b.owner === 'player', s = makeSign(own ? 'YOUR BASE' : 'Empty Base', own ? '#ffe14a' : '#ececec', own ? 18 : 14);
+  s.position.set(PAD_W / 2, 17, 0); s.rotation.y = -Math.PI / 2; b.group.add(s); b.sign = s; }
+
+// Code stand (podium + sign) at the start end of the carpet, outside the bases
+const STAND_POS = new V3(14, 0, -CARPET_LEN / 2 - 6);   // beside the carpet start: off the carpet, outside every base
+const stand = new THREE.Group(); stand.position.copy(STAND_POS); scene.add(stand);
+box(3.4, 1.2, 1.6, lam(0x7a4bd6), 0, 0.6, 0, stand); box(3.6, 0.2, 1.8, gold, 0, 1.3, 0, stand);
+const cs = makeSign('CODES', '#ffe14a', 10); cs.position.set(0, 4.4, 0); stand.add(cs);
+const standPos = stand.position;
+const COLLIDERS = [{ x0:STAND_POS.x - 1.8, x1:STAND_POS.x + 1.8, z0:STAND_POS.z - 0.9, z1:STAND_POS.z + 0.9 }];   // blocks the player
+COLLIDERS.push(...FENCE_COLLIDERS);
+
+/* ===== Saving: localStorage in try/catch with an in-memory fallback ===== */
+const store = (() => { const mem = {}; return {
+  get(k, d) { try { const v = localStorage.getItem('sasr_' + k); if (v !== null) return JSON.parse(v); } catch (e) {} return k in mem ? mem[k] : d; },
+  set(k, v) { mem[k] = v; try { localStorage.setItem('sasr_' + k, JSON.stringify(v)); } catch (e) {} } }; })();
+const settings = Object.assign({ brightness:100, shadows:true, volume:70, mute:false, rebirthScreen:true }, store.get('settings', {}));   // per device
+const accounts = store.get('accounts', {}); let curUser = store.get('session', null); if (!curUser || !accounts[curUser]) curUser = null;   // signed-in account (or null = guest)
+const save = Object.assign({ freeSpinAt:0, paidSpins:0, owned:['normal'], skin:'normal', punch:1, cosOwned:[], cos:{}, weapons:[], hotbar:[null, null, null, null, null] }, curUser ? accounts[curUser].save : store.get('save', {}));
+if (!save.index) { save.index = { normal:[], gold:[...(save.gold || [])], diamond:[...(save.diamond || [])] }; save.seen = { normal:[], gold:[...(save.gold || [])], diamond:[...(save.diamond || [])] }; delete save.gold; delete save.diamond; }   // migrate old Collection data
+const persist = () => { if (curUser) { accounts[curUser].save = save; store.set('accounts', accounts); } else store.set('save', save); };   // signed in: saved to your account
+let worldT = 0, acc = 0, wasReady = false, wasClosed = false, fenceTxt = '', skinLow = false;
+function banner(text) { const l = $('levelup'); l.textContent = text; l.style.fontSize = text.length > 20 ? '34px' : '72px'; l.classList.remove('go'); void l.offsetWidth; l.classList.add('go'); }
+const setText = (el, t) => { if (el.textContent !== t) el.textContent = t; };
+const fmtMS = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+
+/* ===== Gold / Diamond base skins: one shared rippling shader (static glowing material on Low) ===== */
+const SKIN_VS = `varying vec3 vW; varying vec3 vN;
+void main() { vec4 lp = vec4(position, 1.0); vec3 ln = normal;
+#ifdef USE_INSTANCING
+  lp = instanceMatrix * lp; ln = mat3(instanceMatrix) * ln;
+#endif
+  vec4 wp = modelMatrix * lp; vW = wp.xyz; vN = normalize(mat3(modelMatrix) * ln); gl_Position = projectionMatrix * viewMatrix * wp; }`;
+const SKIN_FS = `varying vec3 vW; varying vec3 vN; uniform float uT, uSp; uniform vec3 uA, uB, uH;
+void main() {
+  float w = (sin(vW.x * 0.35 + vW.z * 0.3 + uT * 0.8) + sin(vW.z * 0.5 - vW.x * 0.2 + uT * 1.1) + sin((vW.x + vW.z) * 0.15 + vW.y * 0.6 - uT * 0.6)) / 6.0 + 0.5;
+  float l = 0.55 + 0.45 * max(dot(normalize(vN), normalize(vec3(0.5, 1.0, 0.4))), 0.0);
+  vec3 c = mix(uA, uB, smoothstep(0.55, 0.9, w) * 0.55); c = mix(c, uH, smoothstep(0.75, 1.0, w) * 0.5);
+  float sp = pow(max(0.0, sin(vW.x * 5.0 + vW.z * 4.0 + uT * 0.7) * sin(vW.z * 6.0 - vW.y * 3.0 + uT * 0.5)), 12.0) * uSp;
+  float a = 0.75 + 0.25 * (0.5 + 0.5 * sin(vW.x * 0.4 + vW.z * 0.35 - uT * 0.7));
+  gl_FragColor = vec4(c * l + uH * 0.1 + sp, a); }`;
+const skinT = { value:0 };
+const mkSkin = (a, b, hi, sp) => new THREE.ShaderMaterial({ transparent:true, vertexShader:SKIN_VS, fragmentShader:SKIN_FS,
+  uniforms:{ uT:skinT, uSp:{ value:sp }, uA:{ value:new THREE.Color(a) }, uB:{ value:new THREE.Color(b) }, uH:{ value:new THREE.Color(hi) } } });
+const skinMats = { gold:mkSkin(0xFFC400, 0x8FE3FF, 0xFFF6C0, 0), diamond:mkSkin(0x8FE3FF, 0xFFC400, 0xE8FFFF, 1) };
+const lowMats = { gold:new THREE.MeshLambertMaterial({ color:0xFFC400, emissive:0x553d00 }), diamond:new THREE.MeshLambertMaterial({ color:0x8FE3FF, emissive:0x153a55 }) };
+function applySkin(kind) {   // swaps materials on every piece of the player's base (incl. hidden floors, fence); signs and outlines are skipped
+  const mat = kind === 'normal' ? null : (skinLow ? lowMats[kind] : skinMats[kind]);
+  playerBase.group.traverse(o => { if (!o.isMesh || o.userData.noSkin) return; if (!o.userData.orig) o.userData.orig = o.material; o.material = mat || o.userData.orig; });
+}
+function setSkin(k) { if (!save.owned.includes(k)) return; save.skin = k; persist(); applySkin(k); }
+
+/* ===== Index: every show runner x three tabs. An entry unlocks when that show runner (normal / gold / diamond) reaches a platform in your base. ===== */
+const sid = c => c.id || c.name;
+const isUnlocked = (id, variant) => save.index[variant].includes(id);   // variant: 'normal' | 'gold' | 'diamond'
+const tabOf = a => a.variant === 'GOLD' ? 'gold' : a.variant === 'DIAMOND' ? 'diamond' : 'normal';
+const idx = { tab:'normal', viewed:new Set(), q:[], busy:false }, pvCache = {};
+let popT, doneT, dv = null, pvR = null, pvScene = null, pvCam = null, pvTimer = 0;
+const silMat = new THREE.MeshBasicMaterial({ color:0x000000 });
+function popIndex(text) { const p = $('idxPop'); p.textContent = text; p.style.opacity = 1; clearTimeout(popT); popT = setTimeout(() => p.style.opacity = 0, 3500); }
+function updateDot() { $('idxDot').style.display = Object.keys(INDEX_TABS).some(t => save.index[t].some(id => !save.seen[t].includes(id))) ? '' : 'none'; }
+function markSeen() {   // opening the Index clears the NEW badges for the tabs you looked at
+  if ($('idxBox').style.display !== 'block' && $('idxDetail').style.display !== 'block') return;
+  idx.viewed.forEach(t => save.index[t].forEach(id => { if (!save.seen[t].includes(id)) save.seen[t].push(id); })); idx.viewed.clear(); persist(); updateDot();
+}
+function unlockIndexEntry(id, variant) { if (!SHOWRUNNERS.some(c => sid(c) === id)) return;   // Gronos is not part of the Index
+     // called the moment a show runner lands on its platform in the player's base
+  if (isUnlocked(id, variant)) return;
+  save.index[variant].push(id); persist(); updateDot();
+  popIndex(`NEW IN INDEX: ${tc(SHOWRUNNERS.find(c => sid(c) === id).name)} (${INDEX_TABS[variant].label})`);
+  if (SHOWRUNNERS.every(c => isUnlocked(sid(c), variant))) completeTab(variant);
+}
+function completeTab(tab) {
+  const R = INDEX_REWARDS[tab]; if (R && R.cash) { cash += R.cash; updateHud(); }
+  if (tab === 'normal') { banner('NORMAL INDEX COMPLETE!'); return; }
+  const nm = tab === 'gold' ? 'GOLD' : 'DIAMOND'; if (!save.owned.includes(tab)) { save.owned.push(tab); persist(); }
+  banner(`${nm} INDEX COMPLETE! ${nm} BASE UNLOCKED!`);
+  $('doneTxt').textContent = `${nm} BASE UNLOCKED!`; $('doneEquip').dataset.skin = tab; $('doneBox').style.display = 'block'; clearTimeout(doneT); doneT = setTimeout(() => $('doneBox').style.display = 'none', 15000);
+}
+$('doneEquip').onclick = e => { setSkin(e.target.dataset.skin); $('doneBox').style.display = 'none'; };
+
+// Preview pictures: rendered once into an offscreen canvas (one extra WebGL context, freed when idle) and cached as images
+function pvRender(c, variant, sil) {
+  if (!pvR) { pvR = new THREE.WebGLRenderer({ antialias:true, alpha:true }); pvR.setSize(200, 200); pvR.outputEncoding = THREE.sRGBEncoding; pvR.setClearColor(0, 0);
+    pvScene = new THREE.Scene(); pvScene.add(new THREE.HemisphereLight(0xffffff, 0x8fae7a, 1.0)); const dl = new THREE.DirectionalLight(0xffffff, 0.9); dl.position.set(3, 6, 5); pvScene.add(dl); pvCam = new THREE.PerspectiveCamera(30, 1, 0.1, 100); }
+  const a = new Actor(c, variant); a.w = { idle:1, walk:0, hold:0 }; a.state = 'idle'; a.update(0.016);
+  a.root.userData.plate.visible = false; if (a.root.userData.sparkles) a.root.userData.sparkles.visible = false;
+  pvScene.add(a.root); a.root.updateMatrixWorld(true);
+  const bx = new THREE.Box3().setFromObject(a.root.userData.rig), ctr = bx.getCenter(new V3()), sz = bx.getSize(new V3());
+  pvCam.position.set(ctr.x, ctr.y, ctr.z + Math.max(sz.y, sz.x * 0.9) * 1.9 + 1); pvCam.lookAt(ctr);
+  pvScene.overrideMaterial = sil ? silMat : null; pvR.render(pvScene, pvCam);
+  const url = pvR.domElement.toDataURL('image/png'); pvScene.remove(a.root); pvScene.overrideMaterial = null;
+  a.root.traverse(o => { if (o.material && o.material.isMeshPhongMaterial) o.material.dispose(); });
+  clearTimeout(pvTimer); pvTimer = setTimeout(() => { pvR.dispose(); pvR.forceContextLoss(); pvR = null; }, 4000);
+  return url;
+}
+function fillImg(img, c, variant, sil) { const k = `${sid(c)}|${sil ? 'S' : variant || 'N'}`; if (pvCache[k]) img.src = pvCache[k]; else idx.q.push({ img, c, variant, sil, k }); }
+function pumpQueue() {   // one preview per tick so the page never hitches
+  if (idx.busy || !idx.q.length) return; idx.busy = true;
+  setTimeout(() => { const j = idx.q.shift(); if (j) { pvCache[j.k] = pvRender(j.c, j.variant, j.sil); j.img.src = pvCache[j.k]; } idx.busy = false; pumpQueue(); }, 0);
+}
+function makeCard(c, tab) {
+  const id = sid(c), got = isUnlocked(id, tab), variant = tab === 'gold' ? 'GOLD' : tab === 'diamond' ? 'DIAMOND' : null, d = document.createElement('div'), img = document.createElement('img');
+  d.className = 'card ' + (got ? { normal:'n', gold:'g', diamond:'d' }[tab] : 'lock');
+  if (got) { fillImg(img, c, variant, false); d.appendChild(img);
+    const t = document.createElement('div'); t.innerHTML = `<b>${tc(c.name)}</b><br><span style="color:${RARITY_COLORS[c.rarity]};-webkit-text-stroke:2px #000;paint-order:stroke fill">${tc(c.rarity)}</span><br>Price ${formatMoney(c.price)}<br>Income ${formatMoney(c.income)}/s<br>Sells ${formatMoney(Math.floor(c.price * SELL_RATIO))}`; d.appendChild(t);
+    if (!save.seen[tab].includes(id)) { const b = document.createElement('span'); b.className = 'newb'; b.textContent = 'NEW'; d.appendChild(b); }
+    d.onclick = () => openDetail(c, variant, tab);
+  } else { fillImg(img, c, null, true); if (tab !== 'normal') img.style.filter = `drop-shadow(0 0 2px ${INDEX_TABS[tab].color})`;
+    const w = document.createElement('div'); w.style.position = 'relative'; w.appendChild(img); const q = document.createElement('span'); q.className = 'q'; q.textContent = '?'; w.appendChild(q); d.appendChild(w);
+    const n = document.createElement('b'); n.textContent = '???'; d.appendChild(n); }
+  return d;
+}
+function renderIndex() {   // built from SHOWRUNNERS: rarity order (RARITY_COLORS), then price within each rarity
+  const tab = idx.tab; idx.viewed.add(tab); idx.q.length = 0;
+  const tabs = $('idxTabs'); tabs.innerHTML = ''; let total = 0;
+  for (const t of Object.keys(INDEX_TABS)) { const n = save.index[t].length; total += n; const d = document.createElement('div');
+    d.className = 'tab ' + (t === 'gold' ? 'gold ' : t === 'diamond' ? 'dia ' : '') + (t === tab ? 'on' : ''); d.textContent = `${INDEX_TABS[t].label} ${n}/${SHOWRUNNERS.length}`; d.onclick = () => { idx.tab = t; renderIndex(); }; tabs.appendChild(d); }
+  $('idxFill').style.width = (save.index[tab].length / SHOWRUNNERS.length * 100) + '%'; $('idxFill').style.background = INDEX_TABS[tab].color;
+  const g = $('idxGrid'); g.innerHTML = '';
+  for (const rar of Object.keys(RARITY_COLORS)) { const list = SHOWRUNNERS.filter(c => c.rarity === rar).sort((a, b) => a.price - b.price); if (!list.length) continue;
+    const h = document.createElement('div'); h.className = 'idxH'; h.style.color = RARITY_COLORS[rar]; h.textContent = tc(rar); g.appendChild(h); list.forEach(c => g.appendChild(makeCard(c, tab))); }
+  setText($('idxTotal'), `Total discovered: ${total}/${SHOWRUNNERS.length * 3}`);
+  const sel = $('skinSel'); sel.innerHTML = ''; save.owned.forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = tc(k); sel.appendChild(o); }); sel.value = save.skin;
+  pumpQueue();
+}
+function openIndex() { renderIndex(); openUI($('idxBox')); }
+$('skinSel').onchange = e => setSkin(e.target.value);
+
+// Detail view: the only live 3D render; renderer, materials and canvas are disposed on close
+function openDetail(c, variant, tab) {
+  closeDetail(); $('idxBox').style.display = 'none'; $('idxDetail').style.display = 'block';
+  setText($('idxDName'), tc(c.name));
+  $('idxDStats').innerHTML = `<div style="color:${RARITY_COLORS[c.rarity]};-webkit-text-stroke:3px #000;paint-order:stroke fill;font-size:20px">${tc(c.rarity)}</div><div>Price ${formatMoney(c.price)} / Income ${formatMoney(c.income)}/s</div><div>Sells for ${formatMoney(Math.floor(c.price * SELL_RATIO))}</div><div>${INDEX_TABS[tab].label} version</div>`;
+  const cv = document.createElement('canvas'); cv.width = cv.height = 300; $('idxDHold').appendChild(cv);
+  const r = new THREE.WebGLRenderer({ canvas:cv, antialias:true, alpha:true }); r.setSize(300, 300, false); r.outputEncoding = THREE.sRGBEncoding; r.setClearColor(0, 0);
+  const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(30, 1, 0.1, 100), pv = new THREE.Group(); sc.add(new THREE.HemisphereLight(0xffffff, 0x8fae7a, 1.0));
+  const dl = new THREE.DirectionalLight(0xffffff, 0.9); dl.position.set(3, 6, 5); sc.add(dl);
+  const a = new Actor(c, variant); a.w = { idle:1, walk:0, hold:0 }; a.state = 'idle'; a.root.userData.plate.visible = false; pv.add(a.root); sc.add(pv); a.update(0.016); a.root.updateMatrixWorld(true);
+  const bx = new THREE.Box3().setFromObject(a.root.userData.rig), ctr = bx.getCenter(new V3()), sz = bx.getSize(new V3());
+  a.root.position.set(-ctr.x, 0, -ctr.z); cam.position.set(0, ctr.y, Math.max(sz.y, sz.x * 0.9) * 1.9 + 1); cam.lookAt(0, ctr.y, 0);
+  let last = performance.now(); dv = { r, raf:0, root:a.root };
+  const loop = () => { dv.raf = requestAnimationFrame(loop); const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now; a.update(dt); pv.rotation.y += dt * 0.8; r.render(sc, cam); };
+  loop();
+}
+function closeDetail() {
+  if (!dv) return; cancelAnimationFrame(dv.raf); dv.root.traverse(o => { if (o.material && o.material.isMeshPhongMaterial) o.material.dispose(); });
+  dv.r.dispose(); dv.r.forceContextLoss(); $('idxDHold').innerHTML = ''; dv = null; $('idxDetail').style.display = 'none';
+}
+$('idxDX').onclick = () => { closeDetail(); renderIndex(); $('idxBox').style.display = 'block'; };
+
+// Admin testing helpers
+$('admIdxReset').onclick = () => { for (const t of Object.keys(INDEX_TABS)) { save.index[t] = []; save.seen[t] = []; } persist(); updateDot(); };
+$('admIdxAll').onclick = () => { const t = $('admIdxTab').value, was = SHOWRUNNERS.every(c => isUnlocked(sid(c), t));
+  SHOWRUNNERS.forEach(c => { if (!isUnlocked(sid(c), t)) save.index[t].push(sid(c)); }); persist(); updateDot(); if (!was) completeTab(t); };
+updateDot();
+
+/* ===== Spin wheel ===== */
+const WHEEL_POS = new V3(26, 0, -CARPET_LEN / 2 - 6), wctx = $('wheelCv').getContext('2d');
+function drawWheel(ctx, S, R) {   // R = rotation in radians; pointer is at the top
+  const c = S / 2, seg = Math.PI * 2 / WHEEL_PRIZES.length; ctx.clearRect(0, 0, S, S);
+  WHEEL_PRIZES.forEach((p, i) => {
+    const a0 = -Math.PI / 2 + R + i * seg; ctx.beginPath(); ctx.moveTo(c, c); ctx.arc(c, c, c - S * 0.02, a0, a0 + seg); ctx.closePath();
+    if (p.skin) { const gd = ctx.createLinearGradient(0, 0, S, S), gl = p.skin === 'gold'; gd.addColorStop(0, gl ? '#FFC400' : '#8FE3FF'); gd.addColorStop(0.5, gl ? '#FFF3A0' : '#FFFFFF'); gd.addColorStop(1, gl ? '#FFB000' : '#9AD8FF'); ctx.fillStyle = gd; } else ctx.fillStyle = p.color;
+    ctx.fill(); ctx.lineWidth = S * 0.012; ctx.strokeStyle = '#000'; ctx.stroke();
+    ctx.save(); ctx.translate(c, c); ctx.rotate(a0 + seg / 2); ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; outlined(ctx, p.label, c - S * 0.07, 0, S * (p.skin ? 0.052 : 0.075), '#fff', '#000', S * 0.012); ctx.restore(); });
+  ctx.beginPath(); ctx.arc(c, c, S * 0.07, 0, Math.PI * 2); ctx.fillStyle = '#8FE3FF'; ctx.fill(); ctx.lineWidth = S * 0.012; ctx.strokeStyle = '#000'; ctx.stroke();
+  ctx.beginPath(); ctx.arc(c, c, c - S * 0.02, 0, Math.PI * 2); ctx.lineWidth = S * 0.025; ctx.strokeStyle = '#FFC400'; ctx.stroke();
+}
+const wheel3d = new THREE.Group();
+{ const wg = new THREE.Group(); wg.position.copy(WHEEL_POS); scene.add(wg);
+  box(4, 0.6, 2.4, lam(0x555a70), 0, 0.3, 0, wg); box(0.6, 3.6, 0.6, lam(0x555a70), 0, 2.2, -0.2, wg);
+  wheel3d.position.set(0, 4.2, 0.6); wg.add(wheel3d);
+  const tex = makeLabel(512, 512, c => drawWheel(c, 512, 0));
+  wheel3d.add(new THREE.Mesh(new THREE.CircleGeometry(2.6, 48), new THREE.MeshBasicMaterial({ map:tex, transparent:true, side:THREE.DoubleSide })));
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(2.65, 0.18, 12, 48), skinMats.gold); rim.position.z = 0.02; wheel3d.add(rim);
+  const hub = new THREE.Mesh(new THREE.SphereGeometry(0.4, 20, 14), skinMats.diamond); hub.position.z = 0.2; wheel3d.add(hub);
+  const ws = makeSign('SPIN WHEEL', '#ffe14a', 8); ws.position.set(0, 9.4, 0.4); wg.add(ws); }
+COLLIDERS.push({ x0:WHEEL_POS.x - 2.2, x1:WHEEL_POS.x + 2.2, z0:WHEEL_POS.z - 1.3, z1:WHEEL_POS.z + 1.3 });
+const spin = { on:false, t:0, dur:5, R:0, R0:0, Rf:0, prize:null, pending:null };
+const freeReady = () => Date.now() - save.freeSpinAt >= FREE_SPIN_COOLDOWN_HOURS * 3600000;
+const spinPrice = () => SPIN_BASE_PRICE + save.paidSpins * SPIN_PRICE_STEP;   // $1,000, $2,000, ... resets when the free spin refreshes
+function refreshSpinUI() {
+  const ready = freeReady(), s = Math.max(0, Math.ceil((save.freeSpinAt + FREE_SPIN_COOLDOWN_HOURS * 3600000 - Date.now()) / 1000)), p2 = n => String(n).padStart(2, '0');
+  setText($('spinFree'), ready ? 'FREE spin!' : `Next free spin in ${p2(Math.floor(s / 3600))}:${p2(Math.floor(s / 60) % 60)}:${p2(s % 60)}`);
+  $('spinFree').disabled = spin.on || !ready; setText($('spinBuy'), `Buy spin ($${spinPrice().toLocaleString('en-US')})`); $('spinBuy').disabled = spin.on;
+}
+function openSpin() { refreshSpinUI(); openUI($('spinBox')); }
+function startSpin() {   // pick the prize first (weighted), then spin 4-6 s with ease-out and land exactly on it
+  let r = Math.random() * WHEEL_PRIZES.reduce((s, p) => s + p.w, 0), i = 0;
+  for (; i < WHEEL_PRIZES.length - 1; i++) if ((r -= WHEEL_PRIZES[i].w) < 0) break;
+  const TAU = Math.PI * 2, seg = TAU / WHEEL_PRIZES.length, tgt = (((-(i + 0.5) * seg + (Math.random() - 0.5) * seg * 0.6) % TAU) + TAU) % TAU;
+  spin.R0 = spin.R % TAU; spin.Rf = spin.R0 + TAU * (5 + Math.floor(Math.random() * 4)) + (((tgt - spin.R0) % TAU) + TAU) % TAU;
+  spin.dur = 4 + Math.random() * 2; spin.t = 0; spin.on = true; spin.prize = WHEEL_PRIZES[i];
+  $('spinMsg').textContent = ''; $('spinEquip').style.display = 'none'; persist(); refreshSpinUI();
+}
+function finishSpin() {
+  spin.on = false; spin.R = spin.Rf; const p = spin.prize; let msg;
+  if (p.cash) { cash += p.cash; msg = 'You won ' + p.label + '!'; }
+  else if (save.owned.includes(p.skin)) { cash += DUPLICATE_BASE_CASH; msg = 'Duplicate! You got ' + fmt(DUPLICATE_BASE_CASH) + ' instead.'; }
+  else { save.owned.push(p.skin); spin.pending = p.skin; msg = p.label + ' unlocked!'; $('spinEquip').style.display = ''; }
+  updateHud(); persist(); const m = $('spinMsg'); m.style.color = '#0a0'; m.textContent = msg; if ($('spinBox').style.display !== 'block') banner(msg); refreshSpinUI();
+}
+$('spinFree').onclick = () => { if (spin.on || !freeReady()) return; save.freeSpinAt = Date.now(); wasReady = false; startSpin(); };
+$('spinBuy').onclick = () => { if (spin.on) return; const pr = spinPrice();
+  if (cash < pr) { const m = $('spinMsg'); m.style.color = '#e00'; m.textContent = 'Not enough cash!'; return; }
+  cash -= pr; save.paidSpins++; updateHud(); startSpin(); };
+$('spinEquip').onclick = () => { setSkin(spin.pending); $('spinEquip').style.display = 'none'; };
+$('spinX').onclick = $('idxX').onclick = closeUI;
+$('spinBtn').onclick = () => { document.activeElement.blur(); if (!uiOpen) openSpin(); };
+$('idxBtn').onclick = () => { document.activeElement.blur(); if (!uiOpen) openIndex(); };
+$('admReset').onclick = () => { save.freeSpinAt = 0; save.paidSpins = 0; wasReady = true; persist(); refreshSpinUI(); };   // testing helper
+
+/* ===== Fence: close it for 60 s x base level; only the owner (and their show runners) can pass ===== */
+const PLAYER_ENT = { owner:'player' };
+const canEnterBase = (entity, base) => !base.fence.closed || entity.owner === base.owner;   // future players / thieves are blocked while closed
+for (const b of bases) { const a = W(b, -0.4, 0, -4), c = W(b, 0.4, 0, 4);
+  COLLIDERS.push({ x0:Math.min(a.x, c.x), x1:Math.max(a.x, c.x), z0:Math.min(a.z, c.z), z1:Math.max(a.z, c.z), when:ent => b.fence.amt > 0.5 && !canEnterBase(ent || PLAYER_ENT, b) }); }
+const fenceCv = document.createElement('canvas'); fenceCv.width = 256; fenceCv.height = 128;
+const fenceTex = new THREE.CanvasTexture(fenceCv); fenceTex.encoding = THREE.sRGBEncoding; fenceTex.anisotropy = MAXANISO;
+const fenceSpr = new THREE.Sprite(new THREE.SpriteMaterial({ map:fenceTex, transparent:true, depthTest:false, depthWrite:false }));
+fenceSpr.scale.set(3, 1.5, 1); fenceSpr.position.copy(W(playerBase, -2.5, 4.4, 6)); fenceSpr.visible = false; fenceSpr.renderOrder = 10; scene.add(fenceSpr);
+function setFenceText(t) { const c = fenceCv.getContext('2d'); c.clearRect(0, 0, 256, 128); c.textAlign = 'center'; c.textBaseline = 'middle'; outlined(c, t, 128, 64, 72, '#ff7a7a', '#000', 12); fenceTex.needsUpdate = true; }   // redrawn only when the second changes
+function pressFence() {
+  const b = playerBase, now = Date.now();
+  if (b.fence.closed) return toast('Fence closed: ' + fmtMS(Math.ceil((b.fence.until - now) / 1000)) + ' left');
+  if (now < b.fence.cool) return toast('Fence cooling down', 1);
+  b.fence.until = now + FENCE_SECONDS_PER_LEVEL * (b.rebirth + 1) * 1000; b.fence.cool = b.fence.until + FENCE_COOLDOWN_SECONDS * 1000; toast('Fence closed!');
+}
+
+/* ===== Per-frame world updates ===== */
+function tickWorld(dt) {
+  luckTick();
+  worldT += dt; skinT.value = worldT; wheel3d.rotation.z -= dt * 0.25; shopTick(dt);
+  const low = $('quality').value === 'Low'; if (low !== skinLow) { skinLow = low; applySkin(save.skin); }
+  if (low && save.skin !== 'normal') lowMats[save.skin].emissiveIntensity = 0.8 + 0.25 * Math.sin(worldT * 1.5);
+  if (spin.on) { spin.t += dt; const x = Math.min(1, spin.t / spin.dur); spin.R = spin.R0 + (spin.Rf - spin.R0) * (1 - Math.pow(1 - x, 3)); if (x >= 1) finishSpin(); }
+  if ($('spinBox').style.display === 'block') { drawWheel(wctx, 680, spin.R); refreshSpinUI(); }
+  acc += dt;
+  if (acc >= 0.5) { acc = 0; const r = freeReady(); if (r && !wasReady) { save.paidSpins = 0; persist(); } wasReady = r; $('freeBadge').style.display = r ? '' : 'none'; }
+  const b = playerBase, f = b.fence, now = Date.now(), closed = now < f.until, tgt = closed ? 1 : 0;
+  f.closed = closed; f.amt += Math.sign(tgt - f.amt) * Math.min(Math.abs(tgt - f.amt), dt / 0.8);   // gate slides across smoothly
+  b.gate.visible = f.amt > 0.01; b.gate.scale.z = Math.max(0.001, f.amt); b.gate.material.opacity = 0.35 + 0.12 * Math.sin(worldT * 2);
+  if (closed) { const t = fmtMS(Math.ceil((f.until - now) / 1000)); if (t !== fenceTxt) { fenceTxt = t; setFenceText(t); setText($('fenceHud'), 'Fence closed: ' + t); } }
+  else if (fenceTxt) { fenceTxt = ''; setText($('fenceHud'), ''); }
+  fenceSpr.visible = closed; if (wasClosed && !closed) toast('Fence open'); wasClosed = closed;
+}
+wasReady = freeReady(); if (wasReady) save.paidSpins = 0;
+
+/* ===== THE SHOP: market stall on the left side of the carpet (middle of the map) with a shopkeeper ===== */
+const SHOP_POS = new V3(-8.3, 0, 20);
+GEO.t = new THREE.TorusGeometry(0.5, 0.06, 8, 24);   // rings for glasses / hoops
+const shop = new THREE.Group(); shop.position.copy(SHOP_POS); shop.rotation.y = Math.PI / 2; scene.add(shop);   // front faces the carpet
+let keeper, kAnim;   // created in initShop(): they need the player model code, which is defined further down
+{ const WD = 0x6b4a2b, DK = 0x4a3320, CL = 0xe9dcc0, MT = 0x777b80, RD = 0xc4442b, add = (...t) => gp(shop, t);
+  for (const [x, z, h] of [[-1.8, -1.2, 4.2], [1.8, -1.2, 4.2], [-1.8, 1.2, 4.6], [1.8, 1.2, 4.6]]) { add('b', 0.2, h, 0.2, DK, x, h / 2, z, 0.03); add('k', 0.3, 0.5, 0.3, MT, x, h + 0.2, z, 0.03); }   // posts + finials
+  add('b', 4.4, 0.12, 3.0, CL, 0, 4.4, 0, 0.04, -0.16);   // cloth awning
