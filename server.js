@@ -57,7 +57,7 @@ wss.on("connection",ws=>{
         if(room.mode!==mode)return fail(ws,"That invite code is for a different room type.");
       }else if(mode==="online"){
         room=[...rooms.values()].find(r=>r.mode==="online"&&r.public&&r.players.size<MAX_PLAYERS);
-        if(!room){const id=crypto.randomUUID();room={id,code:makeCode("online"),mode:"online",public:true,players:new Map(),runners:new Map()};rooms.set(id,room);}
+        if(!room){const id=crypto.randomUUID();room={id,code:makeCode("online"),mode:"online",public:true,players:new Map(),runners:new Map(),combatCooldowns:new Map()};rooms.set(id,room);}
       }else{
         const id=crypto.randomUUID();room={id,code:makeCode("solo"),mode:"solo",public:false,players:new Map(),runners:new Map()};rooms.set(id,room);
       }
@@ -80,6 +80,17 @@ wss.on("connection",ws=>{
       const n=v=>Number.isFinite(Number(v))?Math.max(-1000,Math.min(1000,Number(v))):0;
       player.x=n(msg.x);player.y=n(msg.y);player.z=n(msg.z);player.yaw=n(msg.yaw);
       broadcast(room,{type:"state",players:[{id:player.id,name:player.name,gender:player.gender,x:player.x,y:player.y,z:player.z,yaw:player.yaw,baseId:player.baseId}]},player.id);
+    }else if(msg.type==="combat"){
+      const target=room.players.get(String(msg.targetId||""));
+      if(!target||target.id===player.id)return fail(ws,"That player is no longer available.");
+      const power=msg.power==="freeze"?"freeze":msg.power==="punch"?"punch":null;if(!power)return;
+      const distance=Math.hypot(target.x-player.x,target.z-player.z);
+      const range=power==="freeze"?18:5.5;if(distance>range||Math.abs(target.y-player.y)>4)return fail(ws,"That player is too far away.");
+      const now=Date.now(),key=player.id+":"+power,previous=room.combatCooldowns.get(key)||0;if(now<previous)return;
+      room.combatCooldowns.set(key,now+(power==="freeze"?2000:650));
+      const level=Math.max(1,Math.min(power==="freeze"?3:10,Math.floor(Number(msg.level)||1)));
+      const duration=power==="freeze"?[3,6,9][level-1]:0;
+      broadcast(room,{type:"combat",power,targetId:target.id,attackerId:player.id,attackerName:player.name,x:player.x,y:player.y,z:player.z,level,duration},null);
     }else if(msg.type==="runner-walk"){
       const id=String(msg.runnerId||"");if(!id)return;
       const prev=room.runners.get(id);if(prev?prev.ownerId!==player.id:!id.startsWith(player.id+":"))return;
