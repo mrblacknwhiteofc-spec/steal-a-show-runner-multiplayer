@@ -1634,7 +1634,7 @@ function botAI(bot, dt, L) {
     if (Math.hypot(bot.post.x - p.x, bot.post.z - p.z) > 0.8) botStep(bot, bot.post.x, bot.post.z, dt, L.speed * 0.7); else bot.spd = 0;
     botGround(bot); bot.thinkT -= dt; if (bot.thinkT <= 0) { bot.thinkT = botRnd(L.think[0], L.think[1]); botDecide(bot, L); }
   } else if (st === 'buy') {
-    const t = bot.target, ok = t && (bot.snipe ? walkers.includes(t) && t.fresh && t.outside : runners.includes(t));
+    const t = bot.target, ok = t && (bot.snipe ? (walkers.includes(t) ? t.fresh && t.outside : bots.some(r=>r!==bot&&r.walkers.includes(t))) : runners.includes(t));
     bot.actT += dt; if (!ok || bot.actT > 14) { bot.state = 'post'; bot.buyAt = botT + 1; return; }
     const tp = t.root.position; botStep(bot, tp.x, tp.z + (bot.snipe ? 0 : 3), dt, L.speed); botGround(bot);
     if (Math.hypot(tp.x - p.x, tp.z - p.z) < BUY_BASE - 0.8) { botBuy(bot, t, bot.snipe); bot.state = 'post'; }
