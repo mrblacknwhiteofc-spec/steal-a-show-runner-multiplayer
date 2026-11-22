@@ -81,9 +81,9 @@ wss.on("connection",ws=>{
       player.x=n(msg.x);player.y=n(msg.y);player.z=n(msg.z);player.yaw=n(msg.yaw);
       broadcast(room,{type:"state",players:[{id:player.id,name:player.name,gender:player.gender,x:player.x,y:player.y,z:player.z,yaw:player.yaw,baseId:player.baseId}]},player.id);
     }else if(msg.type==="runner-walk"){
-      const id=String(msg.runnerId||"");if(!id||!id.startsWith(player.id+":"))return;
+      const id=String(msg.runnerId||"");if(!id)return;
+      const prev=room.runners.get(id);if(prev?prev.ownerId!==player.id:!id.startsWith(player.id+":"))return;
       const cfgId=String(msg.cfgId||"").slice(0,48);if(!cfgId)return;
-      const prev=room.runners.get(id);
       const runner={type:"runner-walk",runnerId:id,ownerId:player.id,ownerName:player.name,ownerBaseId:player.baseId,cfgId,
         variant:msg.variant==="GOLD"||msg.variant==="DIAMOND"?msg.variant:null,
         x:Number(msg.x)||0,y:Number(msg.y)||0,z:Number(msg.z)||0,yaw:Number(msg.yaw)||0};
@@ -91,8 +91,9 @@ wss.on("connection",ws=>{
     }else if(msg.type==="runner-snipe"){
       const id=String(msg.runnerId||""),runner=room.runners.get(id);
       if(!runner||runner.ownerId===player.id)return fail(ws,"That Show Runner is no longer available.");
+      const previousOwnerId=runner.ownerId,previousOwnerName=runner.ownerName;
       runner.ownerId=player.id;runner.ownerName=player.name;runner.ownerBaseId=player.baseId;
-      broadcast(room,{type:"runner-snipe",runnerId:id,ownerId:runner.ownerId===player.id?undefined:runner.ownerId,buyerId:player.id,buyerName:player.name,ownerName:player.name,cfgId:runner.cfgId,variant:runner.variant,x:runner.x,y:runner.y,z:runner.z});
+      broadcast(room,{type:"runner-snipe",runnerId:id,ownerId:previousOwnerId,buyerId:player.id,buyerName:player.name,ownerName:previousOwnerName,cfgId:runner.cfgId,variant:runner.variant,x:runner.x,y:runner.y,z:runner.z});
     }else if(msg.type==="runner-end"){
       const id=String(msg.runnerId||""),runner=room.runners.get(id);
       if(runner&&runner.ownerId===player.id){room.runners.delete(id);broadcast(room,{type:"runner-end",runnerId:id});}
