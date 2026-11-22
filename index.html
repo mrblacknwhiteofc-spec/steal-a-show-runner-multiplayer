@@ -2028,7 +2028,9 @@ function resetBaseToZero(base){
   base.rebirth=0;setRebirth(base,0,false);
 }
 function removeBotAtBase(baseId){
-  let index=bots.findIndex(b=>b.base&&b.base.id===Number(baseId));if(index<0)index=bots.length-1;if(index<0)return;
+  // Only remove the bot whose base was claimed by this player. Never remove
+  // an unrelated bot when a room has fewer bots than available bases.
+  const index=bots.findIndex(b=>b.base&&b.base.id===Number(baseId));if(index<0)return;
   const bot=bots.splice(index,1)[0],base=bot.base;
   for(const a of [...(bot.earners||[]),...(bot.walkers||[]),...(bot.carry?[bot.carry]:[])]){
     if(a.root)scene.remove(a.root);actors.delete(a);
