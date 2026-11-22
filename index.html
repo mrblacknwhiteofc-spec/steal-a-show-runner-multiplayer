@@ -1955,7 +1955,7 @@ function startServer(mode, code) {
   if (serverOn) return;
   server.mode = mode; server.code = code || makeCode(mode);
   if (mode === 'online' && code) { const real = Math.random; Math.random = seededRandom(server.code); try { botLobby(); } finally { Math.random = real; } }   // same code = same lobby
-  restoreProgress(); serverOn = true; started = true; passOnStart(); $('menu').style.display = 'none'; sfx('start');
+  serverOn = true; started = true; $('menu').style.display = 'none'; sfx('start');
   $('inviteCode').textContent = server.code; $('inviteInfo').textContent = (mode === 'solo' ? 'Solo server' : 'Public online server') + ' - friends can join with this code from the main menu.';
   toast('Connecting online... WASD move - E interact - B invite code', false, 4500);
   connectMultiplayer(mode, code || '');
@@ -1970,12 +1970,77 @@ $('inviteCopy').onclick = () => { try { navigator.clipboard.writeText(server.cod
 const MULTIPLAYER_SERVER = 'wss://steal-a-show-runner-multiplayer.onrender.com';
 let netSocket=null, netPlayerId=null, netSendClock=0;
 const remotePlayers=new Map();
-function removeOneBotForPlayer(){const bot=bots.pop();if(!bot)return;if(bot.base&&bot.base.group)bot.base.group.visible=false;if(bot.root)bot.root.visible=false;for(const a of [...(bot.earners||[]),...(bot.walkers||[])])if(a.root)a.root.visible=false;if(bot.carry&&bot.carry.root)bot.carry.root.visible=false;}
-function addRemotePlayer(data){if(!data||!data.id||data.id===netPlayerId)return;let rp=remotePlayers.get(data.id);if(!rp){const root=createPlayerModel(data.gender==='female'?'female':'male');root.position.set(Number(data.x)||0,Number(data.y)||0,Number(data.z)||0);root.rotation.y=Number(data.yaw)||0;scene.add(root);const tex=makeLabel(512,128,c=>outlined(c,data.name||'Player',256,64,58,'#ffffff','#000000',12));const tag=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false}));tag.scale.set(4.2,1.05,1);tag.position.y=3.45;tag.renderOrder=11;root.add(tag);rp={root,tag,target:{x:Number(data.x)||0,y:Number(data.y)||0,z:Number(data.z)||0,yaw:Number(data.yaw)||0}};remotePlayers.set(data.id,rp);}else{rp.target.x=Number(data.x)||0;rp.target.y=Number(data.y)||0;rp.target.z=Number(data.z)||0;rp.target.yaw=Number(data.yaw)||0;}}
+const remoteBaseActors=new Map();
+let netBaseClock=0,netBaseSignature='';
+function setBaseOwnerLabel(base,label,local){
+  if(base.sign)base.group.remove(base.sign);
+  const txt=label||'Empty Base',color=local?'#ffe14a':'#ffffff',size=local?18:Math.min(150,Math.floor(980/(txt.length*0.62)));
+  const sign=makeSign(txt,color,size);sign.position.set(PAD_W/2,17,0);sign.rotation.y=-Math.PI/2;base.group.add(sign);base.sign=sign;base.owner=label||null;
+}
+function removeBotAtBase(baseId){
+  const index=bots.findIndex(b=>b.base&&b.base.id===Number(baseId));if(index<0)return;
+  const bot=bots.splice(index,1)[0],base=bot.base;
+  for(const a of [...(bot.earners||[]),...(bot.walkers||[]),...(bot.carry?[bot.carry]:[])]){
+    if(a.root)scene.remove(a.root);actors.delete(a);
+  }
+  if(bot.root)scene.remove(bot.root);
+  if(bot.label){scene.remove(bot.label);if(bot.label.material){if(bot.label.material.map)bot.label.material.map.dispose();bot.label.material.dispose();}}
+  for(const slot of base.slots){slot.occupied=false;slot.occupant=null;}
+  base.group.visible=true;setBaseOwnerLabel(base,'Empty Base',false);
+}
+function clearRemoteBase(ownerId,baseId){
+  const list=remoteBaseActors.get(ownerId)||[];
+  for(const a of list){if(a.root)scene.remove(a.root);actors.delete(a);}
+  remoteBaseActors.delete(ownerId);
+  const base=bases[Number(baseId)];if(base)for(const slot of base.slots){if(slot.occupant&&slot.occupant.remoteOwner===ownerId){slot.occupied=false;slot.occupant=null;}}
+}
+function applyRemoteBaseState(data){
+  if(!data||!data.id||data.id===netPlayerId||!Number.isInteger(Number(data.baseId)))return;
+  const base=bases[Number(data.baseId)];if(!base)return;
+  removeBotAtBase(base.id);clearRemoteBase(data.id,base.id);base.group.visible=true;
+  setBaseOwnerLabel(base,(data.name||'Player')+"'s Base",false);
+  const rebirth=Math.max(0,Math.min(REBIRTHS.length-1,Number(data.rebirth)||0));setRebirth(base,rebirth,false);
+  const made=[];
+  for(const r of (Array.isArray(data.runners)?data.runners:[])){
+    const cfg=ALL_RUNNERS.find(c=>sid(c)===r.id),slot=base.slots[Number(r.s)];
+    if(!cfg||!slot||!slot.unlocked||slot.occupied)continue;
+    let a;try{a=new Actor(cfg,r.v==='GOLD'||r.v==='DIAMOND'?r.v:null);}catch(e){continue;}
+    a.root.position.copy(W(base,slot.u,slot.y,slot.v));a.yaw=a.yawT=-base.side*Math.PI/2;a.root.rotation.y=a.yaw;a.state='idle';a.w.idle=1;a.w.walk=0;
+    a.slot=slot;a.remoteOwner=data.id;slot.occupied=true;slot.occupant=a;scene.add(a.root);actors.add(a);made.push(a);
+  }
+  remoteBaseActors.set(data.id,made);
+}
+function syncMyBase(){
+  if(!netSocket||netSocket.readyState!==WebSocket.OPEN||!netPlayerId)return;
+  const runners=playerBase.slots.map((slot,s)=>slot.occupied&&slot.occupant&&slot.occupant.cfg?{id:sid(slot.occupant.cfg),v:slot.occupant.variant||null,s}:null).filter(Boolean);
+  const payload={type:'base-state',rebirth:playerBase.rebirth,runners};
+  const signature=JSON.stringify(payload);if(signature===netBaseSignature)return;netBaseSignature=signature;
+  netSocket.send(JSON.stringify(payload));
+}
+function addRemotePlayer(data){if(!data||!data.id||data.id===netPlayerId)return;let rp=remotePlayers.get(data.id);if(!rp){const root=createPlayerModel(data.gender==='female'?'female':'male');root.position.set(Number(data.x)||0,Number(data.y)||0,Number(data.z)||0);root.rotation.y=Number(data.yaw)||0;scene.add(root);const tex=makeLabel(512,128,c=>outlined(c,data.name||'Player',256,64,58,'#ffffff','#000000',12));const tag=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false}));tag.scale.set(4.2,1.05,1);tag.position.y=3.45;tag.renderOrder=11;root.add(tag);rp={root,tag,baseId:data.baseId,target:{x:Number(data.x)||0,y:Number(data.y)||0,z:Number(data.z)||0,yaw:Number(data.yaw)||0}};remotePlayers.set(data.id,rp);}else{rp.target.x=Number(data.x)||0;rp.target.y=Number(data.y)||0;rp.target.z=Number(data.z)||0;rp.target.yaw=Number(data.yaw)||0;}}
 function removeRemotePlayer(id){const rp=remotePlayers.get(id);if(!rp)return;scene.remove(rp.root);if(rp.tag&&rp.tag.material.map)rp.tag.material.map.dispose();if(rp.tag)rp.tag.material.dispose();remotePlayers.delete(id);}
-function netMessage(msg){if(msg.type==='joined'){netPlayerId=msg.id;server.code=msg.code||server.code;$('inviteCode').textContent=server.code;$('inviteInfo').textContent=(server.mode==='solo'?'Private solo room':'Public online room')+' - share this code with friends.';if(server.mode==='online'&&bots.length===0){const real=Math.random;Math.random=seededRandom(server.code);try{botLobby();}finally{Math.random=real;}}(msg.players||[]).forEach(addRemotePlayer);for(let i=0;i<(msg.players||[]).length;i++)removeOneBotForPlayer();toast('Connected! Invite code: '+server.code,false,4500);}else if(msg.type==='player-joined'){addRemotePlayer(msg.player);removeOneBotForPlayer();toast((msg.player&&msg.player.name||'A player')+' joined!',false,3000);}else if(msg.type==='player-left'){removeRemotePlayer(msg.id);toast((msg.name||'A player')+' left.',false,2500);}else if(msg.type==='state'){(msg.players||[]).forEach(addRemotePlayer);}else if(msg.type==='error'){$('joinErr').textContent=msg.message||'Could not join the online room.';toast(msg.message||'Multiplayer connection error.',true,5000);}}
+function netMessage(msg){
+ if(msg.type==='joined'){
+  netPlayerId=msg.id;server.code=msg.code||server.code;$('inviteCode').textContent=server.code;$('inviteInfo').textContent=(server.mode==='solo'?'Private solo room':'Public online room')+' - share this code with friends.';
+  playerBase=bases[Number(msg.baseId)]||playerBase;player.position.copy(W(playerBase,-3,0,8));camYaw=playerBase.side>0?-Math.PI/2:Math.PI/2;netBaseSignature='';
+  for(const b of bases)setBaseOwnerLabel(b,'Empty Base',false);
+  setBaseOwnerLabel(playerBase,'YOUR BASE',true);
+  if(server.mode==='online'&&bots.length===0){const real=Math.random;Math.random=seededRandom(server.code);try{botLobby();}finally{Math.random=real;}}
+  removeBotAtBase(playerBase.id);
+  (msg.players||[]).forEach(p=>{addRemotePlayer(p);removeBotAtBase(p.baseId);applyRemoteBaseState(p);if(p.baseId!==undefined)setBaseOwnerLabel(bases[p.baseId],(p.name||'Player')+"'s Base",false);});
+  restoreProgress();passOnStart();syncMyBase();toast('Connected! Invite code: '+server.code,false,4500);
+ }else if(msg.type==='player-joined'){
+  const p=msg.player;addRemotePlayer(p);removeBotAtBase(p&&p.baseId);if(p&&p.baseId!==undefined){setBaseOwnerLabel(bases[p.baseId],(p.name||'Player')+"'s Base",false);applyRemoteBaseState(p);}toast((p&&p.name||'A player')+' joined!',false,3000);
+ }else if(msg.type==='player-left'){
+  const old=remotePlayers.get(msg.id);removeRemotePlayer(msg.id);if(old&&old.baseId!==undefined)clearRemoteBase(msg.id,old.baseId);
+  const pBase=Number(msg.baseId);if(Number.isInteger(pBase)&&bases[pBase])setBaseOwnerLabel(bases[pBase],'Empty Base',false);
+  toast((msg.name||'A player')+' left.',false,2500);
+ }else if(msg.type==='base-state'){applyRemoteBaseState(msg.player);}
+ else if(msg.type==='state'){(msg.players||[]).forEach(addRemotePlayer);}
+ else if(msg.type==='error'){$('joinErr').textContent=msg.message||'Could not join the online room.';toast(msg.message||'Multiplayer connection error.',true,5000);}
+}
 function connectMultiplayer(mode,inviteCode){try{netSocket=new WebSocket(MULTIPLAYER_SERVER);netSocket.addEventListener('open',()=>{const displayName=curUser&&accounts[curUser]?accounts[curUser].name:'Guest';netSocket.send(JSON.stringify({type:'join',mode,code:inviteCode,name:displayName,gender}));});netSocket.addEventListener('message',e=>{try{netMessage(JSON.parse(e.data));}catch(err){console.warn('Bad multiplayer message',err);}});netSocket.addEventListener('close',()=>{if(serverOn)toast('Disconnected from multiplayer server.',true,4500);});netSocket.addEventListener('error',()=>toast('Could not connect to multiplayer. Check your connection.',true,4500));}catch(err){toast('Your browser could not start multiplayer.',true,4500);}}
-function multiplayerTick(dt){if(netSocket&&netSocket.readyState===WebSocket.OPEN&&netPlayerId){netSendClock+=dt;if(netSendClock>=0.08){netSendClock=0;netSocket.send(JSON.stringify({type:'move',x:player.position.x,y:player.position.y,z:player.position.z,yaw:pYaw}));}}for(const rp of remotePlayers.values()){const k=1-Math.exp(-12*dt),t=rp.target;rp.root.position.x+=(t.x-rp.root.position.x)*k;rp.root.position.y+=(t.y-rp.root.position.y)*k;rp.root.position.z+=(t.z-rp.root.position.z)*k;let dy=((t.yaw-rp.root.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;rp.root.rotation.y+=dy*k;}}
+function multiplayerTick(dt){if(netSocket&&netSocket.readyState===WebSocket.OPEN&&netPlayerId){netSendClock+=dt;netBaseClock+=dt;if(netSendClock>=0.08){netSendClock=0;netSocket.send(JSON.stringify({type:'move',x:player.position.x,y:player.position.y,z:player.position.z,yaw:pYaw}));}if(netBaseClock>=0.35){netBaseClock=0;syncMyBase();}}for(const rp of remotePlayers.values()){const k=1-Math.exp(-12*dt),t=rp.target;rp.root.position.x+=(t.x-rp.root.position.x)*k;rp.root.position.y+=(t.y-rp.root.position.y)*k;rp.root.position.z+=(t.z-rp.root.position.z)*k;let dy=((t.yaw-rp.root.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;rp.root.rotation.y+=dy*k;}}
 window.addEventListener('beforeunload',()=>{try{if(netSocket)netSocket.close();}catch(e){}});
 
 /* ---- accounts: username + password, stored in this browser (there is no game server). Sign in again any time to get your progress back. ---- */
