@@ -1188,7 +1188,7 @@ setGender('male'); $('charBtn').onclick = e => { toggleGender(); e.target.blur()
 function pickUp(a) {
   earners.splice(earners.indexOf(a), 1); totalIncome -= a.income;   // stops earning immediately
   a.slot.occupied = false; a.slot.occupant = null; a.origSlot = a.slot; a.slot = null; a.incomeT = 0;
-  held = a; a.state = 'hold'; a.root.scale.setScalar(0.55); a.root.userData.plate.visible = false; updateHud();
+  held = a; a.state = 'hold'; a.root.scale.setScalar(0.55); a.root.userData.plate.visible = false; bot.aggroPlayer = true; bot.chaseT = 0; updateHud();
 }
 function sendTo(a, slot) {   // walk to a platform, then idle and earn (handled by the walkers loop)
   slot.occupied = true; slot.occupant = a; a.slot = slot; a.route = [W(playerBase, slot.u, slot.y, slot.v)]; a.state = 'walk'; beginSeg(a); walkers.push(a);
@@ -1412,7 +1412,7 @@ function botCreate(base, level, name) {
   setRebirth(base, botPickW(L.rebirths), false);
   const side = base.side, bot = { id:'bot' + base.id, owner:'bot' + base.id, pathT:0, trapT:0, stuckT:0, lastPos:new V3(), lastT:0, name, level, base, female, model, root, pos:root.position, anim:new PlayerAnim(), yaw:0, yawT:-side * Math.PI / 2, spd:0,
     cash:Math.round(botRnd(L.cash[0], L.cash[1])), income:0, earners:[], walkers:[], state:'post', path:null, seg:null, target:null, snipe:false, carry:null, victim:null,
-    stunT:0, reactT:0, chaseT:0, actT:0, wanderT:botRnd(3, 8), thinkT:botRnd(0.5, 2), threat:false, label:null,
+    stunT:0, reactT:0, chaseT:0, actT:0, aggroPlayer:false, enemyBot:null, attackAt:0, rivalAt:botT+botRnd(45,100), wanderT:botRnd(3, 8), thinkT:botRnd(0.5, 2), threat:false, label:null,
     post:new V3(side * botRnd(5.5, 8), 0, base.z + botRnd(-10, 10)), buyAt:botT + botRnd(2, 6), stealAt:botT + botRnd(L.steal[0] * 0.6, L.steal[1]),
     levelUpAt:L.up && Math.random() > 0.15 ? botT + botRnd(L.up[0], L.up[1]) : Infinity };
   bot.yaw = bot.yawT; bot.pos.copy(bot.post); base.owner = bot.id;
@@ -1471,14 +1471,21 @@ function botPickTarget(bot, L) {   // best show runner on the carpet (or one you
   for (const a of runners) { const dz = a.root.position.z - bot.pos.z; if (dz > -20 && dz < 65 && a.root.position.z < CARPET_LEN / 2 - 12) consider(a, false); }
   for (const a of walkers) if (a.fresh && a.outside && Math.abs(a.root.position.z - bot.pos.z) < 60) {   // a runner you just bought, still on its way to your base
     a.rolled = a.rolled || {}; if (a.rolled[bot.id] === undefined) a.rolled[bot.id] = Math.random() < L.snipe; if (a.rolled[bot.id]) consider(a, true); }
+  // Bots can snipe another bot's runner while it is walking to its platform.
+  for (const rival of bots) if (rival !== bot) for (const a of rival.walkers) if (Math.abs(a.root.position.z - bot.pos.z) < 60 && Math.random() < L.snipe * 0.12) consider(a, true);
   return best;
 }
 function botBuy(bot, a, snipe) {
   const L = BOT_CFG[bot.level]; if (bot.cash < a.cfg.price) return false;
   let slot = bot.base.slots.find(s => s.unlocked && !s.occupied);
   if (!slot || botOwned(bot) >= L.cap) { const w = botWorst(bot); if (!w || w.cfg.price * 2 > a.cfg.price) return false; slot = botSell(bot, w); }
-  if (snipe) { const i = walkers.indexOf(a); if (i < 0 || !a.fresh) return false; if(a.netRunnerId)sendRunnerEnd(a.netRunnerId); walkers.splice(i, 1); if (a.slot) { a.slot.occupied = false; a.slot.occupant = null; } toast(bot.name + ' sniped your ' + a.cfg.name + '!', true, 3200); }
-  else { const i = runners.indexOf(a); if (i < 0) return false; runners.splice(i, 1); }
+  if (snipe) {
+    const i = walkers.indexOf(a), rival = bots.find(x => x !== bot && x.walkers.includes(a));
+    if (i >= 0) { if (!a.fresh) return false; if(a.netRunnerId)sendRunnerEnd(a.netRunnerId); walkers.splice(i, 1); bot.aggroPlayer = true; toast(bot.name + ' sniped your ' + a.cfg.name + '!', true, 3200); }
+    else if (rival) { rival.walkers.splice(rival.walkers.indexOf(a), 1); if (a.slot) { a.slot.occupied = false; a.slot.occupant = null; } rival.enemyBot = bot; rival.state = 'huntBot'; rival.chaseT = 0; bot.enemyBot = rival; toast(bot.name + ' sniped ' + rival.name + "'s " + a.cfg.name + '!', true, 3000); }
+    else return false;
+    if (a.slot) { a.slot.occupied = false; a.slot.occupant = null; }
+  } else { const i = runners.indexOf(a); if (i < 0) return false; runners.splice(i, 1); }
   bot.cash -= a.cfg.price; a.fresh = false; a.outside = false; a.claim = null; a.botOwned = bot; a.far = false;
   slot.occupied = true; slot.occupant = a; a.slot = slot; a.route = buildRoute(bot.base, slot); beginSeg(a); a.state = 'walk'; bot.walkers.push(a);
   bot.buyAt = botT + botRnd(BOT_CFG[bot.level].buyCD[0], BOT_CFG[bot.level].buyCD[1]); return true;
@@ -1598,14 +1605,26 @@ function botDecide(bot, L) {
   const lu = b.side * pl.x - 12, lv = b.side * (pl.z - b.z), inside = lu > -1 && lu < 31 && Math.abs(lv) < 19;
   if (dist > 42) bot.threat = false;   // defend: smarter bots shut the fence when you walk up (never while you are inside it)
   else if (dist < 28 && !bot.threat && !inside) { bot.threat = true; if (bot.earners.length && now >= f.until && now >= f.cool && Math.random() < L.fence) { bot.state = 'fence'; bot.actT = 0; return; } }
+  if (botT >= bot.rivalAt) { // occasionally start a rivalry by targeting a rival bot's walkers
+    bot.rivalAt=botT+botRnd(55,115); const rivals=bots.filter(x=>x!==bot&&x.walkers.length);
+    if (rivals.length && Math.random()<0.35) { const rival=botPick(rivals), a=botPick(rival.walkers); bot.target=a; bot.snipe=true; bot.state='buy'; bot.actT=0; }
+  }
   if (botT >= bot.stealAt) {   // steal from you
     if (botT >= botStealNext && earners.length && now >= playerBase.fence.until && Math.random() < L.stealOn && botPlanSteal(bot)) { bot.stealAt = botT + botRnd(L.steal[0], L.steal[1]); botStealNext = botT + 20; return; }
     bot.stealAt = botT + 12;
   }
   if (botT >= bot.buyAt) { const t = botPickTarget(bot, L); if (t) { bot.target = t.a; bot.snipe = t.snipe; bot.state = 'buy'; bot.actT = 0; if (!t.snipe) t.a.claim = bot; } else bot.buyAt = botT + 1; }
 }
+function botHitPlayer(bot) {
+  bot.attackAt = botT + 1.8; const dx=player.position.x-bot.pos.x,dz=player.position.z-bot.pos.z,d=Math.hypot(dx,dz)||1;
+  pvx += dx/d*11; pvz += dz/d*11; playerFrozenUntil=Math.max(playerFrozenUntil,Date.now()+550);
+  burst(player.position.x,player.position.y+1.2,player.position.z,FIRE_COLS); sfx('hit');
+  if (held && held.stolenFrom===bot) botRetake(bot); else toast(bot.name+' hit you! Get away!',true,1800);
+}
 function botAI(bot, dt, L) {
-  const p = bot.pos, pl = player.position, st = bot.state;
+  const p = bot.pos, pl = player.position;
+  if (bot.aggroPlayer && bot.state!=='huntPlayer' && bot.state!=='chase') { bot.state='huntPlayer'; bot.chaseT=0; bot.path=null; bot.pathT=0; }
+  const st = bot.state;
   if (st === 'post' || st === 'buy' || st === 'fence' || st === 'return') {   // you stole from this bot: react (Lv1 slow, Lv3 instant)
     if (held && held.stolenFrom === bot) { bot.reactT += dt; if (bot.reactT >= L.react) { bot.state = 'chase'; bot.chaseT = 0; bot.path = null; bot.pathT = 0; bot.reactT = 0; return; } } else bot.reactT = 0;
   }
@@ -1636,7 +1655,15 @@ function botAI(bot, dt, L) {
     if (bot.level === 3 && !botBaseAt(pl.x, pl.z)) { const g = W(playerBase, -1.5, 0, 0), dg = Math.hypot(g.x - pl.x, g.z - pl.z); if (dg < 70 && Math.hypot(g.x - p.x, g.z - p.z) < dg * 1.3 && Math.hypot(pl.x - p.x, pl.z - p.z) > 8) { tx = g.x; ty = 0.06; tz = g.z; } }   // smart: if you're heading home, cut you off at your own base
     bot.pathT -= dt; if (bot.pathT <= 0 || !bot.path || !bot.path.length) { bot.pathT = 0.4; bot.path = botPathTo(bot, tx, ty, tz); bot.seg = null; }
     botFollow(bot, dt, L.speed);
-    if (Math.hypot(pl.x - p.x, pl.z - p.z) < 2.6 && Math.abs(pl.y - p.y) < 3) botRetake(bot);
+    if (Math.hypot(pl.x - p.x, pl.z - p.z) < 2.6 && Math.abs(pl.y - p.y) < 3) { botHitPlayer(bot); if (held && held.stolenFrom === bot) botRetake(bot); }
+  } else if (st === 'huntPlayer') {
+    bot.chaseT += dt; if (!bot.aggroPlayer || bot.chaseT > L.chase) { bot.aggroPlayer = false; bot.state = 'post'; return; }
+    bot.pathT -= dt; if (bot.pathT <= 0 || !bot.path || !bot.path.length) { bot.pathT = 0.35; bot.path = botPathTo(bot, pl.x, pl.y, pl.z); bot.seg = null; }
+    botFollow(bot, dt, L.speed); if (Math.hypot(pl.x-p.x,pl.z-p.z)<2.5 && Math.abs(pl.y-p.y)<3 && botT>=bot.attackAt) botHitPlayer(bot);
+  } else if (st === 'huntBot') {
+    const rival=bot.enemyBot; bot.chaseT += dt; if (!rival || rival.rag || bot.chaseT > L.chase) { bot.enemyBot=null; bot.state='post'; return; }
+    bot.pathT -= dt; if (bot.pathT<=0 || !bot.path || !bot.path.length) { bot.pathT=0.4; bot.path=botPathTo(bot,rival.pos.x,rival.pos.y,rival.pos.z); bot.seg=null; }
+    botFollow(bot,dt,L.speed); if (Math.hypot(rival.pos.x-p.x,rival.pos.z-p.z)<2.5 && Math.abs(rival.pos.y-p.y)<3 && botT>=bot.attackAt) { botRagdoll(rival,p.x-rival.pos.x,p.z-rival.pos.z,4); bot.enemyBot=null; rival.enemyBot=null; bot.state='post'; }
   }
 }
 function botRespawn(bot) {   // trapped in somebody's closed base (or stuck): back to its own base, like pressing R
