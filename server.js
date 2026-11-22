@@ -59,7 +59,7 @@ wss.on("connection",ws=>{
         room=[...rooms.values()].find(r=>r.mode==="online"&&r.public&&r.players.size<MAX_PLAYERS);
         if(!room){const id=crypto.randomUUID();room={id,code:makeCode("online"),mode:"online",public:true,players:new Map(),runners:new Map(),combatCooldowns:new Map()};rooms.set(id,room);}
       }else{
-        const id=crypto.randomUUID();room={id,code:makeCode("solo"),mode:"solo",public:false,players:new Map(),runners:new Map()};rooms.set(id,room);
+        const id=crypto.randomUUID();room={id,code:makeCode("solo"),mode:"solo",public:false,players:new Map(),runners:new Map(),combatCooldowns:new Map()};rooms.set(id,room);
       }
       if(room.players.size>=MAX_PLAYERS)return fail(ws,"This room is full (8/8).");
       const used=new Set([...room.players.values()].map(p=>p.baseId));
