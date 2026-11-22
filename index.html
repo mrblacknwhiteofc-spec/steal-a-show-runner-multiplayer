@@ -2047,7 +2047,7 @@ function handleRunnerSnipe(msg){
   removeRemoteRunner(msg.runnerId);
   if(!a)return;
   const slot=playerBase.slots.find(s=>s.unlocked&&!s.occupied);if(!slot){scene.remove(a.root);actors.delete(a);return;}
-  cash-=a.cfg.price;updateHud();passXP(10,a,'xpBuy');a.netRunnerId=msg.runnerId;a.remoteRunnerId=null;a.remoteOwnerId=null;a.snipePending=false;a.fresh=true;a.outside=true;
+  scene.add(a.root);actors.add(a);cash-=a.cfg.price;updateHud();passXP(10,a,'xpBuy');a.netRunnerId=msg.runnerId;a.remoteRunnerId=null;a.remoteOwnerId=null;a.snipePending=false;a.fresh=true;a.outside=true;
   slot.occupied=true;slot.occupant=a;a.slot=slot;a.route=buildRoute(playerBase,slot);beginSeg(a);a.state='walk';walkers.push(a);syncMyBase();toast('You bought '+a.cfg.name+' from '+msg.ownerName+'!',false,3000);return;
  }
  removeRemoteRunner(msg.runnerId);
