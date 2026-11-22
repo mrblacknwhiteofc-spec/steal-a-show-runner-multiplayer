@@ -1772,16 +1772,20 @@ function addFist(model) {   // flames on the right hand: small while Punch is eq
 }
 const punchSt = { t:-1, hit:false, cd:0 }, fireFx = [];
 function nearestBot(range, noFrozen) { const pp = player.position; let best = null, bd = range; for (const bot of bots) { if (bot.rag || (noFrozen && bot.frozenT > 0)) continue; const d = Math.hypot(bot.pos.x - pp.x, bot.pos.z - pp.z); if (d < bd && Math.abs(bot.pos.y - pp.y) < 3) { bd = d; best = bot; } } return best; }
+let playerFrozenUntil=0;
+function nearestCombatTarget(range,noFrozen){const b=nearestBot(range,noFrozen),r=nearestRemote(range);if(b&&(!r||Math.hypot(b.pos.x-player.position.x,b.pos.z-player.position.z)<=r.d))return {kind:'bot',bot:b};return r?{kind:'player',...r}:null;}
+
 function tryPunch() {   // F
   if (!save.weapons.includes('punch')) return toast('Buy Punch in the shop (Powers tab) first!', true);
   if (equipped !== 'punch') { const n = save.hotbar.indexOf('punch') + 1; return toast(n ? 'Press ' + n + ' to equip Punch!' : 'Open your inventory (I) and put Punch on your hotbar!', true); }
   if (punchSt.cd > 0 || punchSt.t >= 0) return;
   punchSt.t = 0; punchSt.hit = false; punchSt.cd = Math.max(0.45, 1.0 - 0.055 * punchLv()); pAnim.pt = 0.3;
-  const b = nearestBot(3.6 + 0.2 * punchLv() + 1); if (b) { pYaw = Math.atan2(b.pos.x - player.position.x, b.pos.z - player.position.z); player.rotation.y = pYaw; }   // turns to face the closest enemy
+  const t=nearestCombatTarget(3.6+0.2*punchLv()+1,false);if(t){const q=t.kind==='bot'?t.bot.pos:t.rp.target;pYaw=Math.atan2(q.x-player.position.x,q.z-player.position.z);player.rotation.y=pYaw;} // face nearest bot or player
 }
 function punchHit() {
-  const b = nearestBot(3.6 + 0.2 * punchLv() + 0.6); if (!b) return;
-  const dx = b.pos.x - player.position.x, dz = b.pos.z - player.position.z; botRagdoll(b, dx, dz, punchThrow(punchLv())); burst(b.pos.x, b.pos.y + 1.4, b.pos.z, FIRE_COLS); sfx('hit');
+  const t=nearestCombatTarget(3.6+0.2*punchLv()+0.6,false);if(!t)return;
+  if(t.kind==='bot'){const b=t.bot,dx=b.pos.x-player.position.x,dz=b.pos.z-player.position.z;botRagdoll(b,dx,dz,punchThrow(punchLv()));burst(b.pos.x,b.pos.y+1.4,b.pos.z,FIRE_COLS);sfx('hit');}
+  else {if(!sendCombat('punch',t))return toast('Connect to multiplayer to hit other players.',true);burst(t.rp.root.position.x,t.rp.root.position.y+1.4,t.rp.root.position.z,FIRE_COLS);sfx('hit');}
 }
 const FIRE_COLS = [0xffe36a, 0xff9a00, 0xff4a00], ICE_COLS = [0xffffff, 0x9fe8ff, 0x4fc3f7], SWAP_COLS = [0xffffff, 0xd9a8ff, 0xa24bff];
 function burst(x, y, z, cols) {   // a little puff of flames / ice / sparkles
@@ -1803,9 +1807,10 @@ function botThaw(bot, shatter) {
 }
 function tryFreeze() {
   if (freezeCD > 0 || punchSt.t >= 0) return;
-  const b = nearestBot(16, true); if (!b) return toast('No enemy close enough to freeze!', true);
-  pYaw = Math.atan2(b.pos.x - player.position.x, b.pos.z - player.position.z); player.rotation.y = pYaw; pAnim.pt = 0.3;
-  botFreeze(b, FREEZE_SECS[toolLv('freeze') - 1]); freezeCD = 2;
+  const t=nearestCombatTarget(16,true);if(!t)return toast('No enemy close enough to freeze!',true);
+  const q=t.kind==='bot'?t.bot.pos:t.rp.target;pYaw=Math.atan2(q.x-player.position.x,q.z-player.position.z);player.rotation.y=pYaw;pAnim.pt=0.3;
+  if(t.kind==='bot')botFreeze(t.bot,FREEZE_SECS[toolLv('freeze')-1]);else{if(!sendCombat('freeze',t))return toast('Connect to multiplayer to freeze other players.',true);}
+  freezeCD=2;
 }
 /* ---- portals: F opens the first, F again opens the second; walk into either to come out of the other ---- */
 const portals = { a:null, b:null, wait:0, left:0 };
@@ -2061,6 +2066,10 @@ function syncMyBase(){
 }
 function addRemotePlayer(data){if(!data||!data.id||data.id===netPlayerId)return;let rp=remotePlayers.get(data.id);if(!rp){const root=createPlayerModel(data.gender==='female'?'female':'male');root.position.set(Number(data.x)||0,Number(data.y)||0,Number(data.z)||0);root.rotation.y=Number(data.yaw)||0;scene.add(root);const tex=makeLabel(512,128,c=>outlined(c,data.name||'Player',256,64,58,'#ffffff','#000000',12));const tag=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false}));tag.scale.set(4.2,1.05,1);tag.position.y=3.45;tag.renderOrder=11;root.add(tag);rp={root,tag,baseId:data.baseId,target:{x:Number(data.x)||0,y:Number(data.y)||0,z:Number(data.z)||0,yaw:Number(data.yaw)||0}};remotePlayers.set(data.id,rp);}else{rp.target.x=Number(data.x)||0;rp.target.y=Number(data.y)||0;rp.target.z=Number(data.z)||0;rp.target.yaw=Number(data.yaw)||0;}}
 function removeRemotePlayer(id){const rp=remotePlayers.get(id);if(!rp)return;scene.remove(rp.root);if(rp.tag&&rp.tag.material.map)rp.tag.material.map.dispose();if(rp.tag)rp.tag.material.dispose();remotePlayers.delete(id);}
+function nearestRemote(range){let best=null,bd=range;for(const [id,rp] of remotePlayers){const d=Math.hypot(rp.target.x-player.position.x,rp.target.z-player.position.z);if(d<bd&&Math.abs(rp.target.y-player.position.y)<3){bd=d;best={id,rp,d};}}return best;}
+function applyRemoteCombat(msg){const rp=remotePlayers.get(msg.targetId);if(!rp)return;if(msg.power==='freeze'){if(rp.ice)rp.root.remove(rp.ice);rp.ice=new THREE.Mesh(GEO.b,ICE_MAT);rp.ice.scale.set(2.1,3.2,2.1);rp.ice.position.y=1.3;rp.root.add(rp.ice);rp.frozenUntil=Date.now()+Math.max(1,Number(msg.duration)||3)*1000;burst(rp.root.position.x,rp.root.position.y+1.3,rp.root.position.z,ICE_COLS);sfx('freeze');}else if(msg.power==='punch'){const dx=rp.root.position.x-(Number(msg.x)||0),dz=rp.root.position.z-(Number(msg.z)||0),len=Math.hypot(dx,dz)||1;rp.kx=dx/len*7;rp.kz=dz/len*7;rp.knockUntil=Date.now()+550;burst(rp.root.position.x,rp.root.position.y+1.4,rp.root.position.z,FIRE_COLS);sfx('hit');}}
+function sendCombat(power,target){if(!target||!netSocket||netSocket.readyState!==WebSocket.OPEN)return false;netSocket.send(JSON.stringify({type:'combat',power,targetId:target.id,level:power==='punch'?punchLv():toolLv('freeze')}));return true;}
+
 function netMessage(msg){
  if(msg.type==='joined'){
   netPlayerId=msg.id;server.code=msg.code||server.code;$('inviteCode').textContent=server.code;$('inviteInfo').textContent=(server.mode==='solo'?'Private solo room':'Public online room')+' - share this code with friends.';
@@ -2083,11 +2092,12 @@ function netMessage(msg){
  else if(msg.type==='runner-walk'){receiveRemoteRunner(msg);}
  else if(msg.type==='runner-snipe'){handleRunnerSnipe(msg);}
  else if(msg.type==='runner-end'){removeRemoteRunner(msg.runnerId);}
+ else if(msg.type==='combat'){if(msg.targetId===netPlayerId){if(msg.power==='freeze'){playerFrozenUntil=Date.now()+Math.max(1,Number(msg.duration)||3)*1000;toast('You were frozen by '+(msg.attackerName||'a player')+'!',true,2200);}else if(msg.power==='punch'){const dx=player.position.x-(Number(msg.x)||0),dz=player.position.z-(Number(msg.z)||0),len=Math.hypot(dx,dz)||1;pvx+=dx/len*10;pvz+=dz/len*10;toast('You were hit by '+(msg.attackerName||'a player')+'!',true,1800);}}else applyRemoteCombat(msg);}
  else if(msg.type==='state'){(msg.players||[]).forEach(addRemotePlayer);}
  else if(msg.type==='error'){$('joinErr').textContent=msg.message||'Could not join the online room.';toast(msg.message||'Multiplayer connection error.',true,5000);}
 }
 function connectMultiplayer(mode,inviteCode){try{netSocket=new WebSocket(MULTIPLAYER_SERVER);netSocket.addEventListener('open',()=>{const displayName=curUser&&accounts[curUser]?accounts[curUser].name:'Guest';netSocket.send(JSON.stringify({type:'join',mode,code:inviteCode,name:displayName,gender}));});netSocket.addEventListener('message',e=>{try{netMessage(JSON.parse(e.data));}catch(err){console.warn('Bad multiplayer message',err);}});netSocket.addEventListener('close',()=>{if(serverOn)toast('Disconnected from multiplayer server.',true,4500);});netSocket.addEventListener('error',()=>toast('Could not connect to multiplayer. Check your connection.',true,4500));}catch(err){toast('Your browser could not start multiplayer.',true,4500);}}
-function multiplayerTick(dt){if(netSocket&&netSocket.readyState===WebSocket.OPEN&&netPlayerId){netSendClock+=dt;netBaseClock+=dt;netRunnerClock+=dt;if(netSendClock>=0.08){netSendClock=0;netSocket.send(JSON.stringify({type:'move',x:player.position.x,y:player.position.y,z:player.position.z,yaw:pYaw}));}if(netBaseClock>=0.35){netBaseClock=0;syncMyBase();}if(netRunnerClock>=0.12){netRunnerClock=0;for(const a of walkers)if(a.fresh&&a.netRunnerId)netSocket.send(JSON.stringify({type:'runner-walk',runnerId:a.netRunnerId,cfgId:sid(a.cfg),variant:a.variant||null,x:a.root.position.x,y:a.root.position.y,z:a.root.position.z,yaw:a.yawT||0}));}}for(const rp of remotePlayers.values()){const k=1-Math.exp(-12*dt),t=rp.target;rp.root.position.x+=(t.x-rp.root.position.x)*k;rp.root.position.y+=(t.y-rp.root.position.y)*k;rp.root.position.z+=(t.z-rp.root.position.z)*k;let dy=((t.yaw-rp.root.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;rp.root.rotation.y+=dy*k;}}
+function multiplayerTick(dt){if(netSocket&&netSocket.readyState===WebSocket.OPEN&&netPlayerId){netSendClock+=dt;netBaseClock+=dt;netRunnerClock+=dt;if(netSendClock>=0.08){netSendClock=0;netSocket.send(JSON.stringify({type:'move',x:player.position.x,y:player.position.y,z:player.position.z,yaw:pYaw}));}if(netBaseClock>=0.35){netBaseClock=0;syncMyBase();}if(netRunnerClock>=0.12){netRunnerClock=0;for(const a of walkers)if(a.fresh&&a.netRunnerId)netSocket.send(JSON.stringify({type:'runner-walk',runnerId:a.netRunnerId,cfgId:sid(a.cfg),variant:a.variant||null,x:a.root.position.x,y:a.root.position.y,z:a.root.position.z,yaw:a.yawT||0}));}}for(const rp of remotePlayers.values()){const k=1-Math.exp(-12*dt),t=rp.target;if(rp.frozenUntil&&Date.now()>=rp.frozenUntil){if(rp.ice){rp.root.remove(rp.ice);rp.ice=null;}rp.frozenUntil=0;}const knock=rp.knockUntil&&Date.now()<rp.knockUntil?1:0;rp.root.position.x+=(t.x+((rp.kx||0)*knock-rp.root.position.x+t.x)*0-rp.root.position.x)*k;rp.root.position.x+=(t.x-rp.root.position.x)*k+(rp.kx||0)*knock*dt;rp.root.position.y+=(t.y-rp.root.position.y)*k;rp.root.position.z+=(t.z-rp.root.position.z)*k+(rp.kz||0)*knock*dt;if(!knock){rp.kx=0;rp.kz=0;}let dy=((t.yaw-rp.root.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;rp.root.rotation.y+=dy*k;}}
 window.addEventListener('beforeunload',()=>{try{if(netSocket)netSocket.close();}catch(e){}});
 
 /* ---- accounts: username + password, stored in this browser (there is no game server). Sign in again any time to get your progress back. ---- */
@@ -2464,7 +2474,7 @@ function frame() {
   // Player
   camYaw += ((keys.ArrowLeft ? 1 : 0) - (keys.ArrowRight ? 1 : 0)) * LOOK_SPEED * dt;   // like Roblox: left / right arrows turn the view
   camPitch = Math.max(-0.2, Math.min(1.2, camPitch + ((keys.ArrowDown ? 1 : 0) - (keys.ArrowUp ? 1 : 0)) * TILT_SPEED * dt));   // up arrow looks up, down arrow looks down
-  const fw = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0), rt = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0), fx = Math.sin(camYaw), fz = Math.cos(camYaw);
+  const stunned=Date.now()<playerFrozenUntil;const fw=stunned?0:(keys.KeyW?1:0)-(keys.KeyS?1:0),rt=stunned?0:(keys.KeyD?1:0)-(keys.KeyA?1:0),fx=Math.sin(camYaw),fz=Math.cos(camYaw);
   let mx = fx * fw - fz * rt, mz = fz * fw + fx * rt; const ml = Math.hypot(mx, mz);
   if (ml > 0) { mx /= ml; mz /= ml; }
   const ka = 1 - Math.exp(-9 * dt); pvx += (mx * PLAYER_SPEED * boostMul.speed - pvx) * ka; pvz += (mz * PLAYER_SPEED * boostMul.speed - pvz) * ka;   // eased acceleration
