@@ -23,6 +23,7 @@ function publicPlayer(p) {
     rebirth:p.baseState.rebirth,runners:p.baseState.runners};
 }
 function roomPlayers(room) { return [...room.players.values()].map(publicPlayer); }
+function roomWalkers(room) { return [...room.runners.values()]; }
 function broadcast(room, data, exceptId) {
   for (const p of room.players.values()) if (p.id !== exceptId) send(p.ws, data);
 }
@@ -31,6 +32,7 @@ function leave(ws) {
   clients.delete(ws);
   const room = rooms.get(c.roomId); if (!room) return;
   room.players.delete(c.id);
+  for(const [id,r] of room.runners)if(r.ownerId===c.id){room.runners.delete(id);broadcast(room,{type:"runner-end",runnerId:id});}
   broadcast(room,{type:"player-left",id:c.id,name:c.name,baseId:c.baseId,count:room.players.size});
   if (room.players.size === 0) rooms.delete(c.roomId);
 }
@@ -55,9 +57,9 @@ wss.on("connection",ws=>{
         if(room.mode!==mode)return fail(ws,"That invite code is for a different room type.");
       }else if(mode==="online"){
         room=[...rooms.values()].find(r=>r.mode==="online"&&r.public&&r.players.size<MAX_PLAYERS);
-        if(!room){const id=crypto.randomUUID();room={id,code:makeCode("online"),mode:"online",public:true,players:new Map()};rooms.set(id,room);}
+        if(!room){const id=crypto.randomUUID();room={id,code:makeCode("online"),mode:"online",public:true,players:new Map(),runners:new Map()};rooms.set(id,room);}
       }else{
-        const id=crypto.randomUUID();room={id,code:makeCode("solo"),mode:"solo",public:false,players:new Map()};rooms.set(id,room);
+        const id=crypto.randomUUID();room={id,code:makeCode("solo"),mode:"solo",public:false,players:new Map(),runners:new Map()};rooms.set(id,room);
       }
       if(room.players.size>=MAX_PLAYERS)return fail(ws,"This room is full (8/8).");
       const used=new Set([...room.players.values()].map(p=>p.baseId));
@@ -68,7 +70,7 @@ wss.on("connection",ws=>{
         gender:msg.gender==="female"?"female":"male",x:0,y:0,z:0,yaw:0,roomId:room.id,baseId,
         baseState:{rebirth:0,runners:[]}};
       room.players.set(player.id,player);clients.set(ws,player);
-      send(ws,{type:"joined",id:player.id,code:room.code,baseId,count:room.players.size,players:roomPlayers(room).filter(p=>p.id!==player.id)});
+      send(ws,{type:"joined",id:player.id,code:room.code,baseId,count:room.players.size,players:roomPlayers(room).filter(p=>p.id!==player.id),walkers:roomWalkers(room).filter(r=>r.ownerId!==player.id)});
       broadcast(room,{type:"player-joined",player:publicPlayer(player),count:room.players.size},player.id);
       return;
     }
@@ -78,6 +80,22 @@ wss.on("connection",ws=>{
       const n=v=>Number.isFinite(Number(v))?Math.max(-1000,Math.min(1000,Number(v))):0;
       player.x=n(msg.x);player.y=n(msg.y);player.z=n(msg.z);player.yaw=n(msg.yaw);
       broadcast(room,{type:"state",players:[{id:player.id,name:player.name,gender:player.gender,x:player.x,y:player.y,z:player.z,yaw:player.yaw,baseId:player.baseId}]},player.id);
+    }else if(msg.type==="runner-walk"){
+      const id=String(msg.runnerId||"");if(!id||!id.startsWith(player.id+":"))return;
+      const cfgId=String(msg.cfgId||"").slice(0,48);if(!cfgId)return;
+      const prev=room.runners.get(id);
+      const runner={type:"runner-walk",runnerId:id,ownerId:player.id,ownerName:player.name,ownerBaseId:player.baseId,cfgId,
+        variant:msg.variant==="GOLD"||msg.variant==="DIAMOND"?msg.variant:null,
+        x:Number(msg.x)||0,y:Number(msg.y)||0,z:Number(msg.z)||0,yaw:Number(msg.yaw)||0};
+      room.runners.set(id,runner);broadcast(room,runner,player.id);
+    }else if(msg.type==="runner-snipe"){
+      const id=String(msg.runnerId||""),runner=room.runners.get(id);
+      if(!runner||runner.ownerId===player.id)return fail(ws,"That Show Runner is no longer available.");
+      runner.ownerId=player.id;runner.ownerName=player.name;runner.ownerBaseId=player.baseId;
+      broadcast(room,{type:"runner-snipe",runnerId:id,ownerId:runner.ownerId===player.id?undefined:runner.ownerId,buyerId:player.id,buyerName:player.name,ownerName:player.name,cfgId:runner.cfgId,variant:runner.variant,x:runner.x,y:runner.y,z:runner.z});
+    }else if(msg.type==="runner-end"){
+      const id=String(msg.runnerId||""),runner=room.runners.get(id);
+      if(runner&&runner.ownerId===player.id){room.runners.delete(id);broadcast(room,{type:"runner-end",runnerId:id});}
     }else if(msg.type==="base-state"){
       const rebirth=Math.max(0,Math.min(20,Math.floor(Number(msg.rebirth)||0)));
       const runners=Array.isArray(msg.runners)?msg.runners.slice(0,40).map(r=>({
