@@ -2123,7 +2123,7 @@ function netMessage(msg){
   (msg.walkers||[]).forEach(receiveRemoteRunner);
   restoreProgress();passOnStart();syncMyBase();toast('Connected! Invite code: '+server.code,false,4500);
  }else if(msg.type==='player-joined'){
-  const p=msg.player;addRemotePlayer(p);removeBotAtBase(p&&p.baseId);if(p&&p.baseId!==undefined){setBaseOwnerLabel(bases[p.baseId],(p.name||'Player')+"'s Base",false);applyRemoteBaseState(p);}toast((p&&p.name||'A player')+' joined!',false,3000);
+  const p=msg.player;addRemotePlayer(p);removeBotAtBase(p&&p.baseId);if(p&&p.baseId!==undefined){setBaseOwnerLabel(bases[p.baseId],(p.name||'Player')+"'s Base",false);applyRemoteBaseState(p);}netBaseSignature='';syncMyBase();toast((p&&p.name||'A player')+' joined!',false,3000);
  }else if(msg.type==='player-left'){
   const old=remotePlayers.get(msg.id);removeRemotePlayer(msg.id);if(old&&old.baseId!==undefined)clearRemoteBase(msg.id,old.baseId);
   const pBase=Number(msg.baseId);if(Number.isInteger(pBase)&&bases[pBase]){resetBaseToZero(bases[pBase]);setBaseOwnerLabel(bases[pBase],'Empty Base',false);}
