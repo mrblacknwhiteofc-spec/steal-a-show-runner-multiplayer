@@ -20,7 +20,7 @@ function makeCode(mode) {
 function send(ws, data) { if (ws.readyState === 1) ws.send(JSON.stringify(data)); }
 function publicPlayer(p) {
   return {id:p.id,name:p.name,gender:p.gender,x:p.x,y:p.y,z:p.z,yaw:p.yaw,baseId:p.baseId,
-    rebirth:p.baseState.rebirth,runners:p.baseState.runners};
+    anim:p.anim||"idle",animSpeed:p.animSpeed||0,rebirth:p.baseState.rebirth,runners:p.baseState.runners};
 }
 function roomPlayers(room) { return [...room.players.values()].map(publicPlayer); }
 function roomWalkers(room) { return [...room.runners.values()]; }
@@ -68,7 +68,7 @@ wss.on("connection",ws=>{
       const player={id:crypto.randomUUID(),ws,
         name:String(msg.name||"Guest").replace(/[^A-Za-z0-9_ -]/g,"").slice(0,16)||"Guest",
         gender:msg.gender==="female"?"female":"male",x:0,y:0,z:0,yaw:0,roomId:room.id,baseId,
-        baseState:{rebirth:0,runners:[]}};
+        baseState:{rebirth:0,runners:[]},anim:"idle",animSpeed:0};
       room.players.set(player.id,player);clients.set(ws,player);
       send(ws,{type:"joined",id:player.id,code:room.code,baseId,count:room.players.size,players:roomPlayers(room).filter(p=>p.id!==player.id),walkers:roomWalkers(room).filter(r=>r.ownerId!==player.id)});
       broadcast(room,{type:"player-joined",player:publicPlayer(player),count:room.players.size},player.id);
