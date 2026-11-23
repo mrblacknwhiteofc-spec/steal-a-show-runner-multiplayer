@@ -79,7 +79,7 @@ wss.on("connection",ws=>{
     if(msg.type==="move"){
       const n=v=>Number.isFinite(Number(v))?Math.max(-1000,Math.min(1000,Number(v))):0;
       player.x=n(msg.x);player.y=n(msg.y);player.z=n(msg.z);player.yaw=n(msg.yaw);
-      player.anim=msg.anim==="walk"?"walk":"idle";player.animSpeed=Math.max(0,Math.min(1,Number(msg.animSpeed)||0));
+      player.anim=["walk","jump","fall","crouch","land"].includes(msg.anim)?msg.anim:"idle";player.animSpeed=Math.max(0,Math.min(1,Number(msg.animSpeed)||0));
       broadcast(room,{type:"state",players:[{id:player.id,name:player.name,gender:player.gender,x:player.x,y:player.y,z:player.z,yaw:player.yaw,baseId:player.baseId,anim:player.anim,animSpeed:player.animSpeed}]},player.id);
     }else if(msg.type==="combat"){
       const target=room.players.get(String(msg.targetId||""));
