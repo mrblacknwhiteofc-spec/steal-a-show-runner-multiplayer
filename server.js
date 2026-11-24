@@ -60,13 +60,13 @@ const server=http.createServer(async (req,res)=>{
       if(!/^[A-Za-z0-9_]{3,16}$/.test(name)||pw.length<4)return sendJSON(res,400,{error:"Use a 3-16 character username and password of at least 4 characters."});
       if(accountDB.users[key])return sendJSON(res,409,{error:"That username is already taken."});
       const salt=crypto.randomBytes(16).toString("hex"), hash=crypto.scryptSync(pw,salt,64).toString("hex");
-      accountDB.users[key]={name,salt,hash,save:{},created:Date.now()}; const token=issueToken(key);
+      const initial=(b.migrate===true && b.initialSave && typeof b.initialSave==="object" && !Array.isArray(b.initialSave))?b.initialSave:{}; accountDB.users[key]={name,salt,hash,save:initial,created:Date.now()}; const token=issueToken(key);
       return sendJSON(res,201,{token,username:name,save:{}});
     } catch(e){return sendJSON(res,400,{error:"Could not create account."});}
   }
   if(req.method==="POST" && req.url==="/api/login"){
     try { const b=await readBody(req), key=String(b.username||"").trim().toLowerCase(), pw=String(b.password||""), u=accountDB.users[key];
-      if(!u || crypto.scryptSync(pw,u.salt,64).toString("hex")!==u.hash)return sendJSON(res,401,{error:"Incorrect username or password."});
+      if(!u)return sendJSON(res,404,{error:"Account not found."}); if(crypto.scryptSync(pw,u.salt,64).toString("hex")!==u.hash)return sendJSON(res,401,{error:"Incorrect username or password."});
       const token=issueToken(key); return sendJSON(res,200,{token,username:u.name,save:u.save||{}});
     } catch(e){return sendJSON(res,400,{error:"Could not sign in."});}
   }
