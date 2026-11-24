@@ -1,6 +1,19 @@
 const http = require("http");
 const { WebSocketServer } = require("ws");
 const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
+
+// Durable account database. On Render, mount a persistent disk at /var/data and set DATA_DIR=/var/data.
+const DATA_DIR = process.env.DATA_DIR || __dirname;
+const DATA_FILE = path.join(DATA_DIR, "sasr-accounts.json");
+let accountDB = { users: {}, tokens: {} };
+try { fs.mkdirSync(DATA_DIR, { recursive: true }); if (fs.existsSync(DATA_FILE)) accountDB = JSON.parse(fs.readFileSync(DATA_FILE, "utf8")); } catch (e) { console.error("Could not load account database:", e.message); }
+function saveAccountDB() { const tmp = DATA_FILE + ".tmp"; fs.writeFileSync(tmp, JSON.stringify(accountDB)); fs.renameSync(tmp, DATA_FILE); }
+function accountToken(ws) { const h = String(ws || "").replace(/^Bearer\\s+/i, ""); return accountDB.tokens[crypto.createHash("sha256").update(h).digest("hex")]; }
+function sendJSON(res, status, data) { res.writeHead(status, { "content-type":"application/json", "access-control-allow-origin":"*", "access-control-allow-headers":"content-type, authorization", "access-control-allow-methods":"GET, POST, OPTIONS" }); res.end(JSON.stringify(data)); }
+function readBody(req) { return new Promise((resolve,reject)=>{ let b=""; req.on("data",c=>{ b+=c; if(b.length>1100000) reject(new Error("Request too large")); }); req.on("end",()=>{ try{resolve(JSON.parse(b||"{}"));}catch(e){reject(e);} }); req.on("error",reject); }); }
+function issueToken(username) { const token=crypto.randomBytes(32).toString("hex"); accountDB.tokens[crypto.createHash("sha256").update(token).digest("hex")]=username; saveAccountDB(); return token; }
 
 const PORT = process.env.PORT || 3000;
 const MAX_PLAYERS = 8;
@@ -37,7 +50,35 @@ function leave(ws) {
   if (room.players.size === 0) rooms.delete(c.roomId);
 }
 function fail(ws,message){send(ws,{type:"error",message});}
-const server=http.createServer((req,res)=>{
+const server=http.createServer(async (req,res)=>{
+  res.setHeader("access-control-allow-origin","*");
+  res.setHeader("access-control-allow-headers","content-type, authorization");
+  res.setHeader("access-control-allow-methods","GET, POST, OPTIONS");
+  if(req.method==="OPTIONS"){res.writeHead(204);return res.end();}
+  if(req.method==="POST" && req.url==="/api/register"){
+    try { const b=await readBody(req), name=String(b.username||"").trim(), key=name.toLowerCase(), pw=String(b.password||"");
+      if(!/^[A-Za-z0-9_]{3,16}$/.test(name)||pw.length<4)return sendJSON(res,400,{error:"Use a 3-16 character username and password of at least 4 characters."});
+      if(accountDB.users[key])return sendJSON(res,409,{error:"That username is already taken."});
+      const salt=crypto.randomBytes(16).toString("hex"), hash=crypto.scryptSync(pw,salt,64).toString("hex");
+      accountDB.users[key]={name,salt,hash,save:{},created:Date.now()}; const token=issueToken(key);
+      return sendJSON(res,201,{token,username:name,save:{}});
+    } catch(e){return sendJSON(res,400,{error:"Could not create account."});}
+  }
+  if(req.method==="POST" && req.url==="/api/login"){
+    try { const b=await readBody(req), key=String(b.username||"").trim().toLowerCase(), pw=String(b.password||""), u=accountDB.users[key];
+      if(!u || crypto.scryptSync(pw,u.salt,64).toString("hex")!==u.hash)return sendJSON(res,401,{error:"Incorrect username or password."});
+      const token=issueToken(key); return sendJSON(res,200,{token,username:u.name,save:u.save||{}});
+    } catch(e){return sendJSON(res,400,{error:"Could not sign in."});}
+  }
+  if(req.method==="POST" && req.url==="/api/save"){
+    try { const key=accountToken(req.headers.authorization); if(!key||!accountDB.users[key])return sendJSON(res,401,{error:"Please sign in again."});
+      const b=await readBody(req); if(!b.save||typeof b.save!=="object"||Array.isArray(b.save))return sendJSON(res,400,{error:"Invalid save data."});
+      accountDB.users[key].save=b.save; accountDB.users[key].updated=Date.now(); saveAccountDB(); return sendJSON(res,200,{ok:true});
+    } catch(e){return sendJSON(res,400,{error:"Could not save progress."});}
+  }
+  if(req.method==="POST" && req.url==="/api/logout"){
+    try { const raw=String(req.headers.authorization||"").replace(/^Bearer\\s+/i,""), h=crypto.createHash("sha256").update(raw).digest("hex"); delete accountDB.tokens[h]; saveAccountDB(); return sendJSON(res,200,{ok:true}); } catch(e){return sendJSON(res,200,{ok:true});}
+  }
   if(req.url==="/health"||req.url==="/"){
     res.writeHead(200,{"content-type":"application/json"});
     res.end(JSON.stringify({ok:true,service:"Steal a Show Runner multiplayer",rooms:rooms.size,players:clients.size}));
