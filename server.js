@@ -10,7 +10,7 @@ const DATA_FILE = path.join(DATA_DIR, "sasr-accounts.json");
 let accountDB = { users: {}, tokens: {} };
 try { fs.mkdirSync(DATA_DIR, { recursive: true }); if (fs.existsSync(DATA_FILE)) accountDB = JSON.parse(fs.readFileSync(DATA_FILE, "utf8")); } catch (e) { console.error("Could not load account database:", e.message); }
 function saveAccountDB() { const tmp = DATA_FILE + ".tmp"; fs.writeFileSync(tmp, JSON.stringify(accountDB)); fs.renameSync(tmp, DATA_FILE); }
-function accountToken(ws) { const h = String(ws || "").replace(/^Bearer\\s+/i, ""); return accountDB.tokens[crypto.createHash("sha256").update(h).digest("hex")]; }
+function accountToken(ws) { const h = String(ws || "").replace(/^Bearer\s+/i, ""); return accountDB.tokens[crypto.createHash("sha256").update(h).digest("hex")]; }
 function sendJSON(res, status, data) { res.writeHead(status, { "content-type":"application/json", "access-control-allow-origin":"*", "access-control-allow-headers":"content-type, authorization", "access-control-allow-methods":"GET, POST, OPTIONS" }); res.end(JSON.stringify(data)); }
 function readBody(req) { return new Promise((resolve,reject)=>{ let b=""; req.on("data",c=>{ b+=c; if(b.length>1100000) reject(new Error("Request too large")); }); req.on("end",()=>{ try{resolve(JSON.parse(b||"{}"));}catch(e){reject(e);} }); req.on("error",reject); }); }
 function issueToken(username) { const token=crypto.randomBytes(32).toString("hex"); accountDB.tokens[crypto.createHash("sha256").update(token).digest("hex")]=username; saveAccountDB(); return token; }
@@ -77,7 +77,7 @@ const server=http.createServer(async (req,res)=>{
     } catch(e){return sendJSON(res,400,{error:"Could not save progress."});}
   }
   if(req.method==="POST" && req.url==="/api/logout"){
-    try { const raw=String(req.headers.authorization||"").replace(/^Bearer\\s+/i,""), h=crypto.createHash("sha256").update(raw).digest("hex"); delete accountDB.tokens[h]; saveAccountDB(); return sendJSON(res,200,{ok:true}); } catch(e){return sendJSON(res,200,{ok:true});}
+    try { const raw=String(req.headers.authorization||"").replace(/^Bearer\s+/i,""), h=crypto.createHash("sha256").update(raw).digest("hex"); delete accountDB.tokens[h]; saveAccountDB(); return sendJSON(res,200,{ok:true}); } catch(e){return sendJSON(res,200,{ok:true});}
   }
   if(req.url==="/health"||req.url==="/"){
     res.writeHead(200,{"content-type":"application/json"});
