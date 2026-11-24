@@ -61,7 +61,7 @@ const server=http.createServer(async (req,res)=>{
       if(accountDB.users[key])return sendJSON(res,409,{error:"That username is already taken."});
       const salt=crypto.randomBytes(16).toString("hex"), hash=crypto.scryptSync(pw,salt,64).toString("hex");
       const initial=(b.migrate===true && b.initialSave && typeof b.initialSave==="object" && !Array.isArray(b.initialSave))?b.initialSave:{}; accountDB.users[key]={name,salt,hash,save:initial,created:Date.now()}; const token=issueToken(key);
-      return sendJSON(res,201,{token,username:name,save:{}});
+      return sendJSON(res,201,{token,username:name,save:initial});
     } catch(e){return sendJSON(res,400,{error:"Could not create account."});}
   }
   if(req.method==="POST" && req.url==="/api/login"){
